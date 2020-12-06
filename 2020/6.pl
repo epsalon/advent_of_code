@@ -7,18 +7,25 @@ my $qc = 0;
 
 my %Q;
 
+sub onEnd {
+  for my $v (values(%Q)) {
+    $c++ if ($v==$qc);
+  }
+  %Q = (); $qc = -1;
+}
+
 while (<>) {
+  print;
   chomp;
   for  my $x (split('', $_)) {
     $Q{$x}++;
   }
-  $qc++;
   if (m/^$/o) {
-    for my $v (values(%Q)) {
-      $c++ if ($v==$qc-1);
-    }
-    %Q = (); $qc = 0;
+    onEnd();
   }
+  $qc++;
 }
+
+onEnd();
 
 print "$c\n";
