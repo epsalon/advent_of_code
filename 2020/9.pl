@@ -2,49 +2,56 @@
 use strict;
 use Data::Dumper;
 
-my @PROG;
+my @prev;
+
+sub chk {
+  for my $i (0..$#prev-1) {
+    for my $j ($i..$#prev) {
+      if ($_ == $prev[$i] + $prev[$j]) {
+        return 1;
+      }
+    }
+  }
+  return 0;
+}
+
+my @arr;
+my $res;
 
 while (<>) {
-  print;
   chomp;
-  push @PROG, $_;
-}
-
-sub run {
-  my @PROG = @_;
-  my %SEEN;
-  my $pc = 0;
-  my $acc = 0;
-
-  while (!$SEEN{$pc}) {
-    $SEEN{$pc}++;
-    if ($pc > $#PROG) {
-      return $acc;
+  push @arr, $_;
+  if (@prev == 25) {
+    unless (chk()) {
+      print "RESULT = $_\n";
+      $res = $_ unless $res;
     }
-    my $inst = $PROG[$pc];
-    $inst =~ m{^(\w+)\s+([-+]\d+)$};
-    my ($opc, $arg) = ($1, $2);
-    if ($opc eq "acc") {
-      $acc += $arg;
-    } elsif ($opc eq "jmp") {
-      $pc += $arg - 1;
-    }
-    $pc++;
   }
-  return "fail";
-}
-
-for my $i (0..$#PROG) {
-  next if ($PROG[$i] =~ /acc/);
-  my @tmp = @PROG;
-  $_ = $PROG[$i];
-  s/jmp/tmp/;
-  s/nop/jmp/;
-  s/tmp/nop/;
-  $tmp[$i] = $_;
-  my $res = run(@tmp);
-  if ($res ne 'fail') {
-    print "$res\n";
+  push @prev, $_;
+  if (@prev > 25) {
+    shift @prev;
   }
 }
 
+for my $i (0..$#arr-1) {
+  my $sum = $arr[$i];
+  my $min = $sum;
+  my $max = $sum;
+  for my $j ($i+1..$#arr) {
+    if ($arr[$j] > $max) {
+      $max=$arr[$j];
+    }
+    if ($arr[$j] < $min) {
+      $min=$arr[$j];
+    }
+    $sum += $arr[$j];
+    if ($sum == $res) {
+      print "i=$i j=$j sum=$sum\n";
+      print $min+$max,"\n";
+      exit;
+    }
+    if ($sum > $res) {
+      last;
+    }
+  }
+}
