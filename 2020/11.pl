@@ -65,7 +65,7 @@ while ($ch) {
     }
   }
   @m = @new;
-  print join("\n", map {join ('', @$_)} @m), "\n\n$ch\n\n";
+  #print join("\n", map {join ('', @$_)} @m), "\n\n$ch\n\n";
 }
 
 my $count = 0;

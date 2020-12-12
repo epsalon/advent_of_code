@@ -1,0 +1,28 @@
+digraph {
+graph [overlap=false]
+node [shape=doublecircle];
+"warnings::register" -> "warnings";
+"strict" -> "strict";
+"Exporter" -> "Exporter";
+"main" -> "main";
+"Carp" -> "overloading";
+"overloading" -> "warnings";
+"warnings" -> "warnings";
+"constant" -> "mro";
+"Data::Dumper" -> "constant";
+"main" -> "Exporter";
+"constant" -> "constant";
+"Carp" -> "Carp";
+"constant" -> "Internals";
+"constant" -> "strict";
+"Data::Dumper" -> "XSLoader";
+"main" -> "Data::Dumper";
+"Data::Dumper" -> "bytes";
+"constant" -> "warnings::register";
+"main" -> "strict";
+"constant" -> "warnings";
+"Carp" -> "warnings";
+"Data::Dumper" -> "Data::Dumper";
+"Carp" -> "strict";
+"Data::Dumper" -> "Carp";
+}
