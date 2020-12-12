@@ -17,7 +17,7 @@ while (<>) {
     if ($cmd eq 'R') {
       $val = -$val;
     }
-    $dir *= i ** ($val/90);
+    $dir *= i ** ($val/90.0);
   }
 }
 
