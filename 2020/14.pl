@@ -2,8 +2,14 @@
 use strict;
 use Data::Dumper;
 use feature 'say';
-#use bigint;
+use Clipboard;
 no warnings;
+
+sub out {
+  my $out = shift;
+  Clipboard->copy_to_all_selections($out);
+  print "$out\n";
+}
 
 my %MEM;
 
@@ -50,4 +56,4 @@ while (my ($k,$v) = each(%MEM)) {
   $sum += $v;
 }
 
-say $sum;
+out $sum;
