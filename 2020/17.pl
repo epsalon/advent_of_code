@@ -4,6 +4,7 @@ use Data::Dumper;
 use feature 'say';
 use Clipboard;
 use List::Util qw/sum/;
+use Math::Cartesian::Product;
 
 sub out {
   my $out = shift;
@@ -11,26 +12,15 @@ sub out {
   print "$out\n";
 }
 
-sub get_neigh {
-  my ($x,$y,$z,$w) = @_;
+sub get_neigh {  # includes self
+  my @p = map {[$_-1,$_,$_+1]} @_;
   my @out;
-  for my $xa ($x-1..$x+1) {
-    for my $ya ($y-1..$y+1) {
-      for my $za ($z-1..$z+1) {
-        for my $wa ($w-1..$w+1) {
-          next if ($x == $xa && $y == $ya && $z == $za && $w == $wa);
-          push @out, "$xa,$ya,$za,$wa";
-        }
-      }
-    }
-  }
+  cartesian {push @out, join(",", @_)} @p;
   return @out;
 }
 
 my $res = 0;
-
 my %GRID;
-
 my $y=0;
 while(<>) {
   chomp;
@@ -50,7 +40,7 @@ for my $i (0..5) {
     for my $n (get_neigh(split(/,/,$k))) {
       $counts{$n}+=2;
     }
-    $counts{$k}++;
+    $counts{$k}--;
   }
   %GRID=();
   while (my ($k,$v) = each %counts) {
