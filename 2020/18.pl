@@ -14,20 +14,7 @@ sub out {
 
 sub myeval {
   my $x = shift;
-  while ($x=~m{\(}o) {
-    my $pre = $`;
-    my $post = $';
-    my $p=1;
-    my $o='';
-    for my $c (split('',$post)) {
-      $p++ if ($c eq '(');
-      $p-- if ($c eq ')');
-      last unless $p;
-      $o.=$c;
-    }
-    my $acc = myeval($o);
-    $x="$pre$acc".substr($post,length($o)+1);
-  }
+  while ($x=~s{\(([^\(\)]+)\)}{myeval($1)}goe) {};
   my @subs = map {eval($_)} split(/ \* /,$x);
   my $pr = 1;
   for my $s (@subs) {
