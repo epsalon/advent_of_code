@@ -1,32 +1,29 @@
 #!/usr/bin/perl -w
 use strict;
-use Data::Dumper;
 use feature 'say';
-use Clipboard;
-use List::Util qw/sum/;
-use Math::Cartesian::Product;
 
-sub out {
-  my $out = shift;
-  Clipboard->copy_to_all_selections($out);
-  print "$out\n";
+sub myeval2 {
+  local $_ = @_ ? shift : $_;
+  while (s{\(([^\(\)]+)\)}{myeval2($1)}goe) {};
+  while (s{(\d+ \+ \d+)}{eval($1)}oe) {};
+  while (s{(\d+ \* \d+)}{eval($1)}oe) {};
+  return $_;
 }
 
-sub myeval {
-  my $x = shift;
-  while ($x=~s{\(([^\(\)]+)\)}{myeval($1)}goe) {};
-  my @subs = map {eval($_)} split(/ \* /,$x);
-  my $pr = 1;
-  for my $s (@subs) {
-    $pr *= $s;
-  }
-  return $pr;
+sub myeval1 {
+  local $_ = @_ ? shift : $_;
+  while (s{\(([^\(\)]+)\)}{myeval1($1)}goe) {};
+  while (s{(\d+ [\+\*] \d+)}{eval($1)}oe) {};
+  return $_;
 }
 
-my $res = 0;
+my $res1 = 0;
+my $res2 = 0;
 while(<>) {
   chomp;
-  $res += myeval($_);
+  $res1 += myeval1;
+  $res2 += myeval2;
 }
 
-out $res;
+say $res1;
+say $res2;
