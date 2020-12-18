@@ -29,7 +29,6 @@ sub get_neigh {
 
 my $res = 0;
 
-my ($minx,$miny,$minz,$minw,$maxx,$maxy,$maxz,$maxw) = (0,0,0,0,0,0,0,0);
 my %GRID;
 
 my $y=0;
@@ -40,32 +39,25 @@ while(<>) {
     $GRID{"$x,$y,0,0"} = 1 if ($c eq '#');
     $x++;
   }
-  $maxx=$x;
   $y++;
 }
 
-$maxy=$y;
 
 for my $i (0..5) {
-  $minx--; $miny--; $minz--; $minw--;
-  $maxx++; $maxy++; $maxz++; $maxw++;
   # iteration
-  my %next;
-  $res = 0;
-  for my $x ($minx..$maxx) {
-    for my $y ($miny..$maxy) {
-      for my $z ($minz..$maxz) {
-        for my $w ($minw..$maxw) {
-          my $ncount = sum(map {$GRID{$_} || 0} get_neigh($x,$y,$z,$w));
-          if ($ncount == 3 || ($ncount == 2 && $GRID{"$x,$y,$z,$w"})) {
-            $next{"$x,$y,$z,$w"} = 1;
-            $res++;
-          }
-        }
-      }
+  my %counts;
+  for my $k (keys %GRID) {
+    for my $n (get_neigh(split(/,/,$k))) {
+      $counts{$n}+=2;
+    }
+    $counts{$k}++;
+  }
+  %GRID=();
+  while (my ($k,$v) = each %counts) {
+    if ($v >= 5 && $v <= 7) {
+      $GRID{$k}++;
     }
   }
-  %GRID=%next;
 }
 
-out $res;
+out scalar(%GRID);
