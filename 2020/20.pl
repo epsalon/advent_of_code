@@ -69,8 +69,6 @@ while(<>) {
   $TILES{$tn} = [\@T, \@T1, \@T2, \@T3, \@T4, \@T5, \@T6, \@T7];
 }
 
-print Dumper(\%TILES);
-
 my %CORNERS;
 
 my $corner;
@@ -79,7 +77,6 @@ for my $k (keys %TILES) {
   my $v = $TILES{$k};
   my @sides = 
     ($v->[0]->[0], $v->[0]->[-1], $v->[1]->[0], $v->[1]->[-1]);
-  print "$k ", join(' ',@sides),"\n";
   my $unmatched = 0;
   my @ms;
   for my $s (@sides) {
@@ -100,7 +97,6 @@ for my $k (keys %TILES) {
     push @ms, $match;
     $unmatched++ unless $match;
   }
-  say "$k $unmatched";
   if ($unmatched == 2) {
     $res *= $k;
     $CORNERS{$k}++;
@@ -112,8 +108,6 @@ for my $k (keys %TILES) {
 
 out ($res);
 
-out ($corner);
-
 my $SIZE = int(sqrt(%TILES));
 
 my @GRID = ([$TILES{$corner}->[0]]);
@@ -123,19 +117,16 @@ delete $TILES{$corner};
 sub fillrow {
   my $row = shift;
   while (@$row < $SIZE) {
-    say scalar(@$row), $SIZE;
+    #say scalar(@$row), $SIZE;
     my $t = $row->[-1];
     my @rt = rotate(@$t);
     my $s = $rt[-1];
-    say "S = $s";
     TLOOP: for my $ok (keys %TILES) {
       my $ov = $TILES{$ok};
       for my $r (@$ov) {
         if ($r->[0] eq $s) {
           my @rtr = rotn($r,3);
           push @$row, \@rtr;
-          say "  found $ok";
-          print Dumper(\@rtr);
           delete $TILES{$ok};
           last TLOOP;
         }
@@ -151,8 +142,6 @@ sub startrow {
     my $ov = $TILES{$ok};
     for my $r (@$ov) {
       if ($r->[0] eq $s) {
-        say "row found $ok";
-        print Dumper($r);
         delete $TILES{$ok};
         return $r;
       }
@@ -160,15 +149,11 @@ sub startrow {
   }
 }
 
-print Dumper(\@GRID);
-
 fillrow($GRID[0]);
 while (@GRID < $SIZE) {
   push @GRID, [ startrow($GRID[-1][0]) ];
   fillrow($GRID[-1]);
 }
-
-print Dumper(\@GRID);
 
 ## CLEAN GRID
 my @CG;
