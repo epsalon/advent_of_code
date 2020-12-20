@@ -205,6 +205,7 @@ sub findsm {
     }
   }
   return 0 unless $smcount;
+  say "$smcount monsters";
   @CG = map {join('', @$_)} @TG;
   my $hcount = 0;
   for my $r (@TG) {
@@ -225,6 +226,6 @@ for (;;) {
   @CG = rotate(@CG);
 }
 
-print Dumper(\@CG);
+say join("\n",@CG);
 
 out($hcount);
