@@ -13,34 +13,65 @@ sub out {
 }
 
 my $res = 0;
+my %ING;
 my %ALL;
-my @INP;
 while(<>) {
   chomp;
   m{^([\w\s]+)\(contains ([\w\s,]+)\)$}o or die;
   my @ilist = split(' ', $1);
+  for my $i (@ilist) {
+    $ING{$i}++;
+  }
   my @alist = split(/,\s+/, $2);
   for my $a (@alist) {
-    $ALL{$a}++;
-  }
-  my %ahash = map {$_ => 1} @alist;
-  push @INP, [\@ilist, \%ahash];
-}
-
-my %IALL;
-for my $l (@INP) {
-  my ($ilist, $ahash) = @$l;
-  for my $i (@$ilist) {
-    for my $a (keys %ALL) {
-      $IALL{$i}{$a}++ unless $ahash->{$i};
+    my %ihash = map {$_ => 1} @ilist;
+    unless ($ALL{$a}) {
+      $ALL{$a} = \%ihash;
+    } else {
+      foreach (keys %{$ALL{$a}}){
+        delete $ALL{$a}{$_} unless $ihash{$_};
+      }
     }
   }
 }
 
-print Dumper(\%IALL);
+print Dumper(\%ALL);
 
-for my $v (values %IALL) {
-  $res++ if (%$v == %ALL)
+for my $i (keys %ING) {
+  my $good = 1;
+  for my $a (values %ALL) {
+    if ($a->{$i}) {
+      $good = 0;
+      last;
+    }
+  }
+  $res+= $ING{$i} if $good;
 }
 
 out ($res);
+
+my %RES;
+
+while (%ALL) {
+  my ($i, $a); 
+  while (my ($k, $v) = each %ALL) {
+    if (%$v == 1) {
+      ($i) = keys %$v;
+      $a = $k;
+      last;
+    }
+  }
+  $RES{$a} = $i;
+  delete $ALL{$a};
+  for my $data (values %ALL) {
+    delete $data->{$i};
+  }
+}
+
+print Dumper(\%RES);
+
+my @alist = map {$RES{$_}} (sort(keys %RES));
+
+$res = join(',', @alist);
+
+out $res;
