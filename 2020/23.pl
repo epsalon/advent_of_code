@@ -16,40 +16,48 @@ my $res = 0;
 
 my @A=split('','716892543');
 
-for my $i (10..1e6) {
+my $MAX = 1e6;
+
+#my $MAX = 9;
+
+for my $i (10..$MAX) {
   push @A, $i;
 }
 
-my %IDX;
-
-for my $i (0..$#A) {
-  $IDX{$A[$i]} = $i;
+my @N;
+push @N, 'BAD';
+$N[$A[$#A]] = $A[0];
+for my $i (1..$#A) {
+  $N[$A[$i-1]] = $A[$i];
 }
 
-my $offset = 0;
+my $ptr = $A[0];
+sub cycle {
+  my $pptr = $ptr;
+  $ptr = $N[$ptr];
+  return $pptr;
+}
+
+sub inlist {
+  my ($el, $list) = @_;
+  for my $x (@$list) {
+    return 1 if ($x == $el);
+  }
+  return 0;
+}
 
 for my $i (1..1e7) {
-  say $i unless ($i % 1e6);
-  my $ccup = shift @A;
-  push @A, $ccup;
-  $IDX{$ccup} = 1e6-1 + $offset;
-  my @move = splice(@A,0,3);
-  $offset+=4;
-  my $found = 0;
-  my $pcup = $ccup;
-  while (!$found) {
-    $ccup--;
-    $ccup = 1e6 if ($ccup == 0);
-    $found = $IDX{$ccup}-$offset + 1 unless $ccup == $move[0] || $ccup == $move[1] || $ccup == $move[2];
-  }
-  splice(@A,$found,0,@move);
-  for my $i (0..$#move) {
-    $IDX{$move[$i]} = 1e6 - 4 + $i + $offset;
-  }
+  my $ccup = cycle;
+  my @move;
+  push @move, cycle();
+  push @move, cycle();
+  push @move, cycle();
+  my $ncup = $ccup;
+  do {
+    $ncup--;
+    $ncup = $MAX if ($ncup == 0);
+  } while (inlist($ncup, \@move));
+  ($N[$ncup], $N[$move[-1]], $N[$ccup]) = ($N[$ccup], $N[$ncup], $N[$move[-1]]);
 }
 
-my $loc = $IDX{1} - $offset;
-
-$res = $A[$loc+1] * $A[$loc+2];
-
-out $res;
+out ($N[1] * $N[$N[1]]);
