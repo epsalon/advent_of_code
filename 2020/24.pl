@@ -28,6 +28,38 @@ my %SHIFTY = ('e',0,'w',0,'nw',1,'ne',1,'sw',-1,'se',-1);
 
 my %TILES;
 
+sub viz {
+  my @grid;
+  my ($minx,$miny,$maxx) = (0,0,0);
+  for my $k (keys %TILES) {
+    $k =~ /^(.+),(.+)$/ or die "$k";
+    my ($x,$y) = ($1,$2);
+    $maxx = $x if ($x > $maxx);
+    $minx = $x if ($x < $minx);
+    $miny = $y if ($y < $miny);
+  }
+  for my $k (keys %TILES) {
+    $k =~ /^(.+),(.+)$/ or die "$k";
+    my ($x,$y) = ($1-$minx,$2-$miny);
+    $grid[$y]->[$x] = 'X';
+  }
+  my $parity = $miny & 1;
+  my $r = $miny;
+  for my $row (@grid) {
+    printf "%4d ", $r++;
+    $parity = !$parity;
+    my $p = $parity;
+    next unless $row;
+    for my $c (0..$maxx - $minx) {
+      my $col = $row->[$c];
+      print (($col || ($p ? ' ' : '.')));
+      $p = !$p;
+    }
+  } continue {
+    print "\n";
+  }
+}
+
 while (<>) {
   chomp;
   last if /^$/o;
@@ -45,6 +77,8 @@ while (<>) {
 }
 
 out ($res);
+
+viz();
 
 for my $gen (0..99) {
   my %neigh;
@@ -67,3 +101,5 @@ for my $gen (0..99) {
   %TILES = %ntiles;
   out scalar(%TILES);
 }
+
+viz();
