@@ -29,8 +29,9 @@ my %SHIFTY = ('e',0,'w',0,'nw',1,'ne',1,'sw',-1,'se',-1);
 my %TILES;
 
 sub viz {
+  say "---------------------------------";
   my @grid;
-  my ($minx,$miny,$maxx) = (0,0,0);
+  my ($minx,$miny,$maxx) = (-67,-47,0);
   for my $k (keys %TILES) {
     $k =~ /^(.+),(.+)$/ or die "$k";
     my ($x,$y) = ($1,$2);
@@ -41,22 +42,34 @@ sub viz {
   for my $k (keys %TILES) {
     $k =~ /^(.+),(.+)$/ or die "$k";
     my ($x,$y) = ($1-$minx,$2-$miny);
-    $grid[$y]->[$x] = 'X';
+    $grid[$y]->[$x] = 1;
   }
-  my $parity = $miny & 1;
-  my $r = $miny;
-  for my $row (@grid) {
-    printf "%4d ", $r++;
-    $parity = !$parity;
+  my $parity=($miny+$minx) & 1;
+  push @grid, [];
+  my $prow = [];
+  while (@grid) {
+    my $row = (shift @grid) || [];
+    my $nrow = (shift @grid) || [];
     my $p = $parity;
-    next unless $row;
     for my $c (0..$maxx - $minx) {
-      my $col = $row->[$c];
-      print (($col || ($p ? ' ' : '.')));
+      my $col = $row->[$c] ? '▉' : ' ';
+      if ($p) {
+        $col = undef;
+        if ($prow->[$c] && $nrow->[$c]) {
+          $col = '▉';
+        } elsif ($prow->[$c]) {
+          $col = '▀';
+        } elsif ($nrow->[$c]) {
+          $col = '▄';
+        } else {
+          $col = ' ';
+        }
+      }
+      print $col;
       $p = !$p;
     }
-  } continue {
     print "\n";
+    $prow = $nrow;
   }
 }
 
@@ -100,6 +113,5 @@ for my $gen (0..99) {
   }
   %TILES = %ntiles;
   out scalar(%TILES);
+  viz();
 }
-
-viz();
