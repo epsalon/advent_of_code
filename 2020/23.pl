@@ -45,7 +45,7 @@ sub inlist {
 }
 
 for my $i (1..1e7) {
-  my $ccup = cycle;
+  my $ccup = cycle();
   my @move;
   push @move, cycle();
   push @move, cycle();
