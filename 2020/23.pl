@@ -13,9 +13,7 @@ sub out {
 }
 
 my $res = 0;
-
 my @A=split('','716892543');
-
 my $MAX = 1e6;
 
 #my $MAX = 9;
