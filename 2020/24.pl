@@ -6,7 +6,6 @@ use Clipboard;
 use List::Util qw/sum/;
 use Math::Cartesian::Product;
 use Math::Complex;
-no warnings 'uninitialized';
 
 sub out {
   my $out = shift;
