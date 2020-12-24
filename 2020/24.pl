@@ -31,7 +31,7 @@ my %TILES;
 sub viz {
   say "---------------------------------";
   my @grid;
-  my ($minx,$miny,$maxx) = (-67,-47,0);
+  my ($minx,$miny,$maxx) = (0,0,0);
   for my $k (keys %TILES) {
     $k =~ /^(.+),(.+)$/ or die "$k";
     my ($x,$y) = ($1,$2);
@@ -52,11 +52,11 @@ sub viz {
     my $nrow = (shift @grid) || [];
     my $p = $parity;
     for my $c (0..$maxx - $minx) {
-      my $col = $row->[$c] ? '▉' : ' ';
+      my $col = $row->[$c] ? '█' : ' ';
       if ($p) {
         $col = undef;
         if ($prow->[$c] && $nrow->[$c]) {
-          $col = '▉';
+          $col = '█';
         } elsif ($prow->[$c]) {
           $col = '▀';
         } elsif ($nrow->[$c]) {
