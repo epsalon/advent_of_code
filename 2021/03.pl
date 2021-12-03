@@ -36,16 +36,14 @@ my @L2 = @L;
 
 my $d = 0;
 while (@L > 1) {
-  my @B;
+  my $tc;
   for my $b (@L) {
-    for (my $i=0; $i <=$#$b; $i++) {
-      $B[$i]++ if $b->[$i];
-      $B[$i]-- unless $b->[$i];
-    }
+    $tc++ if $b->[$d];
+    $tc-- unless $b->[$d];
   }
-  my $td = $B[$d] >= 0 ? 1 : 0;
+  my $td = $tc >= 0 ? 1 : 0;
   @L = grep {$_->[$d] == $td} @L;
-  print "d=$d td=$td B=".$B[$d]." L=".join(';', map {join ('', @$_)} @L),"\n";
+  print "d=$d td=$td tc=".$tc." L=".join(';', map {join ('', @$_)} @L),"\n";
   $d++;
 }
 
@@ -54,16 +52,14 @@ my $a = oct("0b".join('',@{$L[0]}));
 $d = 0;
 @L = @L2;
 while (@L > 1) {
-  my @B;
+  my $tc;
   for my $b (@L) {
-    for (my $i=0; $i <=$#$b; $i++) {
-      $B[$i]++ if $b->[$i];
-      $B[$i]-- unless $b->[$i];
-    }
+    $tc++ if $b->[$d];
+    $tc-- unless $b->[$d];
   }
-  my $td = $B[$d] < 0 ? 1 : 0;
+  my $td = $tc < 0 ? 1 : 0;
   @L = grep {$_->[$d] == $td} @L;
-  print "d=$d td=$td B=".$B[$d]." L=".join(';', map {join ('', @$_)} @L),"\n";
+  print "d=$d td=$td tc=".$tc." L=".join(';', map {join ('', @$_)} @L),"\n";
   $d++;
 }
 
