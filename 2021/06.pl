@@ -17,17 +17,17 @@ $_=<>;
 chomp;
 
 my @f = split(/,/);
-my %c;
+my @c;
 
 for my $f (@f) {
-  $c{$f}++;
+  $c[$f]++;
 }
 
-for my $d (0..255) {
-  $c{$d+9}+=$c{$d}||0;
-  $c{$d+7}+=$c{$d}||0;
-  delete $c{$d};
-  out sum(values %c) if ($d == 79);
+for my $d (1..256) {
+  my $n = shift @c || 0;
+  $c[8]+=$n;
+  $c[6]+=$n;
+  out sum(@c) if ($d == 80);
 }
 
-out sum(values %c);
+out sum(@c);
