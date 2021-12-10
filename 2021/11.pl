@@ -85,4 +85,10 @@ sub dec2bin {
 }
 
 my $sum=0;
+
+ROW: while(<>) {
+  chomp;
+  my @l = split('');
+}
+
 out ($sum);
