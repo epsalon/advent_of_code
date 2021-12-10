@@ -19,8 +19,9 @@ my %P2 = qw/( 1 [ 2 { 3 < 4/;
 my $sum;
 my @s2;
 ROW: while (<>) {
-  chomp;
   while (s/(\<\>|\{\}|\(\)|\[\])//go) {};
+  print;
+  chomp;
   if (/([\>\]\}\)])/) {
     $sum += $P1{$1};
   } else {
