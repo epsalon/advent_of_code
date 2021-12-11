@@ -86,9 +86,51 @@ sub dec2bin {
 
 my $sum=0;
 
+my @A;
+
 ROW: while(<>) {
   chomp;
   my @l = split('');
+  push @A, \@l;
 }
 
-out ($sum);
+for (my $i=1; ; $i++) {
+  my @flash;
+  my $fc=0;
+  for my $r (0..$#A) {
+    for my $c (0..$#{$A[0]}) {
+      $A[$r][$c]++;
+    }
+  }
+  my $f=1;
+  while ($f) {
+    $f=0;
+    for my $r (0..$#A) {
+      for my $c (0..$#{$A[0]}) {
+        if ($A[$r][$c] > 9) {
+          next if ($flash[$r][$c]);
+          $sum++;
+          for my $n (aneigh(\@A, $r, $c)) {
+            my ($nr, $nc) = @$n;
+            $A[$nr][$nc]++;
+          }
+          $flash[$r][$c]++;
+          $fc++;
+          $f=1;
+        }
+      }
+    }
+  }
+  for my $r (0..$#A) {
+    for my $c (0..$#{$A[0]}) {
+      $A[$r][$c] = 0 if $flash[$r][$c];
+    }
+  }
+  if ($i == 100) {
+    out($sum);
+  }
+  if ($fc == @{$A[0]} * @A) {
+    out $i;
+    last;
+  }
+}
