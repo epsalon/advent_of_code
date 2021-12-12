@@ -90,9 +90,9 @@ my %G;
 
 ROW: while(<>) {
   chomp;
-  my @l = split(/-/);
-  push @{$G{$l[0]}}, $l[1];
-  push @{$G{$l[1]}}, $l[0];
+  m{^(\w+)-(\w+$)} or die;
+  push @{$G{$1}}, $2;
+  push @{$G{$2}}, $1;
 }
 
 sub scan {
