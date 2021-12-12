@@ -105,12 +105,11 @@ sub scan {
     return 0 if ($st eq 'start' || $st eq 'end');
     $sc = 1;
   }
-  my @n = @{$G{$st} || []};
   my $sum = 0;
-  my %nviz = %$visited;
-  $nviz{$st}++;
-  for my $n (@n) {
-    $sum += scan($n,\%nviz, $sc);
+  for my $n (@{$G{$st}}) {
+    $visited->{$st}++;
+    $sum += scan($n,$visited, $sc);
+    $visited->{$st}--;
   }
   return $sum;
 }
