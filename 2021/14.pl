@@ -87,8 +87,6 @@ sub dec2bin {
 }
 
 my %H;
-my @A;
-my $sum = 0;
 
 my $w = <>;
 chomp $w;
@@ -99,11 +97,21 @@ for my $x (0..$#W-1) {
 }
 <>;
 
+sub outW {
+  my %F = ($W[0], 1, $W[-1], 1);
+  while (my ($k,$v) = each %W) {
+    my ($a,$b) = split('', $k);
+    $F{$a}+=$v;
+    $F{$b}+=$v;
+  }
+  my @F = nsort(values %F);
+  out (($F[-1] - $F[0])/2);
+}
+
 ROW: while(<>) {
   chomp;
   last unless $_;
   m{(\w)(\w) -> (\w+)}go or die;
-  push @A, [$1,$2,$3];
   $H{"$1$2"} = $3;
 }
 
@@ -116,18 +124,7 @@ for my $i (1..40) {
     $W2{"$m$b"}+=$v;
   }
   %W = %W2;
+  outW if ($i == 10);
 }
 
-my %F = ($W[0], 1, $W[-1], 1);
-
-while (my ($k,$v) = each %W) {
-  my ($a,$b) = split('', $k);
-  $F{$a}+=$v;
-  $F{$b}+=$v;
-}
-
-my @F = nsort(values %F);
-
-say join(',', @F);
-
-out (($F[-1] - $F[0])/2);
+outW;
