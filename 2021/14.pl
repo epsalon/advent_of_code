@@ -111,8 +111,8 @@ sub outW {
 ROW: while(<>) {
   chomp;
   last unless $_;
-  m{(\w)(\w) -> (\w+)}go or die;
-  $H{"$1$2"} = $3;
+  m{(\w+) -> (\w+)}go or die;
+  $H{$1} = $2;
 }
 
 for my $i (1..40) {
