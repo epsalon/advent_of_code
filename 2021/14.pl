@@ -104,8 +104,7 @@ sub outW {
     $F{$a}+=$v;
     $F{$b}+=$v;
   }
-  my @F = nsort(values %F);
-  out (($F[-1] - $F[0])/2);
+  out ((max(values %F) - min(values %F))/2);
 }
 
 ROW: while(<>) {
