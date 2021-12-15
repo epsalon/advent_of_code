@@ -48,7 +48,7 @@ sub neigh {
     next if $nc < 0;
     next if $nr >= $rows;
     next if $nc >= $cols;
-    push @out, [$nr, $nc, $arr->[$nr][$nc]];
+    push @out, [$nr, $nc, $arr->[$nr][$nc], "$nr,$nc"];
   }
   return @out;
 }
@@ -135,8 +135,7 @@ while (%OHASH) {
   }
   my ($r, $c) = split(',', $cur);
   for my $n (oneigh(\@A, $r, $c)) {
-    my ($nr, $nc, $v) = @$n;
-    my $np = "$nr,$nc";
+    my (undef,undef,$v,$np) = @$n;
     my $new_g = $gscore{$cur} + $v;
     if (!exists($gscore{$np}) || $new_g < $gscore{$np}) {
       $gscore{$np} = $new_g;
