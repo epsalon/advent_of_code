@@ -7,6 +7,7 @@ use List::Util qw/sum min max/;
 use Math::Cartesian::Product;
 use Math::Complex;
 use List::PriorityQueue;
+use Memoize;
 
 sub out {
   my $out = shift;
@@ -34,10 +35,15 @@ sub equalize {
 # input arr, row, col, neigh_arr
 # returns array of [row, col, value]
 sub neigh {
+  my $neigh = shift;
   my $arr = shift;
   my $row = shift;
   my $col = shift;
-  my $neigh = shift;
+  my $comma = 0;
+  if (!defined($col)) {
+    ($row, $col) = split(',', $row);
+    $comma = 1;
+  }
   my $rows = @$arr;
   my $cols = @{$arr->[$row]};
   my @out;
@@ -48,22 +54,26 @@ sub neigh {
     next if $nc < 0;
     next if $nr >= $rows;
     next if $nc >= $cols;
-    push @out, [$nr, $nc, $arr->[$nr][$nc], "$nr,$nc"];
+    if ($comma) {
+      push @out, ["$nr,$nc", $arr->[$nr][$nc]];
+    } else {
+      push @out, [$nr, $nc, $arr->[$nr][$nc]];
+    }
   }
   return @out;
 }
 
 # Orthogonal
 sub oneigh {
-  return neigh(@_, [[-1,0], [1, 0], [0, -1], [0, 1]]);
+  return neigh([[-1,0], [1, 0], [0, -1], [0, 1]], @_);
 }
 
 # All neighbors
 sub aneigh {
-  return neigh(@_, [
+  return neigh([
     [-1, -1], [-1, 0], [-1, 1],
     [ 0, -1],          [ 0, 1],
-    [ 1, -1], [ 1, 0], [ 1, 1]]);
+    [ 1, -1], [ 1, 0], [ 1, 1]], @_);
 }
 
 # Numeric sort because sort defaults to lex
@@ -86,8 +96,10 @@ sub dec2bin {
   return sprintf ("%b", $in);
 }
 
+# A* / BFS implementation
 sub astar {
   my ($start, $end, $neigh, $h) = @_;
+
   my $OPEN = new List::PriorityQueue;
   my %gscore = ($start, 0);
   my %OHASH = ($start, 1);
@@ -133,15 +145,13 @@ sub my_astar {
   my $end = ($rows - 1). "," . ($cols - 1);
 
   my $neigh = sub {
-    my $val = shift;
-    my ($r, $c) = split(',', $val);
-    return map {[$_->[3], $_->[2]]} oneigh($A, $r, $c);
+    return oneigh($A, $_[0]);
   };
 
   my $h = sub {
     my $node = shift;
     my ($r, $c) = split(',', $node);
-    return $rows + $cols - $r - $c - 2;
+    return ($rows + $cols - $r - $c - 2);
   };
 
   return astar($start, $end, $neigh, $h);
