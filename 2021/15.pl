@@ -143,6 +143,8 @@ while (%OHASH) {
       if (!$OHASH{$np}) {
         $OPEN->insert($np, $fscore);
         $OHASH{$np}++;
+      } else {
+        $OPEN->update($np, $fscore);
       }
     }
   }
