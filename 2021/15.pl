@@ -86,9 +86,8 @@ sub dec2bin {
   return sprintf ("%b", $in);
 }
 
-my @A;
-
 sub astar {
+  my @A = @_;
   my $rows = @A;
   my $cols = @{$A[0]};
 
@@ -130,13 +129,15 @@ sub astar {
   }
 }
 
+my @A;
+
 while (<>) {
   chomp;
   last unless $_;
   push @A, [split('')];
 }
 
-out (astar());
+out (astar(@A));
 
 for my $r (@A) {
   my @or = @$r;
@@ -154,4 +155,4 @@ for my $i (1..4) {
 }
 
 
-out (astar());
+out (astar(@A));
