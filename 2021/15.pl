@@ -97,6 +97,8 @@ sub dec2bin {
 }
 
 # A* / BFS implementation
+# Args: start, end, neighbor function, heuristic function
+# neighbor function: node -> [[new_node, cost], ...]
 sub astar {
   my ($start, $end, $neigh, $h) = @_;
 
@@ -120,6 +122,9 @@ sub astar {
     }
     for my $n ($neigh->($cur)) {
       my ($np,$v) = @$n;
+      if (!defined($v)) {
+        $v = 1;
+      }
       my $new_g = $gscore{$cur} + $v;
       if (!exists($gscore{$np}) || $new_g < $gscore{$np}) {
         $path{$np} = $cur if wantarray;
