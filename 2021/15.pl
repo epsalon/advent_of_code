@@ -92,7 +92,7 @@ sub astar {
   my $rows = @A;
   my $cols = @{$A[0]};
 
-  *h = sub {
+  my $h = sub {
     my $node = shift;
     my ($r, $c) = split(',', $node);
     return $rows + $cols - $r - $c - 2;
@@ -104,7 +104,7 @@ sub astar {
   my $OPEN = new List::PriorityQueue;
   my %gscore = ($start, 0);
   my %OHASH = ($start, 1);
-  $OPEN->insert($start, h($start));
+  $OPEN->insert($start, $h->($start));
 
   while (%OHASH) {
     my $cur = $OPEN->pop();
@@ -118,7 +118,7 @@ sub astar {
       my $new_g = $gscore{$cur} + $v;
       if (!exists($gscore{$np}) || $new_g < $gscore{$np}) {
         $gscore{$np} = $new_g;
-        my $fscore = $new_g + h($np);
+        my $fscore = $new_g + $h->($np);
         if (!$OHASH{$np}) {
           $OPEN->insert($np, $fscore);
           $OHASH{$np}++;
