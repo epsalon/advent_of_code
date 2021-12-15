@@ -91,18 +91,26 @@ sub astar {
   my $OPEN = new List::PriorityQueue;
   my %gscore = ($start, 0);
   my %OHASH = ($start, 1);
+  my %path;
   $OPEN->insert($start, $h->($start));
 
   while (%OHASH) {
     my $cur = $OPEN->pop();
     delete $OHASH{$cur};
     if ($cur eq $end) {
-      return ($gscore{$cur});
+      my $score = $gscore{$cur};
+      return $score unless wantarray;
+      my @path = ($cur);
+      while ($cur = $path{$cur}) {
+        unshift(@path, $cur)
+      }
+      return ($score, @path);
     }
     for my $n ($neigh->($cur)) {
       my ($np,$v) = @$n;
       my $new_g = $gscore{$cur} + $v;
       if (!exists($gscore{$np}) || $new_g < $gscore{$np}) {
+        $path{$np} = $cur if wantarray;
         $gscore{$np} = $new_g;
         my $fscore = $new_g + $h->($np);
         if (!$OHASH{$np}) {
