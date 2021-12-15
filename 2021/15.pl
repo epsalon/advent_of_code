@@ -6,6 +6,7 @@ use Clipboard;
 use List::Util qw/sum min max/;
 use Math::Cartesian::Product;
 use Math::Complex;
+use List::PriorityQueue;
 
 sub out {
   my $out = shift;
@@ -108,28 +109,42 @@ for my $i (1..4) {
   }
 }
 
+my $rows = @A;
 my $cols = @{$A[0]};
 
-my @V = ([1, (0) x ($cols-1)], (undef) x ($#A));
+sub h {
+  my $node = shift;
+  my ($r, $c) = split(',', $node);
+  return $rows + $cols - $r - $c - 2;
+}
 
-equalize(\@V, 0);
+my $start = "0,0";
+my $end = ($rows - 1). "," . ($cols - 1);
 
-my $cc = 1;
-while ($cc) {
-  $cc = 0;
-  for my $r (0..$#A) {
-    for my $c (0..$cols-1) {
-      next unless ($r || $c);
-      my $min = 999999999;
-      my $cv = $A[$r][$c];
-      for my $n (oneigh(\@V, $r, $c)) {
-        my ($rn,$cn,$v) = @$n;
-        $min = $v if ($v && ($v < $min));
+my $OPEN = new List::PriorityQueue;
+my %gscore = ($start, 0);
+my %OHASH = ($start, 1);
+$OPEN->insert($start, h($start));
+
+while (%OHASH) {
+  my $cur = $OPEN->pop();
+  delete $OHASH{$cur};
+  if ($cur eq $end) {
+    out ($gscore{$cur});
+    exit;
+  }
+  my ($r, $c) = split(',', $cur);
+  for my $n (oneigh(\@A, $r, $c)) {
+    my ($nr, $nc, $v) = @$n;
+    my $np = "$nr,$nc";
+    my $new_g = $gscore{$cur} + $v;
+    if (!exists($gscore{$np}) || $new_g < $gscore{$np}) {
+      $gscore{$np} = $new_g;
+      my $fscore = $new_g + h($np);
+      if (!$OHASH{$np}) {
+        $OPEN->insert($np, $fscore);
+        $OHASH{$np}++;
       }
-      $cc = 1 if (!$V[$r][$c] || $min + $cv < $V[$r][$c]);
-      $V[$r][$c]=$min + $cv if $min < 999999999;
     }
   }
 }
-
-out $V[$#A][$cols - 1] - 1;
