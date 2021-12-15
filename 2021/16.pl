@@ -11,8 +11,12 @@ use Memoize;
 
 sub out {
   my $out = shift;
-  Clipboard->copy_to_all_selections($out);
-  print "$out\n";
+  if (ref($out)) {
+    print Dumper($out);
+  } else {
+    Clipboard->copy_to_all_selections($out);
+    print "$out\n";
+  }
 }
 
 # Utility function to make sure 2d array has equal rows
@@ -158,38 +162,9 @@ sub astar {
   }
 }
 
-sub find_path {
-  my $A = shift;
-  my $mul = shift || 1;
-  my $orows = @$A;
-  my $ocols = @{$A->[0]};
-  my $rows = $orows * $mul;
-  my $cols = $ocols * $mul;
-
-  my $start = "0,0";
-  my $end = ($rows - 1). "," . ($cols - 1);
-
-  my $neigh = sub {
-    return (map {
-      use integer;
-      my ($r,$c) = split(',');
-      my $d = $r/$orows + $c/$ocols;
-      ($r, $c) = ($r % $orows, $c % $ocols);
-      my $v = ($A->[$r][$c] + $d) % 9 || 9;
-      [$_, $v]
-    } oneigh($rows, $cols, $_[0]));
-  };
-
-  my $h = sub {
-    my $node = shift;
-    my ($r, $c) = split(',', $node);
-    return ($rows + $cols - $r - $c - 2);
-  };
-
-  return astar($start, $end, $neigh, $h);
-}
-
 my @A;
+my %H;
+my $sum=0;
 
 while (<>) {
   chomp;
@@ -197,5 +172,4 @@ while (<>) {
   push @A, [split('')];
 }
 
-out (find_path(\@A));
-out (find_path(\@A,5));
+out ($sum);
