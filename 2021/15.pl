@@ -32,20 +32,31 @@ sub equalize {
 }
 
 # Find neighbors
-# input arr, row, col, neigh_arr
+# input neigh_arr, arr, row, col
+# OR: neigh_arr, arr, "row,col"
+# OR: neigh_arr, rows, cols, row, col
+# OR: neigh_arr, rows, cols, "row,col"
 # returns array of [row, col, value]
+# OR: array of ["row,col", value]
+# OR: array of "row,col"
 sub neigh {
   my $neigh = shift;
+  my ($rows,$cols);
   my $arr = shift;
+  if (ref $arr) {
+    $rows = @$arr;
+    $cols = @{$arr->[0]};
+  } else {
+    $rows = $arr;
+    $cols = shift;
+    undef $arr;
+  }
   my $row = shift;
   my $col = shift;
-  my $comma = 0;
-  if (!defined($col)) {
-    ($row, $col) = split(',', $row);
-    $comma = 1;
+  my $comma;
+  if ($row =~ /(\d+)(\D+)(\d+)/) {
+    ($row, $comma, $col) = ($1, $2, $3);
   }
-  my $rows = @$arr;
-  my $cols = @{$arr->[$row]};
   my @out;
   for my $pair (@$neigh) {
     my ($rd, $cd) = @$pair;
@@ -54,10 +65,14 @@ sub neigh {
     next if $nc < 0;
     next if $nr >= $rows;
     next if $nc >= $cols;
-    if ($comma) {
-      push @out, ["$nr,$nc", $arr->[$nr][$nc]];
+    if (defined($comma)) {
+      if ($arr) {
+        push @out, ["$nr$comma$nc", $arr->[$nr][$nc]];
+      } else {
+        push @out, "$nr$comma$nc";
+      }
     } else {
-      push @out, [$nr, $nc, $arr->[$nr][$nc]];
+      push @out, [$nr, $nc, $arr ? ($arr->[$nr][$nc],) : ()];
     }
   }
   return @out;
@@ -164,6 +179,7 @@ sub find_path {
   return astar($start, $end, $neigh, $h);
 }
 
+
 my @A;
 
 while (<>) {
@@ -188,6 +204,5 @@ for my $i (1..4) {
     push @A, [(map {($_ + $i)%9 || 9} @$r)];
   }
 }
-
 
 out (find_path(\@A));
