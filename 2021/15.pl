@@ -87,19 +87,7 @@ sub dec2bin {
 }
 
 sub astar {
-  my @A = @_;
-  my $rows = @A;
-  my $cols = @{$A[0]};
-
-  my $h = sub {
-    my $node = shift;
-    my ($r, $c) = split(',', $node);
-    return $rows + $cols - $r - $c - 2;
-  };
-
-  my $start = "0,0";
-  my $end = ($rows - 1). "," . ($cols - 1);
-
+  my ($start, $end, $neigh, $h) = @_;
   my $OPEN = new List::PriorityQueue;
   my %gscore = ($start, 0);
   my %OHASH = ($start, 1);
@@ -111,9 +99,8 @@ sub astar {
     if ($cur eq $end) {
       return ($gscore{$cur});
     }
-    my ($r, $c) = split(',', $cur);
-    for my $n (oneigh(\@A, $r, $c)) {
-      my (undef,undef,$v,$np) = @$n;
+    for my $n ($neigh->($cur)) {
+      my ($np,$v) = @$n;
       my $new_g = $gscore{$cur} + $v;
       if (!exists($gscore{$np}) || $new_g < $gscore{$np}) {
         $gscore{$np} = $new_g;
@@ -129,6 +116,29 @@ sub astar {
   }
 }
 
+sub my_astar {
+  my $A = shift;
+  my $rows = @$A;
+  my $cols = @{$A->[0]};
+
+  my $start = "0,0";
+  my $end = ($rows - 1). "," . ($cols - 1);
+
+  my $neigh = sub {
+    my $val = shift;
+    my ($r, $c) = split(',', $val);
+    return map {[$_->[3], $_->[2]]} oneigh($A, $r, $c);
+  };
+
+  my $h = sub {
+    my $node = shift;
+    my ($r, $c) = split(',', $node);
+    return $rows + $cols - $r - $c - 2;
+  };
+
+  return astar($start, $end, $neigh, $h);
+}
+
 my @A;
 
 while (<>) {
@@ -137,7 +147,7 @@ while (<>) {
   push @A, [split('')];
 }
 
-out (astar(@A));
+out (my_astar(\@A));
 
 for my $r (@A) {
   my @or = @$r;
@@ -155,4 +165,4 @@ for my $i (1..4) {
 }
 
 
-out (astar(@A));
+out (my_astar(\@A));
