@@ -179,6 +179,35 @@ sub find_path {
   return astar($start, $end, $neigh, $h);
 }
 
+sub find_path_part2 {
+  my $A = shift;
+  my $orows = @$A;
+  my $ocols = @{$A->[0]};
+  my $rows = $orows * 5;
+  my $cols = $ocols * 5;
+
+  my $start = "0,0";
+  my $end = ($rows - 1). "," . ($cols - 1);
+
+  my $neigh = sub {
+    return (map {
+      use integer;
+      my ($r,$c) = split(',');
+      my $d = $r/$orows + $c/$ocols;
+      ($r, $c) = ($r % $orows, $c % $ocols);
+      my $v = ($A->[$r][$c] + $d) % 9 || 9;
+      [$_, $v]
+    } oneigh($rows, $cols, $_[0]));
+  };
+
+  my $h = sub {
+    my $node = shift;
+    my ($r, $c) = split(',', $node);
+    return ($rows + $cols - $r - $c - 2);
+  };
+
+  return astar($start, $end, $neigh, $h);
+}
 
 my @A;
 
@@ -189,20 +218,4 @@ while (<>) {
 }
 
 out (find_path(\@A));
-
-for my $r (@A) {
-  my @or = @$r;
-  for my $i (1..4) {
-    push @$r, (map {($_ + $i)%9 || 9} @or);
-  }
-}
-
-my @OA = @A;
-
-for my $i (1..4) {
-  for my $r (@OA) {
-    push @A, [(map {($_ + $i)%9 || 9} @$r)];
-  }
-}
-
-out (find_path(\@A));
+out (find_path_part2(\@A));
