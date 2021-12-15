@@ -99,6 +99,8 @@ sub dec2bin {
 # A* / BFS implementation
 # Args: start, end, neighbor function, heuristic function
 # neighbor function: node -> [[new_node, cost], ...]
+#   cost assumed 1 if missing
+# heuristic function: node -> lower bound on cost to end
 sub astar {
   my ($start, $end, $neigh, $h) = @_;
 
