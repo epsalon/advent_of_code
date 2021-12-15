@@ -118,6 +118,7 @@ sub dec2bin {
 # heuristic function: node -> lower bound on cost to end
 sub astar {
   my ($start, $end, $neigh, $h) = @_;
+  $h = sub {return 0;} unless $h;
 
   my $OPEN = new List::PriorityQueue;
   my %gscore = ($start, 0);
@@ -199,3 +200,4 @@ while (<>) {
 
 out (find_path(\@A));
 out (find_path(\@A,5));
+out (find_path(\@A,10));

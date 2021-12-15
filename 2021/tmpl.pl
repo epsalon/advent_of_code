@@ -122,6 +122,7 @@ sub dec2bin {
 # heuristic function: node -> lower bound on cost to end
 sub astar {
   my ($start, $end, $neigh, $h) = @_;
+  $h = sub {return 0;} unless $h;
 
   my $OPEN = new List::PriorityQueue;
   my %gscore = ($start, 0);
