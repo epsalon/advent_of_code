@@ -143,7 +143,7 @@ sub astar {
   }
 }
 
-sub my_astar {
+sub find_path {
   my $A = shift;
   my $rows = @$A;
   my $cols = @{$A->[0]};
@@ -172,7 +172,7 @@ while (<>) {
   push @A, [split('')];
 }
 
-out (my_astar(\@A));
+out (find_path(\@A));
 
 for my $r (@A) {
   my @or = @$r;
@@ -190,4 +190,4 @@ for my $i (1..4) {
 }
 
 
-out (my_astar(\@A));
+out (find_path(\@A));
