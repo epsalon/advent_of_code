@@ -88,11 +88,55 @@ sub dec2bin {
 
 my @A;
 
+sub astar {
+  my $rows = @A;
+  my $cols = @{$A[0]};
+
+  *h = sub {
+    my $node = shift;
+    my ($r, $c) = split(',', $node);
+    return $rows + $cols - $r - $c - 2;
+  };
+
+  my $start = "0,0";
+  my $end = ($rows - 1). "," . ($cols - 1);
+
+  my $OPEN = new List::PriorityQueue;
+  my %gscore = ($start, 0);
+  my %OHASH = ($start, 1);
+  $OPEN->insert($start, h($start));
+
+  while (%OHASH) {
+    my $cur = $OPEN->pop();
+    delete $OHASH{$cur};
+    if ($cur eq $end) {
+      return ($gscore{$cur});
+    }
+    my ($r, $c) = split(',', $cur);
+    for my $n (oneigh(\@A, $r, $c)) {
+      my (undef,undef,$v,$np) = @$n;
+      my $new_g = $gscore{$cur} + $v;
+      if (!exists($gscore{$np}) || $new_g < $gscore{$np}) {
+        $gscore{$np} = $new_g;
+        my $fscore = $new_g + h($np);
+        if (!$OHASH{$np}) {
+          $OPEN->insert($np, $fscore);
+          $OHASH{$np}++;
+        } else {
+          $OPEN->update($np, $fscore);
+        }
+      }
+    }
+  }
+}
+
 while (<>) {
   chomp;
   last unless $_;
   push @A, [split('')];
 }
+
+out (astar());
 
 for my $r (@A) {
   my @or = @$r;
@@ -109,43 +153,5 @@ for my $i (1..4) {
   }
 }
 
-my $rows = @A;
-my $cols = @{$A[0]};
 
-sub h {
-  my $node = shift;
-  my ($r, $c) = split(',', $node);
-  return $rows + $cols - $r - $c - 2;
-}
-
-my $start = "0,0";
-my $end = ($rows - 1). "," . ($cols - 1);
-
-my $OPEN = new List::PriorityQueue;
-my %gscore = ($start, 0);
-my %OHASH = ($start, 1);
-$OPEN->insert($start, h($start));
-
-while (%OHASH) {
-  my $cur = $OPEN->pop();
-  delete $OHASH{$cur};
-  if ($cur eq $end) {
-    out ($gscore{$cur});
-    exit;
-  }
-  my ($r, $c) = split(',', $cur);
-  for my $n (oneigh(\@A, $r, $c)) {
-    my (undef,undef,$v,$np) = @$n;
-    my $new_g = $gscore{$cur} + $v;
-    if (!exists($gscore{$np}) || $new_g < $gscore{$np}) {
-      $gscore{$np} = $new_g;
-      my $fscore = $new_g + h($np);
-      if (!$OHASH{$np}) {
-        $OPEN->insert($np, $fscore);
-        $OHASH{$np}++;
-      } else {
-        $OPEN->update($np, $fscore);
-      }
-    }
-  }
-}
+out (astar());
