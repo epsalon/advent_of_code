@@ -1,5 +1,6 @@
 #!/usr/bin/perl -w
 use strict;
+no warnings 'portable';
 use Data::Dumper;
 use feature 'say';
 use Clipboard;

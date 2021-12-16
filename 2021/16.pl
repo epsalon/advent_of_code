@@ -1,5 +1,6 @@
 #!/usr/bin/perl -w
 use strict;
+no warnings 'portable';
 use Data::Dumper;
 use feature 'say';
 use Clipboard;
@@ -167,6 +168,12 @@ sub astar {
   }
 }
 
+my $n=0;
+
+sub new_node {
+  return "n".$n++;
+}
+
 my $sum=0;
 
 $_=<>;
@@ -174,12 +181,16 @@ chomp;
 
 my @A = split('', hex2bin($_));
 
+my @types = qw/+ * min max lit > < =/;
+
 sub pp {
+  my $prefix = shift || '';
   my @v = splice(@A,0,3);
   my $v = bin2dec(join('', @v));
   $sum += $v;
   my @t = splice(@A,0,3);
   my $t = bin2dec(join('', @t));
+  #say "${prefix}Ver $v type $t";
   if ($t == 4) {
     my $n = 1;
     my $c=1;
@@ -190,46 +201,60 @@ sub pp {
       $n+=4;
     }
     my $res = bin2dec(join('', @ov));
-    return ($res, $res);
+    my $node = new_node;
+    say "  $node [label=\"$res\"];";
+    return ($res, $res, $node);
   } else {
     my @vals;
     my @exps;
+    my @nodes;
     my $i = shift @A;
     if ($i) {
       my $l = bin2dec(join('',splice(@A,0,11)));
       for my $j (1..$l) {
-        my ($res, $exp) = pp();
+        my ($res, $exp, $node) = pp("$prefix  ");
         push @vals, $res;
         push @exps, $exp;
+        push @nodes, $node;
       }
     } else {
       my $bl = join('',splice(@A,0,15));
       my $l = bin2dec($bl);
       my $cl = @A;
       while (@A > $cl - $l) {
-        my ($res, $exp) = pp();
+        my ($res, $exp, $node) = pp("$prefix  ");
         push @vals, $res;
         push @exps, $exp;
+        push @nodes, $node;
       }
+    }
+    my $node = new_node;
+    say "  $node [label=\"".$types[$t]."\"];";
+    for my $on (@nodes) {
+      say "  $node -> $on;"
     }
     my $vv = join(', ', @exps);
     if ($t == 0) {
-      return (sum(@vals), (@vals > 1 ? '('.join(' + ', @exps).')' : $vv));
+      return (sum(@vals), (@vals > 1 ? '('.join(' + ', @exps).')' : $vv), $node);
     } elsif ($t == 1) {
-      return ((reduce {$a*$b} @vals), (@vals > 1 ? '('.join(' * ', @exps).')' : $vv));
+      return ((reduce {$a*$b} @vals), (@vals > 1 ? '('.join(' * ', @exps).')' : $vv), $node);
     } elsif ($t == 2) {
-      return (min(@vals), (@vals > 1 ? "min($vv)" : $vv));
+      return (min(@vals), (@vals > 1 ? "min($vv)" : $vv), $node);
     } elsif ($t == 3) {
-      return (max(@vals), (@vals > 1 ? "max($vv)" : $vv));
+      return (max(@vals), (@vals > 1 ? "max($vv)" : $vv), $node);
     } elsif ($t == 5) {
-      return ($vals[0] > $vals[1], "(".$exps[0]." > ".$exps[1].")");
+      return ($vals[0] > $vals[1], "(".$exps[0]." > ".$exps[1].")", $node);
     } elsif ($t == 6) {
-      return $vals[0] < $vals[1], "(".$exps[0]." < ".$exps[1].")";
+      return $vals[0] < $vals[1], "(".$exps[0]." < ".$exps[1].")", $node;
     } elsif ($t == 7) {
-      return $vals[0] == $vals[1], "(".$exps[0]." == ".$exps[1].")";
+      return $vals[0] == $vals[1], "(".$exps[0]." == ".$exps[1].")", $node;
     }
   }
 }
 
-out join(" ", pp());
+say "digraph {";
+my @pp = pp();
+say "}";
+
+out join(" ", @pp);
 out $sum;
