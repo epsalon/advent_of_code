@@ -190,7 +190,6 @@ sub pp {
   $sum += $v;
   my @t = splice(@A,0,3);
   my $t = bin2dec(join('', @t));
-  #say "${prefix}Ver $v type $t";
   if ($t == 4) {
     my $n = 1;
     my $c=1;
@@ -202,9 +201,11 @@ sub pp {
     }
     my $res = bin2dec(join('', @ov));
     my $node = new_node;
-    say "  $node [label=\"$res\"];";
+    say "${prefix}[$v] $res";
+    #say "  $node [label=\"$res\"];";
     return ($res, $res, $node);
   } else {
+    say "${prefix}[$v] ".$types[$t];
     my @vals;
     my @exps;
     my @nodes;
@@ -212,7 +213,7 @@ sub pp {
     if ($i) {
       my $l = bin2dec(join('',splice(@A,0,11)));
       for my $j (1..$l) {
-        my ($res, $exp, $node) = pp("$prefix  ");
+        my ($res, $exp, $node) = pp("$prefix| ");
         push @vals, $res;
         push @exps, $exp;
         push @nodes, $node;
@@ -222,16 +223,16 @@ sub pp {
       my $l = bin2dec($bl);
       my $cl = @A;
       while (@A > $cl - $l) {
-        my ($res, $exp, $node) = pp("$prefix  ");
+        my ($res, $exp, $node) = pp("$prefix| ");
         push @vals, $res;
         push @exps, $exp;
         push @nodes, $node;
       }
     }
     my $node = new_node;
-    say "  $node [label=\"".$types[$t]."\"];";
+    #say "  $node [label=\"".$types[$t]."\"];";
     for my $on (@nodes) {
-      say "  $node -> $on;"
+      #say "  $node -> $on;"
     }
     my $vv = join(', ', @exps);
     if ($t == 0) {
@@ -252,9 +253,9 @@ sub pp {
   }
 }
 
-say "digraph {";
+#say "digraph {";
 my @pp = pp();
-say "}";
+#say "}";
 
 out join(" ", @pp);
 out $sum;
