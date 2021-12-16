@@ -3,7 +3,7 @@ use strict;
 use Data::Dumper;
 use feature 'say';
 use Clipboard;
-use List::Util qw/sum min max/;
+use List::Util qw/sum min max reduce/;
 use Math::Cartesian::Product;
 use Math::Complex;
 use List::PriorityQueue;
@@ -163,14 +163,65 @@ sub astar {
   }
 }
 
-my @A;
-my %H;
 my $sum=0;
 
-while (<>) {
-  chomp;
-  last unless $_;
-  push @A, [split('')];
+$_=<>;
+chomp;
+my @A = map {sprintf("%04b", oct("0x$_"))} split('');
+$_ = join('', @A);
+
+
+@A = split('');
+
+sub pp {
+  my @v = splice(@A,0,3);
+  my $v = bin2dec(join('', @v));
+  $sum += $v;
+  my @t = splice(@A,0,3);
+  my $t = bin2dec(join('', @t));
+  if ($t == 4) {
+    my $n = 1;
+    my $c=1;
+    my @ov;
+    while ($c) {
+      $c = shift @A;
+      push @ov, splice(@A,0,4);
+      $n+=4;
+    }
+    return bin2dec(join('', @ov))
+  } else {
+    my @vals;
+    my $i = shift @A;
+    if ($i) {
+      my $l = bin2dec(join('',splice(@A,0,11)));
+      for my $j (1..$l) {
+        push @vals, pp();
+      }
+    } else {
+      my $bl = join('',splice(@A,0,15));
+      my $l = bin2dec($bl);
+      my $cl = @A;
+      while (@A > $cl - $l) {
+        push @vals, pp();
+      }
+    }
+    if ($t == 0) {
+      return sum(@vals);
+    } elsif ($t == 1) {
+      return reduce {$a*$b} @vals;
+    } elsif ($t == 2) {
+      return min(@vals);
+    } elsif ($t == 3) {
+      return max(@vals);
+    } elsif ($t == 5) {
+      return $vals[0] > $vals[1];
+    } elsif ($t == 6) {
+      return $vals[0] < $vals[1];
+    } elsif ($t == 7) {
+      return $vals[0] == $vals[1];
+    }
+  }
 }
 
-out ($sum);
+out (pp());
+out $sum;
