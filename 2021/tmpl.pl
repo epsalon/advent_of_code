@@ -3,7 +3,7 @@ use strict;
 use Data::Dumper;
 use feature 'say';
 use Clipboard;
-use List::Util qw/sum min max reduce/;
+use List::Util qw/sum min max reduce any all none notall first product uniq/;
 use Math::Cartesian::Product;
 use Math::Complex;
 use List::PriorityQueue;

@@ -189,48 +189,47 @@ sub pp {
       push @ov, splice(@A,0,4);
       $n+=4;
     }
-    return bin2dec(join('', @ov))
+    my $res = bin2dec(join('', @ov));
+    return ($res, $res);
   } else {
     my @vals;
+    my @exps;
     my $i = shift @A;
     if ($i) {
       my $l = bin2dec(join('',splice(@A,0,11)));
       for my $j (1..$l) {
-        push @vals, pp();
+        my ($res, $exp) = pp();
+        push @vals, $res;
+        push @exps, $exp;
       }
     } else {
       my $bl = join('',splice(@A,0,15));
       my $l = bin2dec($bl);
       my $cl = @A;
       while (@A > $cl - $l) {
-        push @vals, pp();
+        my ($res, $exp) = pp();
+        push @vals, $res;
+        push @exps, $exp;
       }
     }
-    my $vv = join(', ', @vals);
+    my $vv = join(', ', @exps);
     if ($t == 0) {
-      #return '('.join(') + (', @vals).')';
-      return sum(@vals);
+      return (sum(@vals), (@vals > 1 ? '('.join(' + ', @exps).')' : $vv));
     } elsif ($t == 1) {
-      #return '('.join(') * (', @vals).')';
-      return reduce {$a*$b} @vals;
+      return ((reduce {$a*$b} @vals), (@vals > 1 ? '('.join(' * ', @exps).')' : $vv));
     } elsif ($t == 2) {
-      #return "min($vv)";
-      return min(@vals);
+      return (min(@vals), (@vals > 1 ? "min($vv)" : $vv));
     } elsif ($t == 3) {
-      #return "max($vv)";
-      return max(@vals);
+      return (max(@vals), (@vals > 1 ? "max($vv)" : $vv));
     } elsif ($t == 5) {
-      #return "(".$vals[0].") > (".$vals[1].")";
-      return $vals[0] > $vals[1];
+      return ($vals[0] > $vals[1], "(".$exps[0]." > ".$exps[1].")");
     } elsif ($t == 6) {
-      #return "(".$vals[0].") < (".$vals[1].")";
-      return $vals[0] < $vals[1];
+      return $vals[0] < $vals[1], "(".$exps[0]." < ".$exps[1].")";
     } elsif ($t == 7) {
-      #return "(".$vals[0].") = (".$vals[1].")";
-      return $vals[0] == $vals[1];
+      return $vals[0] == $vals[1], "(".$exps[0]." == ".$exps[1].")";
     }
   }
 }
 
-out (pp());
+out join(" ", pp());
 out $sum;
