@@ -201,32 +201,34 @@ sub pp {
     }
     my $res = bin2dec(join('', @ov));
     my $node = new_node;
-    say "${prefix}[$v] $res";
     #say "  $node [label=\"$res\"];";
-    return ($res, $res, $node);
+    return ($res, $res, $node, ["[$v] $res"]);
   } else {
-    say "${prefix}[$v] ".$types[$t];
+    $prefix =~ s/├─/│ /;
     my @vals;
     my @exps;
     my @nodes;
+    my @trees;
     my $i = shift @A;
-    if ($i) {
-      my $l = bin2dec(join('',splice(@A,0,11)));
-      for my $j (1..$l) {
-        my ($res, $exp, $node) = pp("$prefix| ");
+    my $proc = sub {
+        my ($res, $exp, $node, $tree) = pp("$prefix├─");
+        $tree->[0] .= " (=$res)" if @$tree > 1;
         push @vals, $res;
         push @exps, $exp;
         push @nodes, $node;
+        push @trees, $tree;
+    };
+    if ($i) {
+      my $l = bin2dec(join('',splice(@A,0,11)));
+      for my $j (1..$l) {
+        $proc->();
       }
     } else {
       my $bl = join('',splice(@A,0,15));
       my $l = bin2dec($bl);
       my $cl = @A;
       while (@A > $cl - $l) {
-        my ($res, $exp, $node) = pp("$prefix| ");
-        push @vals, $res;
-        push @exps, $exp;
-        push @nodes, $node;
+        $proc->();
       }
     }
     my $node = new_node;
@@ -234,21 +236,38 @@ sub pp {
     for my $on (@nodes) {
       #say "  $node -> $on;"
     }
+    my $tree = ["[$v] ".$types[$t], @trees];
     my $vv = join(', ', @exps);
     if ($t == 0) {
-      return (sum(@vals), (@vals > 1 ? '('.join(' + ', @exps).')' : $vv), $node);
+      return (sum(@vals), (@vals > 1 ? '('.join(' + ', @exps).')' : $vv), $node, $tree);
     } elsif ($t == 1) {
-      return ((reduce {$a*$b} @vals), (@vals > 1 ? '('.join(' * ', @exps).')' : $vv), $node);
+      return ((reduce {$a*$b} @vals), (@vals > 1 ? '('.join(' * ', @exps).')' : $vv), $node, $tree);
     } elsif ($t == 2) {
-      return (min(@vals), (@vals > 1 ? "min($vv)" : $vv), $node);
+      return (min(@vals), (@vals > 1 ? "min($vv)" : $vv), $node, $tree);
     } elsif ($t == 3) {
-      return (max(@vals), (@vals > 1 ? "max($vv)" : $vv), $node);
+      return (max(@vals), (@vals > 1 ? "max($vv)" : $vv), $node, $tree);
     } elsif ($t == 5) {
-      return ($vals[0] > $vals[1], "(".$exps[0]." > ".$exps[1].")", $node);
+      return ($vals[0] > $vals[1], "(".$exps[0]." > ".$exps[1].")", $node, $tree);
     } elsif ($t == 6) {
-      return $vals[0] < $vals[1], "(".$exps[0]." < ".$exps[1].")", $node;
+      return $vals[0] < $vals[1], "(".$exps[0]." < ".$exps[1].")", $node, $tree;
     } elsif ($t == 7) {
-      return $vals[0] == $vals[1], "(".$exps[0]." == ".$exps[1].")", $node;
+      return $vals[0] == $vals[1], "(".$exps[0]." == ".$exps[1].")", $node, $tree;
+    }
+  }
+}
+
+sub printree {
+  my $tree = shift;
+  my $prefix = shift // '';
+  my $prefix1 = shift // $prefix;
+  my $root = shift @$tree;
+  say "$prefix1$root";
+  for my $i (0..$#$tree) {
+    my $subtree = $tree->[$i];
+    if ($i == $#$tree) {
+      printree($subtree, "$prefix  ", "$prefix└─");
+    } else {
+      printree($subtree, "$prefix│ ", "$prefix├─");
     }
   }
 }
@@ -257,5 +276,7 @@ sub pp {
 my @pp = pp();
 #say "}";
 
-out join(" ", @pp);
-out $sum;
+printree($pp[3]);
+
+#out join(" ", @pp);
+#out $sum;
