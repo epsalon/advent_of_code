@@ -184,7 +184,6 @@ my @A = split('', hex2bin($_));
 my @types = qw/+ * min max lit > < =/;
 
 sub pp {
-  my $prefix = shift || '';
   my $bin = join('', @A[0..5]);
   my @v = splice(@A,0,3);
   my $v = bin2dec(join('', @v));
@@ -204,14 +203,13 @@ sub pp {
     #say "  $node [label=\"$res\"];";
     return ($res, $res, $node, ["[$v] $res {$bin}"]);
   } else {
-    $prefix =~ s/├─/│ /;
     my @vals;
     my @exps;
     my @nodes;
     my @trees;
     my $i = shift @A;
     my $proc = sub {
-        my ($res, $exp, $node, $tree) = pp("$prefix├─");
+        my ($res, $exp, $node, $tree) = pp();
         $tree->[0] .= " (=$res)" if @$tree > 1;
         push @vals, $res;
         push @exps, $exp;
@@ -265,9 +263,9 @@ sub printree {
   for my $i (0..$#$tree) {
     my $subtree = $tree->[$i];
     if ($i == $#$tree) {
-      printree($subtree, "$prefix  ", "$prefix└─");
+      printree($subtree, "$prefix   ", "$prefix └─");
     } else {
-      printree($subtree, "$prefix│ ", "$prefix├─");
+      printree($subtree, "$prefix │ ", "$prefix ├─");
     }
   }
 }
@@ -275,6 +273,8 @@ sub printree {
 #say "digraph {";
 my @pp = pp();
 #say "}";
+
+$pp[3][0] .= " (=".$pp[0].")";
 
 printree($pp[3]);
 
