@@ -114,6 +114,10 @@ sub dec2bin {
   my $in = shift;
   return sprintf ("%b", $in);
 }
+sub hex2bin {
+  my $in = shift;
+  return join('', map {sprintf("%04b", oct("0x$_"))} split('', $in));
+}
 
 # A* / BFS implementation
 # Args: start, end, neighbor function, heuristic function
@@ -167,11 +171,8 @@ my $sum=0;
 
 $_=<>;
 chomp;
-my @A = map {sprintf("%04b", oct("0x$_"))} split('');
-$_ = join('', @A);
 
-
-@A = split('');
+my @A = split('', hex2bin($_));
 
 sub pp {
   my @v = splice(@A,0,3);

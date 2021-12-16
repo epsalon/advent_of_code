@@ -3,7 +3,7 @@ use strict;
 use Data::Dumper;
 use feature 'say';
 use Clipboard;
-use List::Util qw/sum min max/;
+use List::Util qw/sum min max reduce/;
 use Math::Cartesian::Product;
 use Math::Complex;
 use List::PriorityQueue;
@@ -113,6 +113,20 @@ sub bin2dec {
 sub dec2bin {
   my $in = shift;
   return sprintf ("%b", $in);
+}
+sub hex2bin {
+  my $in = shift;
+  return join('', map {sprintf("%04b", oct("0x$_"))} split('', $in));
+}
+sub bin2hex {
+  my $in = shift;
+  my $out;
+  my @in = split('', $in);
+  die "Bad bin value $in" if (@in%4);
+  while (@in) {
+    $out .= sprintf("%X", bin2dec(join('',splice(@in, 0, 4))));
+  }
+  return $out;
 }
 
 # A* / BFS implementation
