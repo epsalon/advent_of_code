@@ -205,19 +205,27 @@ sub pp {
         push @vals, pp();
       }
     }
+    my $vv = join(', ', @vals);
     if ($t == 0) {
+      #return '('.join(') + (', @vals).')';
       return sum(@vals);
     } elsif ($t == 1) {
+      #return '('.join(') * (', @vals).')';
       return reduce {$a*$b} @vals;
     } elsif ($t == 2) {
+      #return "min($vv)";
       return min(@vals);
     } elsif ($t == 3) {
+      #return "max($vv)";
       return max(@vals);
     } elsif ($t == 5) {
+      #return "(".$vals[0].") > (".$vals[1].")";
       return $vals[0] > $vals[1];
     } elsif ($t == 6) {
+      #return "(".$vals[0].") < (".$vals[1].")";
       return $vals[0] < $vals[1];
     } elsif ($t == 7) {
+      #return "(".$vals[0].") = (".$vals[1].")";
       return $vals[0] == $vals[1];
     }
   }
