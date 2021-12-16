@@ -185,24 +185,24 @@ my @types = qw/+ * min max lit > < =/;
 
 sub pp {
   my $prefix = shift || '';
+  my $bin = join('', @A[0..5]);
   my @v = splice(@A,0,3);
   my $v = bin2dec(join('', @v));
   $sum += $v;
   my @t = splice(@A,0,3);
   my $t = bin2dec(join('', @t));
   if ($t == 4) {
-    my $n = 1;
-    my $c=1;
+    my $c = 1;
     my @ov;
     while ($c) {
       $c = shift @A;
       push @ov, splice(@A,0,4);
-      $n+=4;
     }
+    $bin.=join('', @ov);
     my $res = bin2dec(join('', @ov));
     my $node = new_node;
     #say "  $node [label=\"$res\"];";
-    return ($res, $res, $node, ["[$v] $res"]);
+    return ($res, $res, $node, ["[$v] $res {$bin}"]);
   } else {
     $prefix =~ s/├─/│ /;
     my @vals;
@@ -236,7 +236,7 @@ sub pp {
     for my $on (@nodes) {
       #say "  $node -> $on;"
     }
-    my $tree = ["[$v] ".$types[$t], @trees];
+    my $tree = ["[$v] ".$types[$t]. "  {$bin}", @trees];
     my $vv = join(', ', @exps);
     if ($t == 0) {
       return (sum(@vals), (@vals > 1 ? '('.join(' + ', @exps).')' : $vv), $node, $tree);
@@ -247,11 +247,11 @@ sub pp {
     } elsif ($t == 3) {
       return (max(@vals), (@vals > 1 ? "max($vv)" : $vv), $node, $tree);
     } elsif ($t == 5) {
-      return ($vals[0] > $vals[1], "(".$exps[0]." > ".$exps[1].")", $node, $tree);
+      return (($vals[0] > $vals[1]) || 0, "(".$exps[0]." > ".$exps[1].")", $node, $tree);
     } elsif ($t == 6) {
-      return $vals[0] < $vals[1], "(".$exps[0]." < ".$exps[1].")", $node, $tree;
+      return ($vals[0] < $vals[1]) || 0, "(".$exps[0]." < ".$exps[1].")", $node, $tree;
     } elsif ($t == 7) {
-      return $vals[0] == $vals[1], "(".$exps[0]." == ".$exps[1].")", $node, $tree;
+      return ($vals[0] == $vals[1]) || 0, "(".$exps[0]." == ".$exps[1].")", $node, $tree;
     }
   }
 }
