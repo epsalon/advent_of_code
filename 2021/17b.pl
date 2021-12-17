@@ -9,7 +9,8 @@ use Math::Cartesian::Product;
 use Math::Complex;
 use List::PriorityQueue;
 use Memoize;
-use POSIX qw/ceil floor/;
+use POSIX qw/ceil floor round/;
+use GD::Simple;
 
 sub out {
   my $out = shift;
@@ -65,10 +66,7 @@ $_=<>;
 chomp;
 my ($x1,$x2,$y1,$y2) = m{x=([-\d]+)\.\.([-\d]+), y=([-\d]+)\.\.([-\d]+)}o or die;
 
-$x1 *= 1000;
-$x2 *= 1000;
-$y1 *= 1000;
-$y2 *= 1000;
+# $x1 *= 1000; $x2 *= 1000; $y1 *= 1000; $y2 *= 1000;
 
 my $maxy = max(abs($y1), abs($y2));
 my $sy = $y1+$y2<0?-1:1;
@@ -111,6 +109,23 @@ for my $i (0..$#xs) {
 for my $i (0..$#ys) {
   $ys{$ys[$i]} = $i;
 }
+
+# Draw output
+my $MAX_SIZE = 2000;
+my $width = ($xs[-1]-$xs[0]);
+my $height = ($ys[-1]-$ys[0]);
+my $scale = max(1, max($width, $height) / $MAX_SIZE);
+my $dy = ceil($ys[-1]/$scale);
+my $img = GD::Simple->new(ceil($width/$scale), ceil($height/$scale));
+$img->fgcolor('black');
+$img->bgcolor('red');
+for my $r (@rects) {
+  my ($xx1,$xx2,$yy1,$yy2) = map {round($_/$scale)} @$r;
+  $img->rectangle($xx1,$dy-$yy2,$xx2,$dy-$yy1);
+}
+open my $out, '>', '17-out.png' or die;
+binmode $out;
+print $out $img->png;
 
 # Compute area
 my %grid;
