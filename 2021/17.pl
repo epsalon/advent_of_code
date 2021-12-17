@@ -238,8 +238,7 @@ for my $vx (0..max($x1,$x2)) {
 my $ok=1;
 my $mvy;
 my $nn;
-my $cvy;
-my @sols;
+my %sols;
 for my $vy (-$ymax..$ymax) {
   my $n1 = y_to_n($vy, $y0);
   my $n2 = y_to_n($vy, $y1);
@@ -251,11 +250,11 @@ for my $vy (-$ymax..$ymax) {
     $mvy = $vy;
     my %xx;
     for my $ys (ceil($n2)..int($n1)) {
-      for my $x (@{$XMAP{$ys}}) {
-        $xx{$x}++;
+      for my $vx (@{$XMAP{$ys}}) {
+        $xx{$vx}++;
+        $sols{"$vx,$vy"}++;
       }
     }
-    $cvy += scalar(keys %xx);
   }
 }
 
@@ -266,5 +265,13 @@ out $vy;
 
 my $yy1 = $vy*$vy - ($vy-1)*$vy/2;
 
+for my $y (-$ymax..$ymax) {
+  for my $x (0..202) {
+    print $sols{"$x,$y"}?"#":" ";
+  }
+  print "\n";
+}
+
 out $yy1;
-out "$cvy";
+say STDERR join("\n", sort(keys %sols));
+out scalar(%sols);
