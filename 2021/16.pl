@@ -9,6 +9,7 @@ use Math::Cartesian::Product;
 use Math::Complex;
 use List::PriorityQueue;
 use Memoize;
+use Term::ANSIColor;
 
 sub out {
   my $out = shift;
@@ -184,20 +185,23 @@ my @A = split('', hex2bin($_));
 my @types = qw/+ * min max lit > < =/;
 
 sub pp {
-  my $bin = join('', @A[0..5]);
   my @v = splice(@A,0,3);
+  my $bin = colored(join('', @v), "blue");
   my $v = bin2dec(join('', @v));
   $sum += $v;
   my @t = splice(@A,0,3);
+  $bin .= colored(join('', @t), "red");
   my $t = bin2dec(join('', @t));
   if ($t == 4) {
     my $c = 1;
     my @ov;
     while ($c) {
       $c = shift @A;
-      push @ov, splice(@A,0,4);
+      $bin.=colored($c, "green");
+      my @sp = splice(@A,0,4);
+      $bin.=join('', @sp);
+      push @ov, @sp;
     }
-    $bin.=join('', @ov);
     my $res = bin2dec(join('', @ov));
     my $node = new_node;
     #say "  $node [label=\"$res\"];";
@@ -208,6 +212,7 @@ sub pp {
     my @nodes;
     my @trees;
     my $i = shift @A;
+    $bin.=colored($i, "green");
     my $proc = sub {
         my ($res, $exp, $node, $tree) = pp();
         $tree->[0] .= " (=$res)" if @$tree > 1;
@@ -217,13 +222,16 @@ sub pp {
         push @trees, $tree;
     };
     if ($i) {
-      my $l = bin2dec(join('',splice(@A,0,11)));
+      my $lb = join('',splice(@A,0,11));
+      my $l = bin2dec($lb);
+      $bin.="$lb [$l subpacket".($l>1?"s":"")."]";
       for my $j (1..$l) {
         $proc->();
       }
     } else {
       my $bl = join('',splice(@A,0,15));
       my $l = bin2dec($bl);
+      $bin.="$bl [subpacket length $l]";
       my $cl = @A;
       while (@A > $cl - $l) {
         $proc->();
