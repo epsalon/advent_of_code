@@ -72,6 +72,7 @@ my $maxy = max(abs($y1), abs($y2));
 my $sy = $y1+$y2<0?-1:1;
 
 # Part 1
+print "Max height: ";
 out ($sy*$maxy*($sy*$maxy+1)/2);
 
 # X = t * v_0 - (t-1)*t/2 
@@ -79,7 +80,6 @@ out ($sy*$maxy*($sy*$maxy+1)/2);
 
 # Part 2 analytical solution
 my $maxx = max(abs($x1), abs($x2));
-my $sx = $x1+$x2<0?-1:1;
 my $max_t=int(v_term($maxx));
 
 say "max_t = $max_t";
@@ -154,4 +154,5 @@ for my $vy ($max_vy..$maxy) {
   $total += $term_dx;
 }
 
+print "Total area: ";
 out($total);
