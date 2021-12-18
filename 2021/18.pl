@@ -255,8 +255,8 @@ out ($s);
 my @o;
 for my $i (0..$#B-1) {
   for my $j ($i+1..$#B) {
-    my $s = mag(ssum($B[$i], $B[$j]));
-    push @o, $s;
+    push @o, mag(ssum($B[$i], $B[$j]));
+    push @o, mag(ssum($B[$j], $B[$i]));
   }
 }
 out max(@o);
