@@ -64,7 +64,7 @@ $_=<>;
 chomp;
 my ($x1,$x2,$y1,$y2) = m{x=([-\d]+)\.\.([-\d]+), y=([-\d]+)\.\.([-\d]+)}o or die;
 
-# $x1 *= 1000; $x2 *= 1000; $y1 *= 1000; $y2 *= 1000;
+$x1 *= 1000; $x2 *= 1000; $y1 *= 1000; $y2 *= 1000;
 
 my $maxy = max(abs($y1), abs($y2));
 my $sy = $y1+$y2<0?-1:1;
@@ -126,6 +126,7 @@ binmode $out;
 print $out $img->png;
 
 # Compute area
+say "Computing area...";
 my %grid;
 for my $r (@rects) {
   my ($xx1,$xx2,$yy1,$yy2) = @$r;
