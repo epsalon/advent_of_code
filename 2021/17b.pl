@@ -78,7 +78,7 @@ out ($sy*$maxy*($sy*$maxy+1)/2);
 
 # Part 2 analytical solution
 my $maxx = max(abs($x1), abs($x2));
-my $max_t=int(v_term($maxx));
+my $max_t = int(v_term($maxx));
 
 say "max_t = $max_t";
 
