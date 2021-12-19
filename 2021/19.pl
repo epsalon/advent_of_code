@@ -261,25 +261,43 @@ sub add {
 
 memoize('allrots');
 
-my @SCANNERS;
+my @SCANNERS=([0,0,0]);
+
+sub in_bounds {
+  my $p = shift;
+  SC: for my $s (@SCANNERS) {
+    for my $d (delta($p,$s)) {
+      next SC if ($d < -500 || $d > 500);
+    }
+    return 1;
+  }
+  return 0;
+}
 
 SIGNALS: while (@A) {
   say "BIG LOOP";
-  for my $b1 (reverse(@DONE)) {
-    say "DONE loop";
+  my $b1 = \%H;
+  #for my $b1 (reverse(@DONE)) {
+  #  say "DONE loop";
     for my $ib2 (0..$#A) {
       say "ib2=$ib2";
       for my $rb2 (allrots($A[$ib2])) {
         for my $refstr (keys(%$b1)) {
           my @ref = split(',',$refstr);
           my $ref = \@ref;
-          for my $p (@$rb2) {
+          # ref=  reference beacon in canoncial coordinates
+          ALIGNMENT: for my $p (@$rb2) {
+            # p = seen beacon in scanner coords that we try to align with ref
             my $delta = delta($ref, $p);
+            # delta = ref - p, which is -(location of ref in scanner coords)
             my $matches = 0;
             for my $p2 (@$rb2) {
+              # p2 new beacon in scanner coords
               my $np = add($p2, $delta);
               if ($b1->{join(',', @$np)}) {
                 $matches++;
+              } elsif (in_bounds($np)) {
+                next ALIGNMENT;
               }
             }
             if ($matches >= 12) {
@@ -298,7 +316,7 @@ SIGNALS: while (@A) {
           }
         }
       }
-    }
+    #}
   }
   die;
 }
