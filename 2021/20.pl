@@ -187,7 +187,6 @@ chomp $code;
 my @CODE = split('', $code);
 
 my $r=0;
-my $w=0;
 while (<>) {
   chomp;
   my $c=0;
@@ -196,30 +195,31 @@ while (<>) {
     $c++;
   }
   $r++;
-  $w = $c if $w < $c;
 }
 
-my ($l,$t,$rt,$b) = (0,0,$w,$r);
+my @NARR = ([-1, -1], [-1, 0], [-1, 1], [ 0, -1], [ 0, 0], [ 0, 1], [ 1, -1], [ 1, 0], [ 1, 1]);
 
 my $bg = 0;
 
 for my $i (1..50) {
-  $l--; $t--; $rt++; $b++;
   my %nh;
   my $nbg = ($CODE[0] eq '#' ? !$bg : $bg);
-  for my $r ($t..$b) {
-    for my $c ($l..$rt) {
-      print ((defined($H{"$r,$c"})^$bg)?"#":".");
-      my $binval = join('', map {
-        my ($dx,$dy) = @$_;
-        (defined($H{($r+$dx).",".($c+$dy)}) ^ $bg) ? 1 : 0
-      } ([-1, -1], [-1, 0], [-1, 1],
-      [ 0, -1], [ 0, 0], [ 0, 1],
-      [ 1, -1], [ 1, 0], [ 1, 1]));
-      my $nval = ($CODE[bin2dec($binval)] eq '#');;
-      $nh{"$r,$c"} = 1 if ($nval ^ $nbg);
+  for my $k (keys %H) {
+    my ($r,$c) = split(',', $k);
+    for my $n (0..$#NARR) {
+      my ($dx, $dy) = @{$NARR[$n]};
+      my ($nr, $nc) = ($r-$dx, $c-$dy);
+      $nh{"$nr,$nc"}[$n]=1;
     }
-    print "\n";
+  }
+  for my $k (keys %nh) {
+    my $binval = join('', map {defined($nh{$k}[$_]) ^ $bg} (0..$#NARR));
+    my $nval = ($CODE[bin2dec($binval)] eq '#');;
+    if ($nval ^ $nbg) {
+      $nh{$k} = $1
+    } else {
+      delete $nh{$k};
+    }
   }
   $bg=$nbg;
   %H=%nh;
