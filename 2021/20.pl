@@ -67,7 +67,6 @@ for my $i (1..50) {
     }
   }
   $bg=$nbg;
-  out (scalar @A) if ($i==2); # Part 1
+  print "Number of ".($bg?"un":"")."lit pixels after iteration $i: ";
+  out (scalar @A);
 }
-
-out (scalar @A);
