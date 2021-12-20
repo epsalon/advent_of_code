@@ -206,6 +206,7 @@ my $bg = 0;
 for my $i (1..50) {
   $l--; $t--; $rt++; $b++;
   my %nh;
+  my $nbg = ($CODE[0] eq '#' ? !$bg : $bg);
   for my $r ($t..$b) {
     for my $c ($l..$rt) {
       print ((defined($H{"$r,$c"})^$bg)?"#":".");
@@ -216,11 +217,11 @@ for my $i (1..50) {
       [ 0, -1], [ 0, 0], [ 0, 1],
       [ 1, -1], [ 1, 0], [ 1, 1]));
       my $nval = ($CODE[bin2dec($binval)] eq '#');;
-      $nh{"$r,$c"} = 1 if ($nval == $bg);
+      $nh{"$r,$c"} = 1 if ($nval ^ $nbg);
     }
     print "\n";
   }
-  $bg=!$bg;
+  $bg=$nbg;
   %H=%nh;
 }
 
