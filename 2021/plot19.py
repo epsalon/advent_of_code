@@ -26,7 +26,7 @@ def plot_file(fn, ax, color):
 for angle in range(70,210,2):
     fig = plt.figure()
     ax = plt.axes(projection ="3d")
-    plot_file("19.out", ax, "green")
+    plot_file("19.out", ax, "blue")
     plot_file("19b.out", ax, "red")
 
     ax.view_init(30,angle)
