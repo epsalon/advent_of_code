@@ -202,26 +202,25 @@ my @NARR = reverse([-1, -1], [-1, 0], [-1, 1], [ 0, -1], [ 0, 0], [ 0, 1], [ 1, 
 my $bg = 0;
 
 for my $i (1..50) {
-  my %nh;
+  my @k = keys(%H);
+  %H=();
   my $nbg = ($CODE[0] eq '#' ? !$bg : $bg);
-  for my $k (keys %H) {
+  for my $k (@k) {
     my ($r,$c) = split(',', $k);
     for my $n (0..$#NARR) {
       my ($dx, $dy) = @{$NARR[$n]};
       my ($nr, $nc) = ($r-$dx, $c-$dy);
-      $nh{"$nr,$nc"} |= 1 << $n;
+      $H{"$nr,$nc"} |= 1 << $n;
     }
   }
-  for my $k (keys %nh) {
-    my $val = $nh{$k};
-    $val = ((~$val) & 511) if $bg;
+  while (my ($k,$val) = each %H) {
+    $val = (~$val & 511) if $bg;
     my $nval = ($CODE[$val] eq '#');;
     if ($nval == $nbg) {
-      delete $nh{$k};
+      delete $H{$k};
     }
   }
   $bg=$nbg;
-  %H=%nh;
 }
 
 out (scalar %H);
