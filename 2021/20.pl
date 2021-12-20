@@ -45,7 +45,7 @@ my $bg = 0;
 # Enchancement steps
 for my $i (1..50) {
   my %H;
-  my $nbg = $CODE[0] ^ $bg;
+  my $nbg = $CODE[$bg?-1:0];
 
   # Collect the relevant 3x3 binary values based on neighbors
   for my $k (@A) {
