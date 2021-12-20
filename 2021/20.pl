@@ -197,7 +197,7 @@ while (<>) {
   $r++;
 }
 
-my @NARR = ([-1, -1], [-1, 0], [-1, 1], [ 0, -1], [ 0, 0], [ 0, 1], [ 1, -1], [ 1, 0], [ 1, 1]);
+my @NARR = reverse([-1, -1], [-1, 0], [-1, 1], [ 0, -1], [ 0, 0], [ 0, 1], [ 1, -1], [ 1, 0], [ 1, 1]);
 
 my $bg = 0;
 
@@ -209,15 +209,14 @@ for my $i (1..50) {
     for my $n (0..$#NARR) {
       my ($dx, $dy) = @{$NARR[$n]};
       my ($nr, $nc) = ($r-$dx, $c-$dy);
-      $nh{"$nr,$nc"}[$n]=1;
+      $nh{"$nr,$nc"} |= 1 << $n;
     }
   }
   for my $k (keys %nh) {
-    my $binval = join('', map {defined($nh{$k}[$_]) ^ $bg} (0..$#NARR));
-    my $nval = ($CODE[bin2dec($binval)] eq '#');;
-    if ($nval ^ $nbg) {
-      $nh{$k} = $1
-    } else {
+    my $val = $nh{$k};
+    $val = ((~$val) & 511) if $bg;
+    my $nval = ($CODE[$val] eq '#');;
+    if ($nval == $nbg) {
       delete $nh{$k};
     }
   }
