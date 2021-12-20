@@ -276,9 +276,9 @@ sub in_bounds {
 
 SIGNALS: while (@A) {
   say "BIG LOOP";
-  my $b1 = \%H;
-  #for my $b1 (reverse(@DONE)) {
-  #  say "DONE loop";
+  #my $b1 = \%H;
+  for my $b1 (reverse(@DONE)) {
+    say "DONE loop";
     for my $ib2 (0..$#A) {
       say "ib2=$ib2";
       for my $rb2 (allrots($A[$ib2])) {
@@ -296,9 +296,9 @@ SIGNALS: while (@A) {
               my $np = add($p2, $delta);
               if ($b1->{join(',', @$np)}) {
                 $matches++;
-              } elsif (in_bounds($np)) {
-                next ALIGNMENT;
-              }
+              }# elsif (in_bounds($np)) {
+               # next ALIGNMENT;
+              #}
             }
             if ($matches >= 12) {
               say "FOUND IT! ib2 = $ib2";
@@ -316,7 +316,7 @@ SIGNALS: while (@A) {
           }
         }
       }
-    #}
+    }
   }
   die;
 }
