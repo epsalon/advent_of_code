@@ -11,7 +11,7 @@ def read_input(fn):
 def plot_file(fn, ax):
     input = read_input(fn)
 
-    matrix = [line.split("\t") for line in input]
+    matrix = [ [i for i in line.split("\t") if i] for line in input]
     X = np.arange(1, 11, 1)
     Y = np.arange(1, 11, 1)
     X, Y = np.meshgrid(X, Y)
