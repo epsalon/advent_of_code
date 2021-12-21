@@ -22,21 +22,23 @@ sub out {
 
 
 sub ucount {
+  # Assume it's p1's turn. 
+  # Args: rolls remaining for p1, p1 position, p2 position, p1 score, p2 score
   my ($r, $p1, $p2, $s1, $s2) = @_;
   my ($u1, $u2);
   unless ($r) {
+    # End of turn, adjust score and check for win
     $s1+=$p1;
     if ($s1 >= 21) {
       return (1, 0);
-    }
+    }   
     ($u2, $u1) = ucount(3, $p2, $p1, $s2, $s1);
     return ($u1, $u2);
   }
-  my $cp1=$p1;
   for my $d (1..3) {
-    $p1 = $cp1+$d;
-    $p1 = $p1 % 10 || 10;
-    my ($du1, $du2) = ucount($r-1, $p1, $p2, $s1, $s2);
+    my $np1 = $p1+$d;
+    $np1 = $np1 % 10 || 10;
+    my ($du1, $du2) = ucount($r-1, $np1, $p2, $s1, $s2);
     $u1 += $du1;
     $u2 += $du2;
   }
