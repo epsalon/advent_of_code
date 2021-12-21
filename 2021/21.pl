@@ -76,3 +76,9 @@ out(max(ucount(3,4,8,0,0)));
 print "Part 2 result for real input: ";
 out(max(ucount(3,10,3,0,0)));
 
+for my $p1 (1..10) {
+  for my $p2 (1..10) {
+    print ucount(3,$p1,$p2,0,0), "\t";
+  }
+  print "\n";
+}
