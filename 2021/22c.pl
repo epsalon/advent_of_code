@@ -69,4 +69,5 @@ while (<>) {
   #out (sum(map {volume($_)} @A));  
 }
 
+say "Total: ", scalar(@A), " prisms";
 out (sum(map {volume($_)} @A));
