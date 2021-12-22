@@ -56,7 +56,9 @@ while (<>) {
   my ($state, $rest) = m{(on|off)[^\d-]+(.+)$};
   $state = ($state eq 'on');
   my @p = split(/[^\d-]+/, $rest);
-  $p[1]++; $p[3]++; $p[5]++;
+  for my $i (0..@p/2-1) {
+    $p[2*$i+1]++;
+  }
   @A = map {prismdiff($_, \@p)} @A;
   if ($state) {
     push @A, \@p;
