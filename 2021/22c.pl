@@ -250,7 +250,7 @@ while (<>) {
     push @A, \@p;
   }
   #out (sum(map {volume($_)} @A));  
-  say "TOTAL LENGTH = ", scalar(@A);
+  #say "TOTAL LENGTH = ", scalar(@A);
 }
 
 out (sum(map {volume($_)} @A));
