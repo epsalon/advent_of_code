@@ -9,6 +9,7 @@ use Math::Cartesian::Product;
 use Math::Complex;
 use List::PriorityQueue;
 use Memoize;
+use Bit::Vector;
 
 sub out {
   my $out = shift;
@@ -179,77 +180,77 @@ sub astar {
 }
 
 my @A;
-my %H;
-my $sum=0;
 
-sub hashify {
-  my @arr = @_;
-  my %H;
-  for my $i (0..$#arr) {
-    $H{$arr[$i]}=$i;
-  }
-  return %H;
-}
-
-my @X;
-my @Y;
-my @Z;
-
-while (<>) {
-  chomp;
-  push @A, [m{(on|off) x=(-?\d+)..(-?\d+),y=(-?\d+)..(-?\d+),z=(-?\d+)..(-?\d+)}];
-}
-
-for my $a (@A) {
-  my ($s,$x1,$x2,$y1,$y2,$z1,$z2) = @$a;
-  push @X, $x1;
-  push @X, $x2+1;
-  push @Y, $y1;
-  push @Y, $y2+1;
-  push @Z, $z1;
-  push @Z, $z2+1;
-}
-
-@X = uniq(nsort(@X));
-@Y = uniq(nsort(@Y));
-@Z = uniq(nsort(@Z));
-
-my (%X, %Y, %Z);
-%X = hashify(@X);
-%Y = hashify(@Y);
-%Z = hashify(@Z);
-
-my %PAINT;
-
-for my $a (@A) {
-  my ($s,$x1,$x2,$y1,$y2,$z1,$z2) = @$a;
-  my $ix1 = $X{$x1};
-  my $ix2 = $X{$x2+1};
-  my $iy1 = $Y{$y1};
-  my $iy2 = $Y{$y2+1};
-  my $iz1 = $Z{$z1};
-  my $iz2 = $Z{$z2+1};
-  $s = ($s eq 'on');
-  say "ix1=$ix1 ix2=$ix2 iy1=$iy1 iy2=$iy2 iz1=$iz1 iz2=$iz2";
-  for my $ix ($ix1..$ix2-1) {
-    my $dx = $X[$ix+1] - $X[$ix];
-    for my $iy ($iy1..$iy2-1) {
-      my $dy = $Y[$iy+1] - $Y[$iy];
-      for my $iz ($iz1..$iz2-1) {
-        my $dz = $Z[$iz+1] - $Z[$iz];
-        #say "dx=$dx dy=$dy dz=$dz";
-        my $v = $dx * $dy * $dz;
-        if ($s) {
-          $PAINT{$ix,$iy,$iz} = $v;
-          #say "PAINT{$ix=,$iy,$iz} = $v";
-        } else {
-          delete $PAINT{$ix,$iy,$iz};
-          #say "PAINT{$ix,$iy,$iz} = del";
-        }
-      }
+sub intervaldiff {
+  my ($s1,$e1,$s2,$e2) = @_;
+  my @list = ([$s1,1], [$e1,-1], [$s2,-1], [$e2,1]);
+  @list=sort {$a->[0] <=> $b->[0]} @list;
+  #say "ID($s1,$e1,$s2,$2) called: ", join('; ', map {join(',', @$_)} @list);
+  my @out;
+  my $v=0;
+  for my $i (0..$#list-1) {
+    $v+=$list[$i]->[1];
+    next if $list[$i]->[0] == $list[$i+1]->[0];
+    if ($v > 0) {
+      push @out, [$list[$i]->[0], $list[$i+1]->[0]];
     }
   }
-  out (sum(values(%PAINT)));
+  return @out;
 }
 
-out (sum(values(%PAINT)));
+sub printlist {
+  say join('; ', map {join(',', @$_)} @_), " => ", sum(map {volume($_)} @_);
+}
+
+sub prismdiff {
+  my ($p1,$p2) = @_;
+  #printlist ($p1);
+  #printlist ($p2);
+  my @out;
+  for my $x (intervaldiff($p1->[0], $p1->[1], $p2->[0], $p2->[1])) {
+    my $p = [@$x, $p1->[2], $p1->[3], $p1->[4], $p1->[5]];
+    #print "(for x) ";
+    #printlist($p);
+    push @out, $p;
+  }
+  my ($x1, $x2) = (max($p1->[0], $p2->[0]), min($p1->[1], $p2->[1]));
+  return @out unless ($x1 < $x2);
+  for my $y (intervaldiff($p1->[2], $p1->[3], $p2->[2], $p2->[3])) {
+    my $p = [$x1, $x2, @$y, $p1->[4], $p1->[5]];
+    #print "(for y) ";
+    #printlist($p);
+    push @out, $p;
+  }
+  my ($y1, $y2) = (max($p1->[2], $p2->[2]), min($p1->[3], $p2->[3]));
+  return @out unless ($y1 < $y2);
+  for my $z (intervaldiff($p1->[4], $p1->[5], $p2->[4], $p2->[5])) {
+    my $p = [$x1, $x2, $y1, $y2, @$z];
+    #print "(for z) ";
+    #printlist($p);
+    push @out, $p;
+  }
+  #print " -> ";
+  #printlist @out;
+  return @out;
+}
+
+sub volume {
+  my $p = shift;
+  return ($p->[1]-$p->[0]) * ($p->[3]-$p->[2]) * ($p->[5]-$p->[4]);
+}
+
+while (<>) {
+  print;
+  chomp;
+  my @p = m{(on|off) x=(-?\d+)..(-?\d+),y=(-?\d+)..(-?\d+),z=(-?\d+)..(-?\d+)};
+  my $state = (shift @p eq 'on');
+  $p[1]++; $p[3]++; $p[5]++;
+  @A = map {prismdiff($_, \@p)} @A;
+  if ($state) {
+    push @A, \@p;
+  }
+  #out (sum(map {volume($_)} @A));  
+  say "TOTAL LENGTH = ", scalar(@A);
+}
+
+out (sum(map {volume($_)} @A));
