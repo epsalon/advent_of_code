@@ -53,13 +53,14 @@ sub volume {
   while (@p) {
     $ret *= (-(shift @p) + (shift @p));
   }
-  return ($p->[1]-$p->[0]) * ($p->[3]-$p->[2]) * ($p->[5]-$p->[4]);
+  return $ret;
 }
 
 while (<>) {
   chomp;
-  my @p = m{(on|off) x=(-?\d+)..(-?\d+),y=(-?\d+)..(-?\d+),z=(-?\d+)..(-?\d+)};
-  my $state = (shift @p eq 'on');
+  my ($state, $rest) = m{(on|off)[^\d-]+(.+)$};
+  $state = ($state eq 'on');
+  my @p = split(/[^\d-]+/, $rest);
   $p[1]++; $p[3]++; $p[5]++;
   @A = map {prismdiff($_, \@p)} @A;
   if ($state) {
