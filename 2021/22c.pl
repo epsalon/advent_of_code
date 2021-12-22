@@ -56,10 +56,7 @@ sub volume {
   return ($p->[1]-$p->[0]) * ($p->[3]-$p->[2]) * ($p->[5]-$p->[4]);
 }
 
-printlist(prismdiff([1,4,1,4,1,4],[2,3,2,3,5,8]));
-
 while (<>) {
-  print;
   chomp;
   my @p = m{(on|off) x=(-?\d+)..(-?\d+),y=(-?\d+)..(-?\d+),z=(-?\d+)..(-?\d+)};
   my $state = (shift @p eq 'on');
@@ -69,7 +66,6 @@ while (<>) {
     push @A, \@p;
   }
   #out (sum(map {volume($_)} @A));  
-  say "TOTAL LENGTH = ", scalar(@A);
 }
 
 out (sum(map {volume($_)} @A));
