@@ -3,7 +3,7 @@ use strict;
 no warnings 'portable';
 use feature 'say';
 use Clipboard;
-use List::Util qw/sum max min/;
+use List::Util qw/sum max min pairs product/;
 
 sub out {
   my $out = shift;
@@ -48,13 +48,7 @@ sub prismdiff {
 }
 
 sub volume {
-  my $p = shift;
-  my @p = @$p;
-  my $ret = 1;
-  while (@p) {
-    $ret *= (-(shift @p) + (shift @p));
-  }
-  return $ret;
+  return product(map {$_->[1] - $_->[0]} pairs(@{$_[0]}));
 }
 
 while (<>) {
