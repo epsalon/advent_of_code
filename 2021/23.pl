@@ -335,5 +335,5 @@ sub h {
   return $res;
 }
 
-out(astar($start,$end,\&nf,\&h));
-#out(astar($start,$end,\&nf));
+#out(astar($start,$end,\&nf,\&h));
+out(astar($start,$end,\&nf));
