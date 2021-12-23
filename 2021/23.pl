@@ -144,8 +144,10 @@ sub astar {
   my %OHASH = ($start, 1);
   my %path;
   $OPEN->insert($start, $h->($start));
+  my $steps;
 
   while (%OHASH) {
+    $steps++;
     my $cur = $OPEN->pop();
     delete $OHASH{$cur};
     if ($cur eq $end) {
@@ -155,6 +157,7 @@ sub astar {
       while ($cur = $path{$cur}) {
         unshift(@path, $cur)
       }
+      say "steps=$steps";
       return ($score, @path);
     }
     for my $n ($neigh->($cur)) {
@@ -289,6 +292,48 @@ sub nf {
   return @out;
 }
 
-#nf('#000B0000000#|BACD0CDA');
+my @ROOM_IDS = (qw/A B C D/);
 
-out(astar($start,$end,\&nf));
+sub h {
+  my $state = shift;
+  $state =~ m{\|(.+)}o or die;
+  my @p = split('', $1);
+  $state =~ m{^(.+)\|}o or die;
+  my @hallway = split('', $1);
+
+  my $res=0;
+  for my $i (0..$#hallway) {
+    next unless $hallway[$i] =~ /ABCD/;
+    my $id = $hallway[$i];
+    my $destpos = 3 + $DESTS{$id} * 2;
+    my $steps = abs($i-$destpos) + 1;
+    $res += $steps * $COSTS{$id};
+  }
+  my %badrooms;
+  for my $i (0..@p/$roomsize-1) {
+    my $badness = 0;
+    for my $j (0..$roomsize-1) {
+      $j = $roomsize-1-$j;
+      if ($p[$i*$roomsize + $j] ne $ROOM_IDS[$i]) {
+        $badness = $j + 1;
+        last;
+      }
+    }
+    my $steps = $badness * ($badness-1) / 2;
+    $res += $steps * $COSTS{$ROOM_IDS[$i]};
+  }
+  for my $i (0..$#p) {
+    next unless $p[$i] =~ /ABCD/;
+    my $id = $p[$i];
+    my $room = int($i/$roomsize);
+    my $h_movement = abs($room - $DESTS{$id}) * 2;
+    next unless $h_movement;
+    my $pos_in_room = $i % $roomsize;
+    my $steps = $h_movement + $pos_in_room + 2;
+    $res += $steps * $COSTS{$id};
+  }
+  return $res;
+}
+
+out(astar($start,$end,\&nf,\&h));
+#out(astar($start,$end,\&nf));
