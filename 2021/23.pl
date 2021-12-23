@@ -151,13 +151,13 @@ sub astar {
     my $cur = $OPEN->pop();
     delete $OHASH{$cur};
     if ($cur eq $end) {
+      say "steps=$steps";
       my $score = $gscore{$cur};
       return $score unless wantarray;
       my @path = ($cur);
       while ($cur = $path{$cur}) {
         unshift(@path, $cur)
       }
-      say "steps=$steps";
       return ($score, @path);
     }
     for my $n ($neigh->($cur)) {
@@ -201,6 +201,8 @@ my $roomsize = 4;
 my %COSTS = qw/A 1 B 10 C 100 D 1000/;
 my %DESTS = qw/A 0 B 1 C 2 D 3/;
 
+my @legalpos = split('','0110101010110');
+
 sub nf {
   my $state = shift;
   my @out;
@@ -220,6 +222,7 @@ sub nf {
       }
     }
   }
+
   #print Dumper(\@can_move);
   for my $h (@can_move) {
     my ($id, $loc, $init_cost, $room_state) = @$h;
@@ -237,10 +240,7 @@ sub nf {
     $max--;
     #say "id=$id loc=$loc init_cost=$init_cost room_state=$room_state min=$min max=$max";
     for my $pos ($min..$max) {
-      next if $pos == 3;
-      next if $pos == 5;
-      next if $pos == 7;
-      next if $pos == 9;
+      next unless $legalpos[$pos];
       my $steps = abs($pos-$loc) + $init_cost;
       my $cost = $steps * $COSTS{$id};
       my @nh = @hallway;
@@ -335,5 +335,54 @@ sub h {
   return $res;
 }
 
-#out(astar($start,$end,\&nf,\&h));
-out(astar($start,$end,\&nf));
+sub draw_state {
+  my $state = shift;
+  $state =~ m{(.+)\|(.+)}o or die;
+  my $hallway = $1;
+  say '#' x length($hallway);
+  my @p = split('', $2);
+  $hallway =~ tr/0/./;
+  say $hallway;
+  my $p = '##';
+  for my $i (0..$roomsize-1) {
+    print "$p#";
+    for my $j (0..@p/$roomsize-1) {
+      print (($p[$j*$roomsize + $i] || '.').'#');
+    }
+    say "$p";
+    $p = '  ';
+  }
+  say "  " . ('#' x (length($hallway)-4));
+  print "\n";
+}
+
+sub end_state {
+  return '#00000000000#|'.join('', map {$_ x $roomsize} qw/A B C D/);
+}
+
+
+$roomsize = 0;
+<>;
+my $hallway = <>;
+chomp $hallway;
+$hallway =~ tr/./0/;
+my @rooms;
+while (<>) {
+  chomp;
+  last unless /[ABCD]/;
+  s/[^ABCD]//go;
+  my @l = split('');
+  for my $i (0..$#l) {
+    $rooms[$i] .= $l[$i];
+  }
+  $roomsize++;
+}
+$start = $hallway.'|'.join('', @rooms);
+$end = end_state;
+
+my @ret = astar($start,$end,\&nf);
+out(shift @ret);
+
+for my $s (@ret) {
+  draw_state($s);
+}
