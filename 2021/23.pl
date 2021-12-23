@@ -151,7 +151,7 @@ sub astar {
     my $cur = $OPEN->pop();
     delete $OHASH{$cur};
     if ($cur eq $end) {
-      say "steps=$steps";
+      say "total steps = $steps";
       my $score = $gscore{$cur};
       return $score unless wantarray;
       my @path = ($cur);
