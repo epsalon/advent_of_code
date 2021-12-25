@@ -185,33 +185,7 @@ my $sum=0;
 while (<>) {
   chomp;
   last unless $_;
-  push @A, [split(' '), ''];
+  push @A, [split('')];
 }
 
-my @input = (1..14);
-my %VARS = (qw/w 0 x 0 y 0 z 0/);
-for my $l (@A) {
-  my ($opcode, $acc, $oth) = @$l;
-  $oth = $VARS{$oth} // $oth;
-  if ($opcode eq 'inp') {
-    $VARS{$acc} = ('$x'.(shift @input));
-  } elsif ($opcode eq 'add') {
-    $VARS{$acc} = ($VARS{$acc} eq '0' ? $oth : (
-      $oth eq '0' ? $VARS{$acc} :
-      '(' . $VARS{$acc}.' + '.$oth . ')'
-    ));
-  } elsif ($opcode eq 'mul') {
-    $VARS{$acc} = ($VARS{$acc} eq '0' ? 0: (
-      $oth eq '0' ? 0 :
-      '(' . $VARS{$acc}.' * '.$oth . ')'
-    ));
-  } elsif ($opcode eq 'div') {
-    $VARS{$acc} = $VARS{$acc} eq '0' ? 0 : 'int(' . $VARS{$acc}.' / '.$oth . ')';
-  } elsif ($opcode eq 'mod') {
-    $VARS{$acc} = $VARS{$acc} eq '0' ? 0 : '(' . $VARS{$acc}.' % '.$oth . ')';
-  } elsif ($opcode eq 'eql') {
-    $VARS{$acc} = '(' . $VARS{$acc}.' == '.$oth . ')';
-  }
-}
-
-say($VARS{'z'});
+out ($sum);

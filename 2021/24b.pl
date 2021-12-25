@@ -182,36 +182,109 @@ my @A;
 my %H;
 my $sum=0;
 
+$| = 1;
+
 while (<>) {
   chomp;
   last unless $_;
-  push @A, [split(' '), ''];
+  push @A, split(' ');
 }
 
-my @input = (1..14);
-my %VARS = (qw/w 0 x 0 y 0 z 0/);
-for my $l (@A) {
-  my ($opcode, $acc, $oth) = @$l;
-  $oth = $VARS{$oth} // $oth;
-  if ($opcode eq 'inp') {
-    $VARS{$acc} = ('$x'.(shift @input));
-  } elsif ($opcode eq 'add') {
-    $VARS{$acc} = ($VARS{$acc} eq '0' ? $oth : (
-      $oth eq '0' ? $VARS{$acc} :
-      '(' . $VARS{$acc}.' + '.$oth . ')'
-    ));
-  } elsif ($opcode eq 'mul') {
-    $VARS{$acc} = ($VARS{$acc} eq '0' ? 0: (
-      $oth eq '0' ? 0 :
-      '(' . $VARS{$acc}.' * '.$oth . ')'
-    ));
-  } elsif ($opcode eq 'div') {
-    $VARS{$acc} = $VARS{$acc} eq '0' ? 0 : 'int(' . $VARS{$acc}.' / '.$oth . ')';
-  } elsif ($opcode eq 'mod') {
-    $VARS{$acc} = $VARS{$acc} eq '0' ? 0 : '(' . $VARS{$acc}.' % '.$oth . ')';
-  } elsif ($opcode eq 'eql') {
-    $VARS{$acc} = '(' . $VARS{$acc}.' == '.$oth . ')';
+sub run_machine {
+  my @input = @_;
+  my @stack;
+  for my $l (@A) {
+    say 'STACK= '.join('; ', map {join(',', @$_)} @stack);
+    say $l;
+    unless ($l =~ /[a-z]+/) {
+      push @stack, [$l, $l];
+      next;
+    }
+    if ($l eq 'var') {
+      my $sv = pop @stack;
+      my $input = $input[$sv->[0] - 1];
+      push @stack, $input;
+      next;
+    }
+    my $opcode = $l;
+    my $oth = pop @stack;
+    my $acc = pop @stack;
+    my %vals_res;
+    if ($opcode eq 'add') {
+      for my $a (@$acc) {
+        for my $o (@$oth) {
+          $vals_res{$a + $o} = 1;
+        }
+      }
+    } elsif ($opcode eq 'mul') {
+      for my $a (@$acc) {
+        for my $o (@$oth) {
+          $vals_res{$a * $o} = 1;
+        }
+      }
+    } elsif ($opcode eq 'div') {
+      for my $a (@$acc) {
+        for my $o (@$oth) {
+          $vals_res{int ($a/$o)} = 1;
+        }
+      }
+    } elsif ($opcode eq 'mod') {
+      for my $a (@$acc) {
+        for my $o (@$oth) {
+          $vals_res{$a%$o} = 1;
+        }
+      }
+    } elsif ($opcode eq 'eql') {
+      for my $a (@$acc) {
+        for my $o (@$oth) {
+          $vals_res{$a == $o ? 1 : 0} = 1;
+        }
+      }
+    }
+    if (%vals_res > 1000) {
+      %vals_res = ();
+    }
+    push @stack, [keys(%vals_res)];
   }
+  my $out = pop(@stack);
+  die if @stack;
+  return @$out;
 }
 
-say($VARS{'z'});
+
+my @out = run_machine (map {[$_]} (split('', 92915979999499 - 1)));
+
+print Dumper(\@out);
+
+exit;
+
+my @prefix = split('', '999959');
+
+BIGLOOP: while (@prefix < 14) {
+  say "PREFIX = ".join('', @prefix);
+  my @input1 = map {[$_]} (@prefix);
+  my @input2 = map {[1..9]} (@prefix..14);
+  my @input = (@input1, @input2);
+
+  my @output = run_machine(@input);
+
+  push @output, 0 unless @output;
+
+  for my $v (@output) {
+    unless ($v) {
+      #print Dumper($VARS{'z'});
+      #say "YES";
+      push @prefix, 9;
+      #say "NEW PREFIX = ", join('', @prefix);
+      next BIGLOOP;
+    }
+  }
+  my $v = 0;
+  while (!$v) {
+    $v = pop(@prefix);
+    $v--;
+  }
+  push @prefix, $v;
+}
+
+out join('', @prefix);

@@ -182,36 +182,75 @@ my @A;
 my %H;
 my $sum=0;
 
+$| = 1;
+
 while (<>) {
   chomp;
   last unless $_;
   push @A, [split(' '), ''];
 }
 
-my @input = (1..14);
-my %VARS = (qw/w 0 x 0 y 0 z 0/);
-for my $l (@A) {
-  my ($opcode, $acc, $oth) = @$l;
-  $oth = $VARS{$oth} // $oth;
-  if ($opcode eq 'inp') {
-    $VARS{$acc} = ('$x'.(shift @input));
-  } elsif ($opcode eq 'add') {
-    $VARS{$acc} = ($VARS{$acc} eq '0' ? $oth : (
-      $oth eq '0' ? $VARS{$acc} :
-      '(' . $VARS{$acc}.' + '.$oth . ')'
-    ));
-  } elsif ($opcode eq 'mul') {
-    $VARS{$acc} = ($VARS{$acc} eq '0' ? 0: (
-      $oth eq '0' ? 0 :
-      '(' . $VARS{$acc}.' * '.$oth . ')'
-    ));
-  } elsif ($opcode eq 'div') {
-    $VARS{$acc} = $VARS{$acc} eq '0' ? 0 : 'int(' . $VARS{$acc}.' / '.$oth . ')';
-  } elsif ($opcode eq 'mod') {
-    $VARS{$acc} = $VARS{$acc} eq '0' ? 0 : '(' . $VARS{$acc}.' % '.$oth . ')';
-  } elsif ($opcode eq 'eql') {
-    $VARS{$acc} = '(' . $VARS{$acc}.' == '.$oth . ')';
+sub run_machine {
+  my @input = @_;
+  my %VARS = ('w', 0, 'x', 0, 'y', 0, 'z', 0);
+  for my $l (@A) {
+    my ($opcode, $acc, $oth) = @$l;
+    my $acc_graph = $VARS{$acc};
+    my $oth_graph;
+    if (defined($VARS{$oth})) {
+      $oth_graph = $VARS{$oth};
+    } else {
+      $oth = 0 unless $oth;
+      $oth_graph = $oth;
+    }
+    if ($opcode eq 'inp') {
+      $VARS{$acc} = shift @input;
+      next;
+    }
+    my $graph = [$opcode, $acc_graph, $oth_graph];
+    my $literal = (!ref($oth_graph) && !ref($acc_graph));
+    if ($opcode eq 'add') {
+      unless ($acc_graph) {
+        $graph = $oth_graph;
+      }
+      unless ($oth_graph) {
+        $graph = $acc_graph;
+      }
+      if ($literal) {
+        $graph = $oth_graph + $acc_graph;
+      }
+    } elsif ($opcode eq 'mul') {
+      if (!$acc_graph || !$oth_graph) {
+        $graph = 0;
+      }
+      if ($literal) {
+        $graph = $oth_graph * $acc_graph;
+      }
+    } elsif ($opcode eq 'div') {
+      if (!$acc_graph) {
+        $graph = 0;
+      }
+      if ($literal) {
+        $graph = int($acc_graph / $oth_graph);
+      }
+    } elsif ($opcode eq 'mod') {
+      if (!$acc_graph) {
+        $graph = 0;
+      }
+      if ($literal) {
+        $graph = $acc_graph % $oth_graph;
+      }
+    } elsif ($opcode eq 'eql') {
+      if ($literal) {
+        $graph = $oth_graph == $acc_graph ? 1 : 0;
+      }
+    }
+    $VARS{$acc} = $graph;
   }
+
+  return $VARS{'z'};
 }
 
-say($VARS{'z'});
+my @input = map {["x$_"]} (1..14);
+
+print Dumper(run_machine(@input));

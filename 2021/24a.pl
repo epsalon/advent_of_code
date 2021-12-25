@@ -182,36 +182,132 @@ my @A;
 my %H;
 my $sum=0;
 
+$| = 1;
+
 while (<>) {
   chomp;
   last unless $_;
   push @A, [split(' '), ''];
 }
 
-my @input = (1..14);
-my %VARS = (qw/w 0 x 0 y 0 z 0/);
-for my $l (@A) {
-  my ($opcode, $acc, $oth) = @$l;
-  $oth = $VARS{$oth} // $oth;
-  if ($opcode eq 'inp') {
-    $VARS{$acc} = ('$x'.(shift @input));
-  } elsif ($opcode eq 'add') {
-    $VARS{$acc} = ($VARS{$acc} eq '0' ? $oth : (
-      $oth eq '0' ? $VARS{$acc} :
-      '(' . $VARS{$acc}.' + '.$oth . ')'
-    ));
-  } elsif ($opcode eq 'mul') {
-    $VARS{$acc} = ($VARS{$acc} eq '0' ? 0: (
-      $oth eq '0' ? 0 :
-      '(' . $VARS{$acc}.' * '.$oth . ')'
-    ));
-  } elsif ($opcode eq 'div') {
-    $VARS{$acc} = $VARS{$acc} eq '0' ? 0 : 'int(' . $VARS{$acc}.' / '.$oth . ')';
-  } elsif ($opcode eq 'mod') {
-    $VARS{$acc} = $VARS{$acc} eq '0' ? 0 : '(' . $VARS{$acc}.' % '.$oth . ')';
-  } elsif ($opcode eq 'eql') {
-    $VARS{$acc} = '(' . $VARS{$acc}.' == '.$oth . ')';
+sub run_machine {
+  my @input = @_;
+  my %VARS = ('w', [0,0], 'x', [0,0], 'y', [0,0], 'z', [0,0]);
+  for my $l (@A) {
+    #print Dumper(\%VARS);
+    my ($opcode, $acc, $oth) = @$l;
+    my ($exp_acc, @vals_acc) = @{$VARS{$acc}};
+    my (@vals_oth);
+    if (defined($VARS{$oth})) {
+      ($oth, @vals_oth) = @{$VARS{$oth}};
+    } else {
+      $oth = 0 unless $oth;
+      @vals_oth = ($oth);
+    }
+    my $acc_zero = (@vals_acc == 1 && $vals_acc[0] == 0);
+    my $oth_zero = (@vals_oth == 1 && $vals_oth[0] == 0);
+    my $acc_one = (@vals_acc == 1 && $vals_acc[0] == 1);
+    my $oth_one = (@vals_oth == 1 && $vals_oth[0] == 1);
+    my %vals_res;
+    my $exp;
+    if ($opcode eq 'inp') {
+      $VARS{$acc} = shift @input;
+      next;
+    } elsif ($opcode eq 'add') {
+      $exp = ($acc_zero ? $oth : (
+        $oth_zero ? $exp_acc :
+        "$exp_acc $oth add"
+      ));
+      for my $a (@vals_acc) {
+        for my $o (@vals_oth) {
+          $vals_res{$a + $o} = 1;
+        }
+      }
+    } elsif ($opcode eq 'mul') {
+      next if ($oth_one);
+      $exp = ($acc_zero ? 0: (
+        $oth_zero ? 0 :
+        "$exp_acc $oth mul"
+      ));
+      $exp = $oth if $acc_one;
+      for my $a (@vals_acc) {
+        for my $o (@vals_oth) {
+          $vals_res{$a * $o} = 1;
+        }
+      }
+    } elsif ($opcode eq 'div') {
+      next if ($oth_one);
+      $exp = $acc_zero ? 0 : "$exp_acc $oth div";
+      for my $a (@vals_acc) {
+        for my $o (@vals_oth) {
+          next unless $o;
+          $vals_res{int($a/$o)} = 1;
+        }
+      }
+    } elsif ($opcode eq 'mod') {
+      $exp = $acc_zero ? 0 : "$exp_acc $oth mod";
+      for my $a (@vals_acc) {
+        for my $o (@vals_oth) {
+          next unless $o;
+          $vals_res{$a % $o} = 1;
+        }
+      }
+      if (!@vals_acc) {
+        for my $i (0..max(@vals_oth)) {
+          $vals_res{$i} = 1;
+        }
+      }
+      $VARS{$acc} = [$exp, keys(%vals_res)];
+    } elsif ($opcode eq 'eql') {
+      $exp = "$exp_acc $oth eql";
+      for my $a (@vals_acc) {
+        for my $o (@vals_oth) {
+          $vals_res{$a == $o ? 1 : 0} = 1;
+        }
+      }
+    }
+    if (%vals_res > 1000) {
+      %vals_res = ();
+    }
+    if (%vals_res == 1) {
+      $VARS{$acc} = [(keys(%vals_res)) x 2];
+    } else {
+      $VARS{$acc} = [$exp, keys(%vals_res)];
+    }
   }
+
+  return @{$VARS{'z'}};
+
 }
 
-say($VARS{'z'});
+my @prefix = split('', '1');
+
+BIGLOOP: while (@prefix < 14) {
+  say "PREFIX = ".join('', @prefix) unless $sum++ & 0xff;
+  my @input1 = map {[$_, $_]} (@prefix);
+  my @input2 = map {[("x$_", 1..9)]} (@prefix..14);
+  my @input = (@input1, @input2);
+  #print Dumper(\@input);
+
+  my @output = run_machine(@input);
+
+  push @output, 0 if (@output == 1);
+
+  for my $v (@output) {
+    unless ($v) {
+      #print Dumper($VARS{'z'});
+      #say "YES";
+      push @prefix, 1;
+      #say "NEW PREFIX = ", join('', @prefix);
+      next BIGLOOP;
+    }
+  }
+  my $v = 10;
+  while ($v == 10) {
+    $v = pop(@prefix);
+    $v++;
+  }
+  push @prefix, $v;
+}
+
+out join('', @prefix);
