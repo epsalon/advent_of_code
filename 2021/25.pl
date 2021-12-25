@@ -25,8 +25,8 @@ sub out {
 sub equalize {
   my $arr = shift;
   my $fill = shift;
-  my $rows = @$arr;
-  my $cols = max(map {$_ ? scalar(@$_): 0} @$arr);
+  my $rows = shift;
+  my $cols = shift;
   print "$rows $cols\n";
   for my $row (@$arr) {
     $row = [] unless $row;
@@ -179,13 +179,56 @@ sub astar {
 }
 
 my @A;
-my %H;
+my %He;
+my %Hd;
 my $sum=0;
 
 while (<>) {
   chomp;
   last unless $_;
+  tr/./0/;
   push @A, [split('')];
+}
+
+my $rows = @A;
+my $cols = @{$A[0]};
+
+my $movement = 1;
+while ($movement) {
+  $movement = 0;
+  $sum++;
+  my @A2;
+  for my $r (0..$rows-1) {
+    for my $c (0..$cols-1) {
+      if (($A[$r][$c] || 0) eq '>') {
+        my $nc = ($c + 1) % $cols;
+        unless ($A[$r][$nc]) {
+          $A2[$r][$nc] = '>';
+          $movement++;
+        } else {
+          $A2[$r][$c] = '>';
+        }
+      } elsif ($A[$r][$c]) {
+        $A2[$r][$c] = $A[$r][$c];
+      }
+    }
+  }
+  @A = ();
+  for my $r (0..$rows-1) {
+    for my $c (0..$cols-1) {
+      if (($A2[$r][$c] || 0) eq 'v') {
+        my $nr = ($r + 1) % $rows;
+        unless ($A2[$nr][$c]) {
+          $A[$nr][$c] = 'v';
+          $movement++;
+        } else {
+          $A[$r][$c] = 'v';
+        }
+      } elsif ($A2[$r][$c]) {
+        $A[$r][$c] = $A2[$r][$c];
+      }
+    }
+  }
 }
 
 out ($sum);
