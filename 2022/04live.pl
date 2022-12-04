@@ -180,17 +180,14 @@ sub astar {
 
 my @A;
 my %H;
-my ($sum1,$sum2)=0;
+my $sum=0;
 
 while (<>) {
   chomp;
   last unless $_;
   my ($a,$b,$c,$d) =  m/^(\d+)-(\d+),(\d+)-(\d+)$/o;
-  die unless ($a <= $b);
-  die unless ($c <= $d);
-  $sum1++ if (($a <= $c && $d <= $b) || ($c <= $a && $b <= $d));
-  $sum2++ unless ($b < $c || $d < $a);
+  # $sum++ if (($a <= $c && $d <= $b) || ($c <= $a && $b <= $d));
+  $sum++ unless ($b < $c || $d < $a);
 }
 
-out ($sum1);
-out ($sum2);
+out ($sum);
