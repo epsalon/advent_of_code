@@ -178,19 +178,26 @@ sub astar {
   }
 }
 
+sub smart_split {
+  my $str = shift || $_;
+  return ($str =~ m{[a-zA-Z]+|\d+}go);
+}
+
+sub hashify {
+  my @arr = ref $_[0] ? @{$_[0]} : @_;
+  return map {$_ => 1} @arr;
+}
+
 my @A;
 my %H;
-my ($sum1,$sum2)=0;
+my $sum=0;
 
 while (<>) {
   chomp;
   last unless $_;
-  my ($a,$b,$c,$d) =  m/^(\d+)-(\d+),(\d+)-(\d+)$/o;
-  die unless ($a <= $b);
-  die unless ($c <= $d);
-  $sum1++ if (($a <= $c && $d <= $b) || ($c <= $a && $b <= $d));
-  $sum2++ unless ($b < $c || $d < $a);
+  push @A, [split('')];
+  my @p = smart_split();
+  my ($a,$b,$c,$d,$e,$f,$g,$h) = @p;
 }
 
-out ($sum1);
-out ($sum2);
+out ($sum);

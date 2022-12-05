@@ -178,6 +178,16 @@ sub astar {
   }
 }
 
+sub smart_split {
+  my $str = shift || $_;
+  return ($str =~ m{[a-zA-Z]+|\d+}go);
+}
+
+sub hashify {
+  my @arr = ref $_[0] ? @{$_[0]} : @_;
+  return map {$_ => 1} @arr;
+}
+
 my @A;
 my %H;
 my $sum=0;
@@ -186,6 +196,8 @@ while (<>) {
   chomp;
   last unless $_;
   push @A, [split('')];
+  my @p = smart_split();
+  my ($a,$b,$c,$d,$e,$f,$g,$h) = @p;
 }
 
 out ($sum);
