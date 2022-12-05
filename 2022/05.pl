@@ -178,19 +178,52 @@ sub astar {
   }
 }
 
+sub smart_split {
+  my $str = shift || $_;
+  return ($str =~ m{[a-zA-Z]+|\d+}go);
+}
+
+sub hashify {
+  my @arr = ref $_[0] ? @{$_[0]} : @_;
+  return map {$_ => 1} @arr;
+}
+
 my @A;
 my %H;
-my ($sum1,$sum2)=0;
+my $sum=0;
+
+my @stacks;
 
 while (<>) {
   chomp;
   last unless $_;
-  my ($a,$b,$c,$d) =  m/^(\d+)-(\d+),(\d+)-(\d+)$/o;
-  die unless ($a <= $b);
-  die unless ($c <= $d);
-  $sum1++ if (($a <= $c && $d <= $b) || ($c <= $a && $b <= $d));
-  $sum2++ unless ($b < $c || $d < $a);
+  my @ch = split('');
+  for my $i (0..8) {
+    my $c = $ch[1+$i*4];
+    if ($c && $c ne ' ') {
+      unshift (@{$stacks[$i]}, $c)
+    }
+  }  
 }
 
-out ($sum1);
-out ($sum2);
+for my $i (0..8) {
+  shift (@{$stacks[$i]});
+}
+
+while (<>) {
+  chomp;
+  my ($n,$s,$t) = m{\d+}go;
+  print "$n $s $t\n";
+ # for my $i (0..$n-1) {
+ #   push @{$stacks[$t-1]}, (pop @{$stacks[$s-1]});
+ # }
+  push @{$stacks[$t-1]},  splice(@{$stacks[$s-1]}, -$n);
+}
+
+my $out='';
+
+for my $i (0..8) {
+  $out.=pop @{$stacks[$i]};
+}
+
+out ($out);
