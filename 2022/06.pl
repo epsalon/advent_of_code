@@ -188,17 +188,19 @@ sub hashify {
   return map {$_ => 1} @arr;
 }
 
-my @A;
 my %H;
 my $sum=0;
 
-while (<>) {
-  chomp;
-  last unless $_;
-  push @A, [split('')];
-  my @p = smart_split();
-  my ($a,$b,$c,$d,$e,$f,$g,$h) = @p;
-  print "a=$a;b=$b;c=$c;d=$d;e=$e;f=$f;g=$g;h=$h\n";
+$_ = <>;
+chomp;
+my @A = split('');
+
+for my $i (0..$#A-13) {
+  my %h = hashify(@A[$i..$i+13]);
+  if (scalar(keys %h) == 14) {
+    out($i+14);
+    last;
+  }
 }
 
-out ($sum);
+#//out ($sum);
