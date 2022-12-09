@@ -207,6 +207,8 @@ sub sgn {
   return 0;
 }
 
+my ($xl,$xr,$xu,$xd) = (0,0,0,0);
+
 while (<>) {
   chomp;
   last unless $_;
@@ -226,7 +228,20 @@ while (<>) {
     }
     my ($tr,$tc) = @{$T[$#T]};
     $H{"$tr,$tc"}++;
+    $xl = $tc if $tc < $xl;
+    $xr = $tc if $tc > $xr;
+    $xu = $tr if $tr < $xu;
+    $xd = $tr if $tr > $xd;
   }
+}
+
+print "$xl,$xr,$xu,$xd\n";
+
+for my $r ($xu..$xd) {
+  for my $c ($xl..$xr) {
+    print $H{"$r,$c"}?'#':'.';
+  }
+  print "\n";
 }
 
 out (scalar(keys %H));
