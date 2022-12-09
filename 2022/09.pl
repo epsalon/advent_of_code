@@ -214,7 +214,6 @@ while (<>) {
   my @p = smart_split();
   my ($a,$b) = @p;
   my $d = $dir{$a};
-  #out($d);
   for my $i (1..$b) {
     $hr += $d->[0]; $hc += $d->[1];
     my ($pr, $pc) = ($hr,$hc);
