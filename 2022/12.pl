@@ -253,7 +253,7 @@ my ($v,@p) = (astar("$er,$ec", "$sr,$sc", \&nf));
 
 for my $n (@p) {
   my ($r,$c) = split(',', $n);
-  $A[$r][$c] = BOLD . RED .  uc($A[$r][$c]) . RESET;
+  $A[$r][$c] = BOLD . ON_RED .  uc($A[$r][$c]) . RESET;
 }
 
 say(join("\n", map {join('', @$_)} @A));
@@ -265,11 +265,11 @@ sub end {
   my ($r, $c) = split(',', $_[0]);
   return ($A[$r][$c] eq 'a');
 }
-my ($v,@p) = (astar("$er,$ec", \&end, \&nf));
+($v,@p) = (astar("$er,$ec", \&end, \&nf));
 
 for my $n (@p) {
   my ($r,$c) = split(',', $n);
-  $A[$r][$c] = BOLD . RED .  uc($A[$r][$c]) . RESET;
+  $A[$r][$c] = BOLD . ON_RED .  uc($A[$r][$c]) . RESET;
 }
 
 say(join("\n", map {join('', @$_)} @A));
