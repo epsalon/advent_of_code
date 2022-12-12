@@ -219,7 +219,7 @@ my ($er,$ec);
 for my $i (0..$#A) {
   if ($A[$i][0] eq 'S') {
     $sr = $i;
-    $A[$i][0] = '`';
+    $A[$i][0] = 'a';
   }
   for my $j (0..$#{$A[0]}) {
     if ($A[$i][$j] eq 'E') {
@@ -240,7 +240,7 @@ sub nf {
   my $vp = chr(ord($v) - 1);
   for my $n (@neigh) {
     if ($n->[1] ge $vp) {
-      push @o, [$n->[0]];
+      push @o, $n->[0];
     }
   }
   #out ([$node, $r, $c, $v, \@neigh, \@o, $vp]);
@@ -260,7 +260,6 @@ say(join("\n", map {join('', @$_)} @A));
 out ($v);
 
 @A = @$B;
-$A[$sr][$sc] = 'a';
 
 sub end {
   my ($r, $c) = split(',', $_[0]);
