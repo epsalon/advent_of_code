@@ -9,6 +9,8 @@ use Math::Cartesian::Product;
 use Math::Complex;
 use List::PriorityQueue;
 use Memoize;
+use Term::ANSIColor qw(:constants);
+use Storable qw(dclone);
 
 my @A;
 
@@ -134,7 +136,9 @@ sub bin2hex {
 
 # A* / BFS implementation
 # Args: start, end, neighbor function, heuristic function
-# neighbor function: node -> [[new_node, cost], ...]
+#  - end is either a node or a function that takes a single node
+#    and returns true/false.
+# neighbor function: node -> ([new_node, cost], ...)
 #   cost assumed 1 if missing
 # heuristic function: node -> lower bound on cost to end
 sub astar {
@@ -146,13 +150,16 @@ sub astar {
   my %OHASH = ($start, 1);
   my %path;
   $OPEN->insert($start, $h->($start));
+  if (ref($end) ne 'CODE') {
+    my $end_node = $end;
+    $end = sub { return $_[0] eq $end_node; };
+  }
 
   while (%OHASH) {
     my $cur = $OPEN->pop();
     delete $OHASH{$cur};
-    my ($r,$c) = split(',', $cur);
-    my $v = $A[$r][$c];
-    if ($v eq 'a') {
+    if ($end->($cur)) {
+      say "reached end at $cur";
       my $score = $gscore{$cur};
       return $score unless wantarray;
       my @path = ($cur);
@@ -162,7 +169,12 @@ sub astar {
       return ($score, @path);
     }
     for my $n ($neigh->($cur)) {
-      my ($np,$v) = @$n;
+      my ($np,$v);
+      if (ref($n) eq 'ARRAY') {
+        ($np,$v) = @$n;
+      } else {
+        $np = $n;
+      }
       if (!defined($v)) {
         $v = 1;
       }
@@ -226,17 +238,41 @@ sub nf {
   my @neigh = oneigh(\@A, $node);
   my @o;
   my $vp = chr(ord($v) - 1);
-  out ([$node, $r,$c,\@neigh,$v,$vp]);
   for my $n (@neigh) {
     if ($n->[1] ge $vp) {
       push @o, [$n->[0]];
     }
   }
+  #out ([$node, $r, $c, $v, \@neigh, \@o, $vp]);
   return @o;
 }
 
-out([$sr,$sc,$er,$ec]);
+my $B = dclone(\@A);
 
-#out(astar("$sr,$sc", "$er,$ec", \&nf));
+my ($v,@p) = (astar("$er,$ec", "$sr,$sc", \&nf));
 
-out(astar("$er,$ec", "--", \&nf));
+for my $n (@p) {
+  my ($r,$c) = split(',', $n);
+  $A[$r][$c] = BOLD . RED .  uc($A[$r][$c]) . RESET;
+}
+
+say(join("\n", map {join('', @$_)} @A));
+out ($v);
+
+@A = @$B;
+$A[$sr][$sc] = 'a';
+
+sub end {
+  my ($r, $c) = split(',', $_[0]);
+  return ($A[$r][$c] eq 'a');
+}
+my ($v,@p) = (astar("$er,$ec", \&end, \&nf));
+
+for my $n (@p) {
+  my ($r,$c) = split(',', $n);
+  $A[$r][$c] = BOLD . RED .  uc($A[$r][$c]) . RESET;
+}
+
+say(join("\n", map {join('', @$_)} @A));
+out ($v);
+

@@ -132,7 +132,9 @@ sub bin2hex {
 
 # A* / BFS implementation
 # Args: start, end, neighbor function, heuristic function
-# neighbor function: node -> [[new_node, cost], ...]
+#  - end is either a node or a function that takes a single node
+#    and returns true/false.
+# neighbor function: node -> ([new_node, cost], ...)
 #   cost assumed 1 if missing
 # heuristic function: node -> lower bound on cost to end
 sub astar {
@@ -144,6 +146,10 @@ sub astar {
   my %OHASH = ($start, 1);
   my %path;
   $OPEN->insert($start, $h->($start));
+  if (ref($end) ne 'CODE') {
+    my $end_node = $end;
+    $end = sub { return $_[0] eq $end_node; };
+  }
 
   while (%OHASH) {
     my $cur = $OPEN->pop();
@@ -158,7 +164,12 @@ sub astar {
       return ($score, @path);
     }
     for my $n ($neigh->($cur)) {
-      my ($np,$v) = @$n;
+      my ($np,$v);
+      if (ref($n) eq 'ARRAY') {
+        ($np,$v) = @$n;
+      } else {
+        $np = $n;
+      }
       if (!defined($v)) {
         $v = 1;
       }
