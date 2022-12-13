@@ -131,64 +131,6 @@ sub bin2hex {
   return $out;
 }
 
-# A* / BFS implementation
-# Args: start, end, neighbor function, heuristic function
-#  - end is either a node or a function that takes a single node
-#    and returns true/false.
-# neighbor function: node -> ([new_node, cost], ...)
-#   cost assumed 1 if missing
-# heuristic function: node -> lower bound on cost to end
-sub astar {
-  my ($start, $end, $neigh, $h) = @_;
-  $h = sub {return 0;} unless $h;
-
-  my $OPEN = new List::PriorityQueue;
-  my %gscore = ($start, 0);
-  my %OHASH = ($start, 1);
-  my %path;
-  $OPEN->insert($start, $h->($start));
-  if (ref($end) ne 'CODE') {
-    my $end_node = $end;
-    $end = sub { return $_[0] eq $end_node; };
-  }
-
-  while (%OHASH) {
-    my $cur = $OPEN->pop();
-    delete $OHASH{$cur};
-    if ($cur eq $end) {
-      my $score = $gscore{$cur};
-      return $score unless wantarray;
-      my @path = ($cur);
-      while ($cur = $path{$cur}) {
-        unshift(@path, $cur)
-      }
-      return ($score, @path);
-    }
-    for my $n ($neigh->($cur)) {
-      my ($np,$v);
-      if (ref($n) eq 'ARRAY') {
-        ($np,$v) = @$n;
-      } else {
-        $np = $n;
-      }
-      if (!defined($v)) {
-        $v = 1;
-      }
-      my $new_g = $gscore{$cur} + $v;
-      if (!exists($gscore{$np}) || $new_g < $gscore{$np}) {
-        $path{$np} = $cur if wantarray;
-        $gscore{$np} = $new_g;
-        my $fscore = $new_g + $h->($np);
-        if (!$OHASH{$np}) {
-          $OPEN->insert($np, $fscore);
-          $OHASH{$np}++;
-        } else {
-          $OPEN->update($np, $fscore);
-        }
-      }
-    }
-  }
-}
 
 sub smart_split {
   my $str = shift || $_;
