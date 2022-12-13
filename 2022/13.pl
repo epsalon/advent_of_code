@@ -237,12 +237,17 @@ my $i=0;
 my @A = ([[2]],[[6]]);
 
 while (<>) {
-  $i++;
   chomp;
   next unless $_;
-  push @A, eval($_);
+  $i++;
+  my $a = eval($_);
+  $_=<>;
+  my $b = eval($_);
+  $sum+=$i if (cmpl($a,$b) == -1);
+  push @A, $a, $b;
 }
 
+out($sum);
 
 @A = sort {cmpl($a,$b)} @A;
 
@@ -256,8 +261,6 @@ sub strify {
     return $x;
   }
 }
-
-out strify(\@A);
 
 for my $i (0..$#A) {
   if (strify($A[$i]) eq '[[2]]' || strify($A[$i]) eq '[[6]]') {
