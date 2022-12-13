@@ -133,29 +133,40 @@ sub bin2hex {
 
 # A* / BFS implementation
 # Args: start, end, neighbor function, heuristic function
+#  - start is either a node or a list of nodes to start at.
 #  - end is either a node or a function that takes a single node
 #    and returns true/false.
-# neighbor function: node -> ([new_node, cost], ...)
-#   cost assumed 1 if missing
-# heuristic function: node -> lower bound on cost to end
+# - neighbor function: node -> ([new_node, cost], ...)
+#   - cost assumed 1 if missing
+# - heuristic function: node -> lower bound on cost to end (optional)
 sub astar {
   my ($start, $end, $neigh, $h) = @_;
-  $h = sub {return 0;} unless $h;
-
-  my $OPEN = new List::PriorityQueue;
-  my %gscore = ($start, 0);
-  my %OHASH = ($start, 1);
-  my %path;
-  $OPEN->insert($start, $h->($start));
+  # Generalize parameters
+  $start = [$start] unless (ref($start) eq 'ARRAY');
   if (ref($end) ne 'CODE') {
     my $end_node = $end;
     $end = sub { return $_[0] eq $end_node; };
   }
+  die "bad neigh func $neigh" unless (ref($neigh) eq 'CODE');
+  $h = sub {return 0;} unless $h;
 
+  # Initialize open list
+  my $OPEN = new List::PriorityQueue;
+  my %gscore;
+  my %OHASH;
+  for my $s (@$start) {
+    $gscore{$s} = 0;
+    $OHASH{$s} = 1;
+    $OPEN->insert($s, $h->($s));
+  }
+
+  my %path;
   while (%OHASH) {
     my $cur = $OPEN->pop();
     delete $OHASH{$cur};
-    if ($cur eq $end) {
+    # Check for end
+    if ($end->($cur)) {
+      say "reached end at $cur";
       my $score = $gscore{$cur};
       return $score unless wantarray;
       my @path = ($cur);
@@ -164,6 +175,7 @@ sub astar {
       }
       return ($score, @path);
     }
+    # Expand neighbors
     for my $n ($neigh->($cur)) {
       my ($np,$v);
       if (ref($n) eq 'ARRAY') {
@@ -176,6 +188,7 @@ sub astar {
       }
       my $new_g = $gscore{$cur} + $v;
       if (!exists($gscore{$np}) || $new_g < $gscore{$np}) {
+        # Found better path to $np
         $path{$np} = $cur if wantarray;
         $gscore{$np} = $new_g;
         my $fscore = $new_g + $h->($np);
