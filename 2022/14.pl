@@ -161,7 +161,9 @@ sub astar {
   }
 
   my %path;
+  my $it;
   while (%OHASH) {
+    $it--;
     my $cur = $OPEN->pop();
     delete $OHASH{$cur};
     # Check for end
@@ -201,6 +203,7 @@ sub astar {
       }
     }
   }
+  return $it;
 }
 
 sub smart_split {
@@ -245,6 +248,22 @@ while (<>) {
   $maxx = $x if ($x > $maxx);
   $maxy = $y if ($y > $maxy);
 }
+
+sub nnn {
+  my $coord = shift;
+  my ($x,$y) = split($;, $coord);
+  return () if ($y == $maxy+1);
+  $y++;
+  my @n = ("$x$;$y", ($x-1)."$;$y", ($x+1)."$;$y");
+  my @o;
+  for my $n (@n) {
+    push @o, $n unless $H{$n};
+  }
+  return @o;
+}
+
+out(-astar("500".$;."0", 0, \&nnn));
+exit;
 
 my $p1;
 
