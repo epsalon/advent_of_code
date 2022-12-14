@@ -218,12 +218,14 @@ my %H;
 my $sum=0;
 
 my $maxy=0;
+my $maxx=0;
 
 while (<>) {
   chomp;
   last unless $_;
   my ($x,$y,@p) = smart_split();
   while (@p) {
+    $maxx = $x if ($x > $maxx);
     $maxy = $y if ($y > $maxy);
     my $nx = shift @p;
     my $ny = shift @p;
@@ -240,34 +242,42 @@ while (<>) {
     }
     ($x,$y) = ($nx,$ny);
   }
+  $maxx = $x if ($x > $maxx);
   $maxy = $y if ($y > $maxy);
 }
 
 my $p1;
 
 BIG: while (!$H{500,0}) {
-  $sum++;
   my ($x,$y) = (500,0);
   while (1) {
-    if ($y==$maxy+1) {
+    $y++;
+    if ($y==$maxy+2) {
       unless ($p1) {
-        out($sum-1);
+        out($sum);
         $p1=1;
       }
       last;
     }
-    if (!$H{$x,$y+1}) {
-      $y=$y+1;
-    } elsif (!$H{$x-1,$y+1}) {
-      $x=$x-1; $y=$y+1
-    } elsif (!$H{$x+1,$y+1}) {
-      $x=$x+1; $y=$y+1
+    if (!$H{$x,$y}) {
+      next;
+    } elsif (!$H{$x-1,$y}) {
+      $x--;
+    } elsif (!$H{$x+1,$y}) {
+      $x++;
     } else {
       last;
     }
   }
-  $H{$x,$y} = '*';
-  #out (\%H);
+  $H{$x,$y-1} = '*';
+  $sum++;
+}
+
+for my $y (0..$maxy) {
+  for my $x (0..$maxx) {
+    print $H{$x,$y} || ' ';
+  }
+  print "\n";
 }
 
 out ($sum);
