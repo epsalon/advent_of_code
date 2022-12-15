@@ -263,7 +263,6 @@ sub nnn {
 }
 
 out(-astar("500".$;."0", 0, \&nnn));
-exit;
 
 my $p1;
 
@@ -288,15 +287,16 @@ BIG: while (!$H{500,0}) {
       last;
     }
   }
+  $maxx = $x if ($x > $maxx);
   $H{$x,$y-1} = '*';
   $sum++;
 }
 
-for my $y (0..$maxy) {
-  for my $x (0..$maxx) {
-    print $H{$x,$y} || ' ';
-  }
-  print "\n";
-}
+#for my $y (0..$maxy+2) {
+#  for my $x (0..$maxx) {
+#    print $H{$x,$y} || ' ';
+#  }
+#  print "\n";
+#}
 
 out ($sum);
