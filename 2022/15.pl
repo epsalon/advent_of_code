@@ -217,9 +217,9 @@ my @A;
 my %H;
 my $sum=0;
 
-#my $y=2000000;
+my $y=2000000;
 
-my $y=10;
+# my $y=10;
 
 my %DB;
 
@@ -238,8 +238,6 @@ while (<>) {
 
 $sum = -scalar(keys(%DB));
 
-out ($sum);
-
 my %B;
 
 for my $a (@A) {
@@ -254,12 +252,12 @@ for my $a (@A) {
 
 my @k = nsort(keys(%B));
 
-out(\@k);
+#out(\@k);
 
 my $pk = shift(@k);
 my $bc = $B{$pk};
 for my $k (@k) {
-  say "k=$k pk=$pk bc=$bc";
+  #say "k=$k pk=$pk bc=$bc";
   if ($bc) {
     $sum+=($k-$pk);
   }
@@ -267,24 +265,54 @@ for my $k (@k) {
   $bc += $B{$pk};
 }
 
-out (\%B);
+#out (\%B);
 
 out ($sum);
 
 my $max = 4000000;
-
 #my $max = 20;
 
-my @INT;
-for my $a (@A) {
-  my ($ax,$ay,$ad) = @$a;
-  for my $b (@B) {
-    my ($bx,$by,$bd) = @$b;
-    my $dx = abs($ax-$bx);
-    my $dy = abs($ay-$by);
-    #next if ($dx+$dy >= $ad || $dx+$dy >= $bd);
-    next if ($dx > $ad+$bd);
-    next if ($dy > $ad+$bd);
+my @R;
 
+for my $a (@A) {
+  my ($x,$y,$dist) = @$a;
+  push @R, [$x+$y,$x-$y,$dist+1];
+}
+
+my %Xs;
+my %Ys;
+for my $a (@R) {
+  my ($x,$y,$dist) = @$a;
+ $Xs{$x-$dist}++;
+ $Xs{$x+$dist}++;
+ $Ys{$y-$dist}++;
+ $Ys{$y+$dist}++;
+}
+
+#out (\%Xs);
+#out (\%Ys);
+
+while (my ($x,$xc) = each(%Xs)) {
+  next if $xc < 2;
+  next if $x < 0;
+  next if $x > $max * 2;
+  OUT: while (my ($y,$yc) = each(%Ys)) {
+    next if $yc < 2;
+    my ($xx,$yy) = (($x+$y)/2, ($x-$y)/2);
+    next if $xx < 0;
+    next if $xx > $max;
+    next if $yy < 0;
+    next if $yy > $max;
+    say "x=$x y=$y xx=$xx yy=$yy";
+    for my $a (@R) {
+      my ($xa,$ya,$dist) = @$a;
+      next OUT if ($x > $xa-$dist && $x < $xa + $dist &&
+                   $y > $ya-$dist && $y < $ya + $dist);
+    }
+    say "Found at $xx,$yy";
+    out($xx*$max+$yy);
+    exit;
   }
 }
+
+say "Not found :(";
