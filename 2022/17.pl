@@ -205,7 +205,7 @@ sub astar {
 
 sub smart_split {
   my $str = shift || $_;
-  return ($str =~ m{[A-Z]{2}|\d+}go);
+  return ($str =~ m{[a-zA-Z]+|\d+}go);
 }
 
 sub hashify {
@@ -213,109 +213,17 @@ sub hashify {
   return map {$_ => 1} @arr;
 }
 
+my @A;
 my %H;
+my $sum=0;
 
 while (<>) {
   chomp;
   last unless $_;
+  push @A, [split('')];
   my @p = smart_split();
-  out(\@p);
-  my $v = shift(@p);
-  my $r = shift(@p);
-  my @c = @p;
-  $H{$v} = [$r,@c];
+  my ($a,$b,$c,$d,$e,$f,$g,$h) = @p;
+  print "a=$a;b=$b;c=$c;d=$d;e=$e;f=$f;g=$g;h=$h\n";
 }
 
-out(\%H);
-
-
-# node
-# [curr room],time,[open valves]
-# -> open valve (cost -c)
-# -> go to room
-
-
-sub solve {
-my ($length, $loops) = @_;
-my $sum=0;
-my $tt=0;
-
-*nnn = sub {
-  my $node = shift;
-  my ($t,$r,@ov) = split(',',$node);
-  if ($t == $length * $loops) {
-    return ();
-  }
-  $t++;
-  if ($t > $tt) {
-    say "t=$t";
-    $tt=$t;
-  }
-  my $tr = $t % $length;
-  #say "node=$node tr=$tr";
-  unless ($tr) {
-    return ["$t,".join(",", "AA", @ov), 0];
-  }
-  my %ovh = hashify(@ov);
-  my @out;
-  my @vd = @{$H{$r}};
-  my $vr = shift(@vd);
-
-  for my $n (@vd) {
-    #say "  [$t] $r => $n";
-    push @out,[("$t,".join(',',$n,@ov)), 0];
-  }
-  if (!$ovh{$r} && $vr > 0) {
-    push @ov, $r;
-    @ov=sort(@ov);
-    push @out,[("$t,".join(',',$r,@ov)), -($length-$tr)*$vr];
-  }
-
-  return @out;
-};
-
-#my %path = ("0,AA", []);
-my %N = ("0,AA", 0);
-my $OPEN = new List::PriorityQueue;
-$OPEN->insert("0,AA", 0);
-my %OHASH = ("0,AA", 1);
-#my $bp;
-
-while (%OHASH) {
-  my $n = $OPEN->pop();
-  my $c = $N{$n};
-  my ($t) = split(',',$n);
-  #my $pat = $path{$n};
-  if ($c < $sum) {
-    $sum = $c;
-    #$bp = $pat;
-    say "$sum";
-    say "open size = ".scalar(%OHASH);
-  }
-  #say "n=$n c=$c sum=$sum";
-  delete $OHASH{$n};
-  NL: for my $n (nnn($n)) {
-    my ($n2,$dc) = @$n;
-    if (!defined($N{$n2}) || $N{$n2} > ($c + $dc)) {
-      my $n2x = ($n2 =~ /\d+,(.*)$/o);
-      my $n2xi = ($t-1).",$n2x";
-      if (defined ($N{$n2xi}) && $N{$n2xi} < ($c + $dc)) {
-        next NL;
-      }
-      $N{$n2} = ($c + $dc);
-      #$path{$n2} = [$n2, @$pat];
-      if (!$OHASH{$n2}) {
-        $OPEN->insert($n2, $N{$n2});
-        $OHASH{$n2}++;
-      }
-    }
-  }  
-}
-
-#out($bp);
-
-return (-$sum);
-}
-
-#out(solve(30,1));
-out(solve(26,2));
+out ($sum);
