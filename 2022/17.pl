@@ -96,73 +96,91 @@ sub outpit {
   say ("+-------+");
 }
 
-my @pit;
+sub run_sim {
+  my ($input,$CUTOFF,@LIMITS) = @_;
+  my @A = @$input;
+  my @pit;
 
-my $pc=0;
-my $pcp=0;
-my $f=0;
-my $h=0;
-my %memo;
-my @s;
-my $sh = 0;
-
-my @LIMITS = (2022, 1000000000000);
+  my $pc=0;
+  my $pcp=0;
+  my $f=0;
+  my $h=0;
+  my %memo;
+  my @s;
+  my $sh = 0;
+  my $ip=0;
+  my @res;
+  while (@LIMITS) {
+    my $a = $A[$ip++];
+    $ip = 0 if $ip == @A;
+    unless ($f) {
+      @s = @{$SHAPES[$pc % @SHAPES]};
+      $pcp = @pit + 3;
+      $f=1;
+      $sh=0;
+    }
+    #my @pitb=@pit;
+    #unify(\@pitb,\@s,$pcp,$sh);
+    #say "with peice:";
+    #outpit(\@pitb);
+    my $csh = ($a eq '<' ? 1 : -1);
+    $sh+=$csh;
+    if (!try_shift($sh,$pc % @SHAPES) || intersect(\@pit,\@s,$pcp,$sh)) {
+      $sh-=$csh;
+    }
+    # Try drop shape
+    $pcp--;
+    if (intersect(\@pit,\@s,$pcp,$sh) || $pcp < 0) {
+      return () if ($pcp < 0 && $h);
+      $pcp++;
+      unify(\@pit,\@s,$pcp,$sh);
+      #outpit(\@pit);
+      $pc++;
+      while (@pit > $CUTOFF) {
+        shift @pit;
+        $h++;
+      }
+      my $state = join(';',$ip,($pc%@SHAPES),@pit);
+      if ($memo{$state}) {
+        use integer;
+        #say "found state $state";
+        my ($ppc,$ph) = @{$memo{$state}};
+        my ($dpc,$dh) = ($pc-$ppc, $h - $ph);
+        my $rpc = ($LIMITS[0] - $pc);
+        my $loops = $rpc / $dpc;
+        say "pc=$pc ppc=$ppc h=$h ph=$ph dpc=$dpc dh=$dh rpc=$rpc loops=$loops" if $loops>0;
+        $pc+=$loops*$dpc;
+        $h+=$loops*$dh;
+      }
+      $memo{$state}=[$pc,$h];
+      $f=0;
+      if ($pc == $LIMITS[0]) {
+        #outpit(\@pit);
+        shift @LIMITS;
+        push(@res, scalar(@pit) + $h);
+      }
+    #out(\@pit);
+    }
+  }
+  return @res;
+}
 
 $_=<>;
 chomp;
 my @A=split('');
 
-my $CUTOFF = @A;
+my @LIMITS = (2022, 1000000000000);
 
-my $ip=0;
-while (@LIMITS) {
-  my $a = $A[$ip++];
-  $ip = 0 if $ip == @A;
-  unless ($f) {
-    @s = @{$SHAPES[$pc % @SHAPES]};
-    $pcp = @pit + 3;
-    $f=1;
-    $sh=0;
-  }
-  #my @pitb=@pit;
-  #unify(\@pitb,\@s,$pcp,$sh);
-  #say "with peice:";
-  #outpit(\@pitb);
-  my $csh = ($a eq '<' ? 1 : -1);
-  $sh+=$csh;
-  if (!try_shift($sh,$pc % @SHAPES) || intersect(\@pit,\@s,$pcp,$sh)) {
-    $sh-=$csh;
-  }
-  # Try drop shape
-  $pcp--;
-  if (intersect(\@pit,\@s,$pcp,$sh) || $pcp < 0) {
-    $pcp++;
-    unify(\@pit,\@s,$pcp,$sh);
-    #outpit(\@pit);
-    $pc++;
-    while (@pit > $CUTOFF) {
-      shift @pit;
-      $h++;
-    }
-    my $state = join(';',$ip,($pc%@SHAPES),@pit);
-    if ($memo{$state}) {
-      use integer;
-      #say "found state $state";
-      my ($ppc,$ph) = @{$memo{$state}};
-      my ($dpc,$dh) = ($pc-$ppc, $h - $ph);
-      my $rpc = ($LIMITS[0] - $pc);
-      my $loops = $rpc / $dpc;
-      say "pc=$pc ppc=$ppc h=$h ph=$ph dpc=$dpc dh=$dh rpc=$rpc loops=$loops" if $loops>0;
-      $pc+=$loops*$dpc;
-      $h+=$loops*$dh;
-    }
-    $memo{$state}=[$pc,$h];
-    $f=0;
-    if ($pc == $LIMITS[0]) {
-      #outpit(\@pit);
-      shift @LIMITS;
-      out(scalar(@pit) + $h);
-    }
-  #out(\@pit);
-  }
+my $cutoff = 8;
+
+my @res;
+
+for (; !@res; $cutoff*=2) {
+  @res = run_sim(\@A, $cutoff, @LIMITS);
+}
+
+say "final cutoff=$cutoff";
+
+for my $r (@res) {
+  out($r);
 }
