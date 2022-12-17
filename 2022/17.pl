@@ -213,17 +213,130 @@ sub hashify {
   return map {$_ => 1} @arr;
 }
 
-my @A;
-my %H;
-my $sum=0;
+$_=<>;
+chomp;
+my @A=split('');
 
-while (<>) {
-  chomp;
-  last unless $_;
-  push @A, [split('')];
-  my @p = smart_split();
-  my ($a,$b,$c,$d,$e,$f,$g,$h) = @p;
-  print "a=$a;b=$b;c=$c;d=$d;e=$e;f=$f;g=$g;h=$h\n";
+my @SHAPES=
+(
+  [qw/..####./],
+  [qw/...#... ..###.. ...#.../],
+  [qw/....#.. ....#.. ..###../],
+  [qw/..#.... ..#.... ..#.... ..#..../],
+  [qw/..##... ..##.../],
+);
+
+my @pit;
+
+sub ok2move {
+  my $sh=shift;
+  for my $i (0..$#pit) {
+    my $cur = $pit[$#pit-$i];
+    if ($sh < 0) {
+      $cur = reverse($cur);
+    }
+    if ($cur =~ /#$/ || $cur =~ /#X/) {
+      return 0;
+    }
+  }
+  return 1;
 }
 
-out ($sum);
+sub fall_pos_if_can_fall {
+  my $r;
+  for ($r=0;$r<=$#pit;$r++) {
+    last if $pit[$r] =~ /#/;
+  }
+  my @bpit = @pit;
+  #say "r=$r";
+  return 0 unless ($r);
+  for (;$r<@pit;$r++) {
+    my $prow1 = $pit[$r];
+    $prow1 =~ tr/#.X/200/;
+    my $trow1 = $pit[$r-1];
+    $trow1 =~ tr/#.X/001/;
+    my $res = sprintf("%07d",$prow1+$trow1);
+    $res =~ tr/012/.X#/;
+    #say "r=$r pr1=$prow1 tr1=$trow1 res=$res";
+    #out(\@pit);
+    if ($res =~ /\d+/) {
+      #exit;
+      @pit=@bpit;
+      return 0;
+    }
+    $pit[$r-1] = $res;
+  }
+  my $c = pop(@pit);
+  $c =~ tr/#/./;
+  if ($c =~ /X/) {
+    push @pit,$c;
+  }
+  return $r;
+}
+
+my $pc=0;
+my $i=0;
+my $f=0;
+my $h=0;
+my %memo;
+for (;;){
+  my $ip=0;
+  for my $a (@A) {
+    $ip++;
+    unless ($f) {
+      push @pit, '.......';
+      push @pit, '.......';
+      push @pit, '.......';
+      my @s = reverse(@{$SHAPES[$pc % @SHAPES]});
+      for my $s (@s) {
+        push @pit, $s;
+      }
+      #out(\@pit);
+    }
+    #my @rpit = reverse(@pit);
+    #out(\@rpit);
+    my $sh = ($a eq '<'? -1 : 1);
+    #die unless ($a ne m{<|>}o);
+    if (ok2move($sh)) {
+      for my $i (0..$#pit) {
+        if ($sh > 0) {
+          $pit[$#pit-$i] =~ s/(#+)\./.$1/o;
+        } else {
+          $pit[$#pit-$i] =~ s/\.(#+)/$1./o;
+        }
+      }
+      #out(\@pit);
+    }
+    $f=fall_pos_if_can_fall();
+    #say($f);
+    unless ($f) {
+      $pc++;
+      for my $a (@pit) {
+        $a =~ tr/#/X/;
+      }
+      while (@pit > 100) {
+        shift @pit;
+        $h++;
+      }
+      my $state = join(';',$ip,($pc%@SHAPES),@pit);
+      if ($memo{$state}) {
+        say "found state $state";
+        my ($ppc,$ph) = @{$memo{$state}};
+        my ($dpc,$dh) = ($pc-$ppc, $h + 100 - $ph);
+        my $rpc = (1000000000000 - $pc);
+        my $loops = int($rpc / $dpc);
+        say "pc=$pc ppc=$ppc h=$h ph=$ph dpc=$dpc dh=$dh rpc=$rpc loops=$loops";
+        $pc+=$loops*$dpc;
+        $h+=$loops*$dh;
+      }
+      $memo{$state}=[$pc,$h+100];
+    }
+    if ($pc == 1000000000000) {
+      @pit=reverse(@pit);
+      out(\@pit);
+      out(scalar(@pit)+$h);
+      exit;
+    }
+    #out(\@pit);
+  }
+}
