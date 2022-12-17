@@ -48,45 +48,36 @@ my @SHAPES=
   [0x18, 0x18],
 );
 
-sub get_row {
-  my ($pit,$r) = @_;
-  if ($r > $#$pit) {
-    return 0;
-  }
-  return $pit->[$r] || 0;
-}
-
 sub try_shift {
-  my ($sh, @s) = @_;
+  my ($sh, $pc) = @_;
+  my @s = @{$SHAPES[$pc]};
   for my $r (@s) {
-    if (($r & 0x01 && $sh < 0) || ($r & 0x40 && $sh > 0)) {
-      # Can't shift
-      return ();
+    if ((($r << $sh) & 0x7f) >> $sh != $r) {
+      return 0;
     }
     $r = $r << $sh;
   }
-  return @s;
+  return 1;
 }
 
 memoize('try_shift');
 
 sub intersect {
-  my ($pit,$pc,$f) = @_;
+  my ($pit,$pc,$f,$sh) = @_;
   for my $i (0..$#$pc) {
-    my $pcr = $pc->[$i];
-    my $ptr = get_row($pit, $f + $i);
+    my $pcr = $pc->[$i] << $sh;
+    my $ptr = $pit->[$f + $i] || 0;
     return 1 if ($pcr & $ptr);
   }
   return 0;
 }
 
 sub unify {
-  my ($pit,$pc,$f) = @_;
+  my ($pit,$pc,$f,$sh) = @_;
   for my $i (0..$#$pc) {
-    my $pcr = $pc->[$i];
-    my $ptr = get_row($pit, $f + $i);
-    my $newr = $pcr | $ptr;
-    $pit->[$f + $i] = $newr;
+    my $pcr = $pc->[$i] << $sh;
+    my $ptr = $pit->[$f + $i] || 0;
+    $pit->[$f + $i] = $pcr | $ptr;
   }
 }
 
@@ -111,6 +102,7 @@ my $f=0;
 my $h=0;
 my %memo;
 my @s;
+my $sh = 0;
 for (;;){
   my $ip=0;
   for my $a (@A) {
@@ -119,22 +111,22 @@ for (;;){
       @s = @{$SHAPES[$pc % @SHAPES]};
       $pcp = @pit + 3;
       $f=1;
+      $sh=0;
     }
     #my @pitb=@pit;
-    #unify(\@pitb,\@s,$pcp);
+    #unify(\@pitb,\@s,$pcp,$sh);
     #say "with peice:";
     #outpit(\@pitb);
-    my $sh = ($a eq '<' ? 1 : -1);
-    if (my @sb = try_shift($sh,@s)) {
-      if (!intersect(\@pit,\@sb,$pcp)) {
-        @s=@sb;
-      }
+    my $csh = ($a eq '<' ? 1 : -1);
+    $sh+=$csh;
+    if (!try_shift($sh,$pc % @SHAPES) || intersect(\@pit,\@s,$pcp,$sh)) {
+      $sh-=$csh;
     }
     # Try drop shape
     $pcp--;
-    if (intersect(\@pit,\@s,$pcp) || $pcp < 0) {
+    if (intersect(\@pit,\@s,$pcp,$sh) || $pcp < 0) {
       $pcp++;
-      unify(\@pit,\@s,$pcp);
+      unify(\@pit,\@s,$pcp,$sh);
       #outpit(\@pit);
       $pc++;
       while (@pit > 100) {
