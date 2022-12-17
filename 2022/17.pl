@@ -57,16 +57,18 @@ sub get_row {
 }
 
 sub try_shift {
-  my ($sh, $s) = @_;
-  for my $r (@$s) {
+  my ($sh, @s) = @_;
+  for my $r (@s) {
     if (($r & 0x01 && $sh < 0) || ($r & 0x40 && $sh > 0)) {
       # Can't shift
-      return 0;
+      return ();
     }
     $r = $r << $sh;
   }
-  return 1;
+  return @s;
 }
+
+memoize('try_shift');
 
 sub intersect {
   my ($pit,$pc,$f) = @_;
@@ -122,10 +124,11 @@ for (;;){
     #unify(\@pitb,\@s,$pcp);
     #say "with peice:";
     #outpit(\@pitb);
-    my @sb=@s;
     my $sh = ($a eq '<' ? 1 : -1);
-    if (!try_shift($sh,\@s) || intersect(\@pit,\@s,$pcp)) {
-      @s=@sb;
+    if (my @sb = try_shift($sh,@s)) {
+      if (!intersect(\@pit,\@sb,$pcp)) {
+        @s=@sb;
+      }
     }
     # Try drop shape
     $pcp--;
@@ -134,9 +137,6 @@ for (;;){
       unify(\@pit,\@s,$pcp);
       #outpit(\@pit);
       $pc++;
-      for my $a (@pit) {
-        $a =~ tr/#/X/;
-      }
       while (@pit > 100) {
         shift @pit;
         $h++;
