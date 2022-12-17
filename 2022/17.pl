@@ -30,10 +30,6 @@ sub dec2bin {
   return sprintf ("%b", $in);
 }
 
-$_=<>;
-chomp;
-my @A=split('');
-
 my @SHAPES=
 (
   [0b0011110],
@@ -110,6 +106,11 @@ my $h=0;
 my %memo;
 my @s;
 my $sh = 0;
+
+$_=<>;
+chomp;
+my @A=split('');
+
 for (;;){
   my $ip=0;
   for my $a (@A) {
