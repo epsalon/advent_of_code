@@ -317,5 +317,5 @@ while (%OHASH) {
 return (-$sum);
 }
 
-#out(solve(30,1));
+out(solve(30,1));
 out(solve(26,2));
