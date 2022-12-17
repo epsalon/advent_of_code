@@ -112,6 +112,8 @@ $_=<>;
 chomp;
 my @A=split('');
 
+my $CUTOFF = @A;
+
 my $ip=0;
 while (@LIMITS) {
   my $a = $A[$ip++];
@@ -138,7 +140,7 @@ while (@LIMITS) {
     unify(\@pit,\@s,$pcp,$sh);
     #outpit(\@pit);
     $pc++;
-    while (@pit > 100) {
+    while (@pit > $CUTOFF) {
       shift @pit;
       $h++;
     }
