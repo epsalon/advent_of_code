@@ -100,71 +100,67 @@ my @pit;
 
 my $pc=0;
 my $pcp=0;
-my $i=0;
 my $f=0;
 my $h=0;
 my %memo;
 my @s;
 my $sh = 0;
 
+my @LIMITS = (2022, 1000000000000);
+
 $_=<>;
 chomp;
 my @A=split('');
 
-for (;;){
-  my $ip=0;
-  for my $a (@A) {
-    $ip++;
-    unless ($f) {
-      @s = @{$SHAPES[$pc % @SHAPES]};
-      $pcp = @pit + 3;
-      $f=1;
-      $sh=0;
+my $ip=0;
+while (@LIMITS) {
+  my $a = $A[$ip++];
+  $ip = 0 if $ip == @A;
+  unless ($f) {
+    @s = @{$SHAPES[$pc % @SHAPES]};
+    $pcp = @pit + 3;
+    $f=1;
+    $sh=0;
+  }
+  #my @pitb=@pit;
+  #unify(\@pitb,\@s,$pcp,$sh);
+  #say "with peice:";
+  #outpit(\@pitb);
+  my $csh = ($a eq '<' ? 1 : -1);
+  $sh+=$csh;
+  if (!try_shift($sh,$pc % @SHAPES) || intersect(\@pit,\@s,$pcp,$sh)) {
+    $sh-=$csh;
+  }
+  # Try drop shape
+  $pcp--;
+  if (intersect(\@pit,\@s,$pcp,$sh) || $pcp < 0) {
+    $pcp++;
+    unify(\@pit,\@s,$pcp,$sh);
+    #outpit(\@pit);
+    $pc++;
+    while (@pit > 100) {
+      shift @pit;
+      $h++;
     }
-    #my @pitb=@pit;
-    #unify(\@pitb,\@s,$pcp,$sh);
-    #say "with peice:";
-    #outpit(\@pitb);
-    my $csh = ($a eq '<' ? 1 : -1);
-    $sh+=$csh;
-    if (!try_shift($sh,$pc % @SHAPES) || intersect(\@pit,\@s,$pcp,$sh)) {
-      $sh-=$csh;
+    my $state = join(';',$ip,($pc%@SHAPES),@pit);
+    if ($memo{$state}) {
+      use integer;
+      #say "found state $state";
+      my ($ppc,$ph) = @{$memo{$state}};
+      my ($dpc,$dh) = ($pc-$ppc, $h - $ph);
+      my $rpc = ($LIMITS[0] - $pc);
+      my $loops = $rpc / $dpc;
+      say "pc=$pc ppc=$ppc h=$h ph=$ph dpc=$dpc dh=$dh rpc=$rpc loops=$loops" if $loops>0;
+      $pc+=$loops*$dpc;
+      $h+=$loops*$dh;
     }
-    # Try drop shape
-    $pcp--;
-    if (intersect(\@pit,\@s,$pcp,$sh) || $pcp < 0) {
-      $pcp++;
-      unify(\@pit,\@s,$pcp,$sh);
+    $memo{$state}=[$pc,$h];
+    $f=0;
+    if ($pc == $LIMITS[0]) {
       #outpit(\@pit);
-      $pc++;
-      while (@pit > 100) {
-        shift @pit;
-        $h++;
-      }
-      my $state = join(';',$ip,($pc%@SHAPES),@pit);
-      if ($memo{$state} && $pc > 2022) {
-        use integer;
-        #say "found state $state";
-        my ($ppc,$ph) = @{$memo{$state}};
-        my ($dpc,$dh) = ($pc-$ppc, $h + 100 - $ph);
-        my $rpc = (1000000000000 - $pc);
-        my $loops = $rpc / $dpc;
-        #say "pc=$pc ppc=$ppc h=$h ph=$ph dpc=$dpc dh=$dh rpc=$rpc loops=$loops";
-        $pc+=$loops*$dpc;
-        $h+=$loops*$dh;
-      }
-      $memo{$state}=[$pc,$h+100];
-      $f=0;
-      if ($pc == 2022) {
-        #outpit(\@pit);
-        out(scalar(@pit) + $h);
-      }
-      if ($pc == 1000000000000) {
-        #outpit(\@pit);
-        out(scalar(@pit)+$h);
-        exit;
-      }
+      shift @LIMITS;
+      out(scalar(@pit) + $h);
     }
-    #out(\@pit);
+  #out(\@pit);
   }
 }
