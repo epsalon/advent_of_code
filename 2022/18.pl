@@ -196,13 +196,13 @@ sub floodfill {
     for my $d (-1,1) {
       my @npos = @$pos;
       $npos[$dim] += $d;
+      next if ($SEEN{join($;, @npos)});
       next if ($npos[$dim] < $min-1 || $npos[$dim] > $max+2);
       my $wallidx = $d > 0? join($;, @npos) : join($;, @$pos);
       if ($WALLS[$dim]{$wallidx}) {
         $WALLS[$dim]{$wallidx} = -1;
         next;
       }
-      next if ($SEEN{join($;, @npos)});
       floodfill(\@npos);
     }
   }
