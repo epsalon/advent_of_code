@@ -160,7 +160,7 @@ my $sum=0;
 
 my (%XX,%YY,%ZZ);
 
-my ($min,$max)=(0,-99);
+my ($min,$max)=(99,-99);
 
 while (<>) {
   chomp;
@@ -210,7 +210,7 @@ sub floodfill {
   }
 }
 
-floodfill([0,0,0]);
+floodfill([$min-1,$min-1,$min-1]);
 
 $sum = 0;
 for my $i (values(%XX), values(%YY), values(%ZZ)) {
