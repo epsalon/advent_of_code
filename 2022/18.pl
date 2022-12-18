@@ -158,37 +158,35 @@ my @A;
 my %H;
 my $sum=0;
 
-my (%XX,%YY,%ZZ);
+my @WALLS=();
 
-my ($min,$max)=(99,-99);
+my ($min,$max)=(1e9,-1e9);
 
 while (<>) {
   chomp;
   last unless $_;
   push @A, [split('')];
   my @p = smart_split();
-  my ($x,$y,$z) = @p;
-  for my $d (@p) {
+  for my $i (0..$#p) {
+    my $d = $p[$i];
     $min = $d if $min > $d;
     $max = $d if $max < $d;
+    my @p2 = @p;
+    $p2[$i]++;
+    $WALLS[$i]{join($;,@p)}++;
+    $WALLS[$i]{join($;,@p2)}++;
   }
-  $XX{$x,$y,$z}++;
-  $XX{$x+1,$y,$z}++;
-  $YY{$x,$y,$z}++;
-  $YY{$x,$y+1,$z}++;
-  $ZZ{$x,$y,$z}++;
-  $ZZ{$x,$y,$z+1}++;
 }
 
-for my $i (values(%XX), values(%YY), values(%ZZ)) {
-  $sum++ if $i == 1;
+for my $d (@WALLS) {
+  for my $i (values(%$d)) {
+    $sum++ if $i == 1;
+  }
 }
 
 out($sum);
 
 my %SEEN;
-
-my @WALLS=(\%XX,\%YY,\%ZZ);
 
 sub floodfill {
   my $pos = shift;
@@ -213,10 +211,10 @@ sub floodfill {
 floodfill([$min-1,$min-1,$min-1]);
 
 $sum = 0;
-for my $i (values(%XX), values(%YY), values(%ZZ)) {
-  $sum++ if $i == -1;
+for my $d (@WALLS) {
+  for my $i (values(%$d)) {
+    $sum++ if $i == -1;
+  }
 }
-
-#out (\@WALLS);
 
 out ($sum);
