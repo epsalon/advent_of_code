@@ -148,7 +148,10 @@ sub run_sim {
         my ($dpc,$dh) = ($pc-$ppc, $h - $ph);
         my $rpc = ($LIMITS[0] - $pc);
         my $loops = $rpc / $dpc;
-        say "pc=$pc ppc=$ppc h=$h ph=$ph dpc=$dpc dh=$dh rpc=$rpc loops=$loops" if $loops>0;
+        if ($loops) {
+          say "state=$state";
+          say "pc=$pc ppc=$ppc h=$h ph=$ph dpc=$dpc dh=$dh rpc=$rpc loops=$loops";
+        }
         $pc+=$loops*$dpc;
         $h+=$loops*$dh;
       }
