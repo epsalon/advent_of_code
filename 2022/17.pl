@@ -158,7 +158,7 @@ sub run_sim {
       $memo{$state}=[$pc,$h];
       $f=0;
       if ($pc == $LIMITS[0]) {
-        #outpit(\@pit);
+        outpit(\@pit);
         shift @LIMITS;
         push(@res, scalar(@pit) + $h);
       }
@@ -171,6 +171,8 @@ sub run_sim {
 $_=<>;
 chomp;
 my @A=split('');
+
+say(scalar(@A));
 
 my @LIMITS = (2022, 1000000000000);
 
