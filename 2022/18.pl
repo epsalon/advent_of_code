@@ -192,7 +192,7 @@ sub floodfill {
   my $pos = shift;
   #out($pos);
   $SEEN{join($;, @$pos)}++;
-  for my $dim (0..2) {
+  for my $dim (0..$#pos) {
     for my $d (-1,1) {
       my @npos = @$pos;
       $npos[$dim] += $d;

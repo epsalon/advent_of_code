@@ -1,0 +1,361 @@
+a=1;b=4;c=2;d=3;e=14;f=2;g=7
+$VAR1 = [
+          [
+            '4'
+          ],
+          [
+            '2'
+          ],
+          [
+            '3',
+            '14'
+          ],
+          [
+            '2',
+            0,
+            '7'
+          ]
+        ];
+time 1
+time 2
+time 3
+time 4
+time 5
+time 6
+time 7
+time 8
+time 9
+time 10
+time 11
+time 12
+time 13
+time 14
+time 15
+time 16
+time 17
+time 18
+bestg[18]=14
+time 19
+bestg[19]=13
+bestg[19]=14
+time 20
+bestg[20]=12
+bestg[20]=13
+bestg[20]=14
+time 21
+bestg[21]=11
+bestg[21]=12
+bestg[21]=13
+bestg[21]=14
+bestg[21]=24
+bestg[21]=25
+time 22
+bestg[22]=10
+bestg[22]=11
+bestg[22]=12
+bestg[22]=13
+bestg[22]=23
+bestg[22]=24
+bestg[22]=25
+time 23
+bestg[23]=9
+bestg[23]=10
+bestg[23]=11
+bestg[23]=12
+bestg[23]=22
+bestg[23]=23
+bestg[23]=24
+bestg[23]=25
+time 24
+bestg[24]=8
+bestg[24]=9
+bestg[24]=10
+bestg[24]=11
+bestg[24]=19
+bestg[24]=20
+bestg[24]=22
+bestg[24]=23
+bestg[24]=24
+bestg[24]=32
+bestg[24]=33
+time 25
+bestg[25]=7
+bestg[25]=8
+bestg[25]=9
+bestg[25]=10
+bestg[25]=18
+bestg[25]=19
+bestg[25]=20
+bestg[25]=22
+bestg[25]=29
+bestg[25]=30
+bestg[25]=31
+bestg[25]=32
+bestg[25]=33
+time 26
+bestg[26]=6
+bestg[26]=7
+bestg[26]=8
+bestg[26]=9
+bestg[26]=15
+bestg[26]=16
+bestg[26]=18
+bestg[26]=19
+bestg[26]=20
+bestg[26]=26
+bestg[26]=28
+bestg[26]=29
+bestg[26]=30
+bestg[26]=31
+bestg[26]=38
+time 27
+bestg[27]=5
+bestg[27]=6
+bestg[27]=7
+bestg[27]=8
+bestg[27]=14
+bestg[27]=15
+bestg[27]=16
+bestg[27]=18
+bestg[27]=23
+bestg[27]=24
+bestg[27]=25
+bestg[27]=26
+bestg[27]=27
+bestg[27]=28
+bestg[27]=29
+bestg[27]=30
+bestg[27]=31
+bestg[27]=38
+time 28
+bestg[28]=4
+bestg[28]=5
+bestg[28]=6
+bestg[28]=7
+bestg[28]=11
+bestg[28]=12
+bestg[28]=14
+bestg[28]=15
+bestg[28]=16
+bestg[28]=20
+bestg[28]=22
+bestg[28]=23
+bestg[28]=24
+bestg[28]=25
+bestg[28]=30
+bestg[28]=31
+bestg[28]=32
+bestg[28]=33
+bestg[28]=34
+bestg[28]=35
+bestg[28]=38
+bestg[28]=42
+time 29
+bestg[29]=3
+bestg[29]=4
+bestg[29]=5
+bestg[29]=6
+bestg[29]=10
+bestg[29]=11
+bestg[29]=12
+bestg[29]=14
+bestg[29]=17
+bestg[29]=18
+bestg[29]=19
+bestg[29]=20
+bestg[29]=21
+bestg[29]=22
+bestg[29]=23
+bestg[29]=24
+bestg[29]=25
+bestg[29]=30
+bestg[29]=31
+bestg[29]=32
+bestg[29]=33
+bestg[29]=34
+bestg[29]=35
+bestg[29]=38
+bestg[29]=41
+bestg[29]=42
+bestg[29]=45
+time 30
+bestg[30]=2
+bestg[30]=3
+bestg[30]=4
+bestg[30]=5
+bestg[30]=7
+bestg[30]=8
+bestg[30]=10
+bestg[30]=11
+bestg[30]=12
+bestg[30]=14
+bestg[30]=16
+bestg[30]=17
+bestg[30]=18
+bestg[30]=19
+bestg[30]=22
+bestg[30]=23
+bestg[30]=24
+bestg[30]=25
+bestg[30]=26
+bestg[30]=27
+bestg[30]=30
+bestg[30]=33
+bestg[30]=35
+bestg[30]=36
+bestg[30]=40
+bestg[30]=41
+bestg[30]=42
+bestg[30]=44
+bestg[30]=45
+time 31
+bestg[31]=1
+bestg[31]=2
+bestg[31]=3
+bestg[31]=4
+bestg[31]=6
+bestg[31]=7
+bestg[31]=8
+bestg[31]=10
+bestg[31]=11
+bestg[31]=12
+bestg[31]=13
+bestg[31]=14
+bestg[31]=15
+bestg[31]=16
+bestg[31]=17
+bestg[31]=18
+bestg[31]=19
+bestg[31]=22
+bestg[31]=23
+bestg[31]=24
+bestg[31]=25
+bestg[31]=26
+bestg[31]=27
+bestg[31]=30
+bestg[31]=31
+bestg[31]=33
+bestg[31]=35
+bestg[31]=36
+bestg[31]=40
+bestg[31]=41
+bestg[31]=42
+bestg[31]=43
+bestg[31]=45
+bestg[31]=46
+time 32
+bestg[32]=1
+bestg[32]=2
+bestg[32]=3
+bestg[32]=4
+bestg[32]=6
+bestg[32]=7
+bestg[32]=8
+bestg[32]=10
+bestg[32]=11
+bestg[32]=12
+bestg[32]=13
+bestg[32]=14
+bestg[32]=15
+bestg[32]=16
+bestg[32]=17
+bestg[32]=18
+bestg[32]=19
+bestg[32]=22
+bestg[32]=23
+bestg[32]=24
+bestg[32]=25
+bestg[32]=26
+bestg[32]=27
+bestg[32]=30
+bestg[32]=31
+bestg[32]=33
+bestg[32]=35
+bestg[32]=36
+bestg[32]=40
+bestg[32]=41
+bestg[32]=42
+bestg[32]=43
+bestg[32]=45
+bestg[32]=46
+geodes = 46
+a=2;b=2;c=3;d=3;e=8;f=3;g=12
+$VAR1 = [
+          [
+            '2'
+          ],
+          [
+            '3'
+          ],
+          [
+            '3',
+            '8'
+          ],
+          [
+            '3',
+            0,
+            '12'
+          ]
+        ];
+time 1
+time 2
+time 3
+time 4
+time 5
+time 6
+time 7
+time 8
+time 9
+time 10
+time 11
+time 12
+time 13
+time 14
+time 15
+time 16
+time 17
+time 18
+bestg[18]=14
+time 19
+bestg[19]=14
+time 20
+bestg[20]=14
+bestg[20]=26
+time 21
+bestg[21]=25
+bestg[21]=26
+time 22
+bestg[22]=25
+bestg[22]=36
+time 23
+bestg[23]=34
+bestg[23]=36
+time 24
+bestg[24]=34
+bestg[24]=44
+time 25
+bestg[25]=41
+bestg[25]=44
+time 26
+bestg[26]=47
+bestg[26]=50
+time 27
+bestg[27]=47
+bestg[27]=55
+time 28
+bestg[28]=51
+bestg[28]=59
+time 29
+bestg[29]=54
+bestg[29]=59
+time 30
+bestg[30]=54
+bestg[30]=61
+time 31
+bestg[31]=55
+bestg[31]=62
+time 32
+bestg[32]=55
+bestg[32]=62
+geodes = 62
+2852
