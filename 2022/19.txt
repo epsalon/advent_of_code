@@ -1,0 +1,10 @@
+
+
+ 0 1 geode
+-1 1 geode robot
+-2 x ore y obsidian
+-3 x-a ore y-b obsidian a ore robots b obsidian robots
+-4 
+
+
+geode => 
