@@ -21,48 +21,57 @@ sub out {
   }
 }
 
-my @A;
-my $sum=0;
+my @I;
 
 my $i=0;
 while (<>) {
   chomp;
-  push @A, [$i++,$_*811589153];
+  push @I, [$i++,$_];
 }
 
-for my $l (1..10) {
-for my $i (0..$#A) {
-  my $x;
-  for my $j (0..$#A) {
-    if ($A[$j][0] == $i) {
-      $x = $j; last;
+out(mix(1,@I));
+
+for my $el (@I) {
+  $el->[1]*=811589153;
+}
+
+out(mix(10,@I));
+
+sub mix {
+  my $niter = shift;
+  my @A = @_;
+  for my $l (1..$niter) {
+    for my $i (0..$#A) {
+      my $x;
+      for my $j (0..$#A) {
+        if ($A[$j][0] == $i) {
+          $x = $j; last;
+        }
+      }
+      my $el = splice(@A,$x,1);
+      my $dest = ($x + $el->[1]) % @A;
+      splice(@A,$dest,0,$el);
     }
   }
-  my $el = splice(@A,$x,1);
-  my $dest = ($x + $el->[1]) % @A;
-  splice(@A,$dest,0,$el);
-}
-}
 
-my $z;
+  my $z;
 
-for my $i (0..$#A) {
-  unless ($A[$i][1]) {
-    $z = $i; last;
+  for my $i (0..$#A) {
+    unless ($A[$i][1]) {
+      $z = $i; last;
+    }
   }
+
+  my $sum=0;
+  $z += 1000;
+  $z %= @A;
+  $sum += $A[$z][1];
+  $z += 1000;
+  $z %= @A;
+  $sum += $A[$z][1];
+  $z += 1000;
+  $z %= @A;
+  $sum += $A[$z][1];
+
+  return $sum;
 }
-
-
-out(\@A);
-
-$z += 1000;
-$z %= @A;
-$sum += $A[$z][1];
-$z += 1000;
-$z %= @A;
-$sum += $A[$z][1];
-$z += 1000;
-$z %= @A;
-$sum += $A[$z][1];
-
-out ($sum);
