@@ -26,13 +26,13 @@ my @I;
 my $i=0;
 while (<>) {
   chomp;
-  push @I, [$i++,$_];
+  push @I, $_;
 }
 
 out(mix(1,@I));
 
 for my $el (@I) {
-  $el->[1]*=811589153;
+  $el*=811589153;
 }
 
 out(mix(10,@I));
@@ -40,24 +40,27 @@ out(mix(10,@I));
 sub mix {
   my $niter = shift;
   my @A = @_;
+  my @B = (0..$#A);
   for my $l (1..$niter) {
     for my $i (0..$#A) {
       my $x;
       for my $j (0..$#A) {
-        if ($A[$j][0] == $i) {
+        if ($B[$j] == $i) {
           $x = $j; last;
         }
       }
       my $el = splice(@A,$x,1);
-      my $dest = ($x + $el->[1]) % @A;
+      my $dest = ($x + $el) % @A;
       splice(@A,$dest,0,$el);
+      splice(@B,$x,1);
+      splice(@B,$dest,0,$i);
     }
   }
 
   my $z;
 
   for my $i (0..$#A) {
-    unless ($A[$i][1]) {
+    unless ($A[$i]) {
       $z = $i; last;
     }
   }
@@ -65,13 +68,13 @@ sub mix {
   my $sum=0;
   $z += 1000;
   $z %= @A;
-  $sum += $A[$z][1];
+  $sum += $A[$z];
   $z += 1000;
   $z %= @A;
-  $sum += $A[$z][1];
+  $sum += $A[$z];
   $z += 1000;
   $z %= @A;
-  $sum += $A[$z][1];
+  $sum += $A[$z];
 
   return $sum;
 }
