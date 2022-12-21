@@ -10,6 +10,7 @@ use Math::Complex;
 use List::PriorityQueue;
 use Memoize qw(memoize flush_cache);
 use Storable qw(dclone);
+use bigrat;
 
 sub out {
   my $out = shift;
@@ -43,7 +44,7 @@ sub build_tree {
   my $t1 = build_tree($val->[1]);
   my $t2 = build_tree($val->[2]);
   #say "t1 = $t1 t2 = $t2 op = $op";
-  if (!ref($t1) && !ref($t2) && $t1 ne 'H' && $t2 ne 'H') {
+  if (ref($t1) ne 'ARRAY' && ref($t2) ne 'ARRAY' && $t1 ne 'H' && $t2 ne 'H') {
     #say "  doing eval";
     return eval("$t1 $op $t2");
   }
@@ -54,13 +55,13 @@ sub build_tree {
 
 memoize('build_tree');
 
-out(build_tree('root'));
+say(build_tree('root'));
 
 flush_cache('build_tree');
 
 sub human {
   my $node = shift;
-  return ref($node) || $node eq 'H'
+  return ref($node) eq 'ARRAY' || $node eq 'H'
 }
 
 $H{'humn'} = 'H';
@@ -95,4 +96,4 @@ while ($TREE->[1] ne 'H') {
   $TREE->[2] = eval("$rtree $revop $ltree2");
 }
 
-out($TREE->[2]);
+say($TREE->[2]);
