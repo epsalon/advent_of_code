@@ -1,0 +1,14 @@
+
+            root (=)
+         +          *
+      c    d      e   +
+                     f H
+
+
+===>
+
+              root
+        /          /
+     +    e       f H
+   c  d
+
