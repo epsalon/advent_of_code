@@ -10,6 +10,7 @@ use Math::Complex;
 use List::PriorityQueue;
 use Memoize;
 use Storable qw(dclone);
+use POSIX;
 
 sub out {
   my $out = shift;
@@ -283,15 +284,21 @@ sub fix {
   #  p       =>       p/X-50 F/X
 
 
-  my %FIX = (qw/01-1 2,0,-1 01-i 3,0,-i 02-i 3,0,1 021 2,1,-1 02i 1,1,-i 11-1 2,0,i 111 0,2,i 20-i 1,1,-i 20-1 0,1,-1 211 0,2,-i 21i 3,0,-i 30-1 0,1,i 301 2,1,i 30i 0,2,1/);
+  my %FIX = (qw/01-1 2,0,-1 01-i 3,0,-i 02-i 3,0,1 021 2,1,-1 02i 1,1,-i 11-1 2,0,i 111 0,2,i 20-i 1,1,-i 20-1 0,1,-1 211 0,2,-1 21i 3,0,-i 30-1 0,1,i 301 2,1,i 30i 0,2,1/);
   my ($r,$c,$of) = @_;  
-  my $Mr = int($r / 50);
-  my $Mc = int($c / 50);
+  my $opos = i * $r + $c;
+  $opos += $of;
+  my $Mr = POSIX::floor($r / 50);
+  my $Mc = POSIX::floor($c / 50);
   my $pos = i * ($r % 50) + ($c % 50);
   $pos += $of;
+  my ($nMc, $nMr) = (POSIX::floor(Re($opos)/50), POSIX::floor(Im($opos)/50));
+  say "Checking opos=$opos of=$of Mr=$Mr Mc=$Mc nMr=$nMr nMc=$nMc r=$r c=$c pos=$pos";
+  return ($opos,$of) if ($nMc == $Mc && $nMr == $Mr);
+  say "Found boundary opos=$opos pos=$pos f=$of";
   my $fix = $FIX{"$Mr$Mc$of"};
-  say "r=$r c=$c of=$of pos=$pos fix=$fix";
-  return ($r*i+$c,$of) unless $fix;
+  return ($opos,$of) unless $fix;
+  say "Need to fix: r=$r c=$c of=$of pos=$pos fix=$fix";
   my ($Nr, $Nc, $Nf) = split(',', $fix);
   $Nf = eval($Nf);
   my $f=$of;
@@ -303,6 +310,7 @@ sub fix {
   $pos += 24.5 + 24.5*i;
   say "after translating by diving by $Nf pos = $pos";
   $pos += $Nr*i*50 + $Nc*50;
+  say "final position is $pos facing $f";
   return ($pos,$f);
 }
 
@@ -310,6 +318,36 @@ memoize('fix');
 
 sub sayfix {
   say "fix(".join(',', @_).") = ".join(',',fix(@_));
+}
+
+sub tryfix {
+  my ($r,$c,$f) = @_;
+  say "============ TRYFIX($r,$c,$f) =============";
+  my ($p,$f1) = fix(@_);
+  $f1*=-1;
+  my ($c1,$r1) = (Re($p), Im($p));
+  my ($p2,$f2) = fix($r1,$c1,$f1);
+  $f2*=-1;
+  my ($c2,$r2) = (Re($p2), Im($p2));
+  die "$r $c $f" unless ($r == $r2 && $c == $c2 && $f == $f2);
+}
+
+for my $r (0..$#A) {
+  my $c = left($r);
+  my $f = -1;
+  tryfix($r,$c,$f);
+  $c = right($r);
+  $f = 1;
+  tryfix($r,$c,$f);
+}
+
+for my $c (0..$#{$A[0]}) {
+  my $r = top($c);
+  my $f = -i;
+  tryfix($r,$c,$f);
+  $r = bot($c);
+  $f = i;
+  tryfix($r,$c,$f);
 }
 
 #sayfix(7,50,-1);
@@ -322,34 +360,17 @@ while ($path) {
     my $n=$1;
     $path = $';
     for my $i (1..$n) {
-      my $pp=$p;
-      $p += $f;
+      my ($pp,$pf)=($p,$f);
       my ($c,$r) = (Re($p), Im($p));
-      if (Re($f)) {
-        if ($c < left($r)) {
-          say "c=$c less left";
-          $c+=right($r) - left($r) + 1;
-        }
-        if ($c > right($r)) {
-          say "c=$c gt right";
-          $c-=right($r) - left($r) + 1;
-        }
-      } else {
-        if ($r < top($c)) {
-          say "r=$r lt top";
-          $r+=bot($c) - top($c) + 1;
-        }
-        if ($r > bot($c)) {
-          say "r=$r gt bot";
-          $r-=bot($c) - top($c) + 1;
-        }
-      }
-      $p = $c + i * $r;
-      #say "p=$p r=$r c=$c";
+      ($p,$f) = fix($r,$c,$f);
+      ($c,$r) = (Re($p), Im($p));
+      say "MOVEMENT: p=$p r=$r c=$c";
       #exit;
       die "p=$p r=$r c=$c" unless $A[$r][$c];
+      die "p=$p r=$r c=$c" if ($A[$r][$c] eq ' ' || $r <0 || $c < 0);
       if ($A[$r][$c] eq '#') {
-        $p = $pp;
+        say "Found wall at $p";
+        $p = $pp; $f = $pf;
         last;
       }
     }

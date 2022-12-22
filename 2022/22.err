@@ -1,0 +1,9 @@
+Subroutine main::tanh redefined at 22.pl line 13.
+Subroutine main::log10 redefined at 22.pl line 13.
+Subroutine main::atan redefined at 22.pl line 13.
+Subroutine main::tan redefined at 22.pl line 13.
+Subroutine main::acos redefined at 22.pl line 13.
+Subroutine main::asin redefined at 22.pl line 13.
+Subroutine main::cosh redefined at 22.pl line 13.
+Subroutine main::sinh redefined at 22.pl line 13.
+Possible attempt to separate words with commas at 22.pl line 287.
