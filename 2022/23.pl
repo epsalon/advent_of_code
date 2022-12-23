@@ -221,9 +221,127 @@ while (<>) {
   chomp;
   last unless $_;
   push @A, [split('')];
-  my @p = smart_split();
-  my ($a,$b,$c,$d,$e,$f,$g,$h) = @p;
-  print "a=$a;b=$b;c=$c;d=$d;e=$e;f=$f;g=$g;h=$h\n";
 }
 
-out ($sum);
+for my $ri (0..$#A) {
+  my $r = $A[$ri];
+  for my $ci (0..$#$r) {
+    next unless $r->[$ci] eq '#';
+    $H{$ri,$ci}++;
+  }
+}
+
+my @DIR=([-1,0],[1,0],[0,-1],[0,1]);
+my @DIREXP;
+
+my @ALLDIR = (
+    [-1, -1], [-1, 0], [-1, 1],
+    [ 0, -1],          [ 0, 1],
+    [ 1, -1], [ 1, 0], [ 1, 1]);
+
+for my $d (@DIR) {
+  my ($r,$c) = @$d;
+  my @exp = ($d);
+  if ($r) {
+    push @exp, [$r,-1], [$r,1];
+  } else {
+    push @exp, [-1,$c], [1,$c];
+  }
+  push @DIREXP, \@exp;
+}
+
+sub chkround {
+  my ($r,$c) = @_;
+  for my $d (@ALLDIR) {
+    my $tr = $r+$d->[0];
+    my $tc = $c+$d->[1];
+    return 1 if $H{$tr,$tc};
+  }
+  return 0;
+}
+
+sub outgrid {
+  my ($minr,$minc,$maxr,$maxc) = (999,999,-999,-999);
+  for my $e (keys %H) {
+    my ($r,$c) = split($;,$e);
+    $minr=$r if ($r < $minr);
+    $maxr=$r if ($r > $maxr);
+    $minc=$c if ($c < $minc);
+    $maxc=$c if ($c > $maxc);
+  }
+
+  for my $r ($minr..$maxr) {
+    for my $c ($minc..$maxc) {
+      print ($H{$r,$c}? '#': '.');
+    }
+    print "\n";
+  }
+}
+
+outgrid();
+
+my $round=0;
+
+while (1) {
+  $round++;
+  my %P;
+  ELFLOOP: for my $e (keys %H) {
+    my ($er,$ec) = split($;, $e);
+    #say "elf at $er $ec";
+    unless (chkround($er,$ec)) {
+      next;
+    }
+    DIRLOOP: for my $d (@DIREXP) {
+      #say "  => trying direction $d";
+      for my $ep (@$d) {
+        my $tr = $er + $ep->[0];
+        my $tc = $ec + $ep->[1];
+        next DIRLOOP if ($H{$tr,$tc});
+      }
+      my ($dr,$dc)= ($er + $d->[0][0],$ec + $d->[0][1]);
+      #say "  => Dest is $dr,$dc";
+      if ($P{$dr,$dc}) {
+        $P{$dr,$dc} = "X";
+      } else {
+        $P{$dr,$dc} = "$er$;$ec";
+      }
+      next ELFLOOP;
+    }
+    if ($P{$er,$ec}) {
+      $P{$er,$ec} = "X";
+    } else {
+      $P{$er,$ec} = "$er$;$ec";
+    }
+  }
+  #out(\%P);
+  my $moves;
+  for my $src (values %P) {
+    next if $src eq "X";
+    delete $H{$src};
+  }
+  while (my ($dst,$src) = each %P) {
+    next if $src eq "X";
+    $H{$dst}++;
+    $moves++ if ($src ne $dst);
+  }
+  push @DIREXP, (shift @DIREXP);
+  if ($round == 10) {
+    my ($minr,$minc,$maxr,$maxc) = (999,999,-999,-999);
+    my $count;
+    for my $e (keys %H) {
+      $count++;
+      my ($r,$c) = split($;,$e);
+      $minr=$r if ($r < $minr);
+      $maxr=$r if ($r > $maxr);
+      $minc=$c if ($c < $minc);
+      $maxc=$c if ($c > $maxc);
+    }
+    out (($maxr-$minr+1) * ($maxc-$minc+1) - $count);
+  }
+  unless ($moves) {
+    #outgrid();
+    out ($round);
+    exit;
+  }
+}
+

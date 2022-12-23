@@ -173,7 +173,7 @@ sub fix {
   #my ($Nr, $Nc, $Nf) = split(',', $fix);
   my ($Nr, $Nc, $Nf) = fa($Mr,$Mc,$of);
   #say "Need to fix: r=$r c=$c of=$of pos=$pos Nr=$Nr Nc=$Nc Nf=$Nf";
-  $Nf = eval($Nf);
+  #$Nf = eval($Nf);
   my $f=$of;
   $f = $f / $Nf;
   $pos -= $SIZE*$of;
