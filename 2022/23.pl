@@ -290,6 +290,7 @@ while (1) {
   push @STEPS,\%H2;
   $round++;
   my %P;
+  my %C;
   ELFLOOP: for my $e (keys %H) {
     my ($er,$ec) = split($;, $e);
     #say "elf at $er $ec";
@@ -304,9 +305,11 @@ while (1) {
         next DIRLOOP if ($H{$tr,$tc});
       }
       my ($dr,$dc)= ($er + $d->[0][0],$ec + $d->[0][1]);
+      next ELFLOOP if $C{$dr,$dc};
       #say "  => Dest is $dr,$dc";
       if ($P{$dr,$dc}) {
-        $P{$dr,$dc} = "X";
+        delete $P{$dr,$dc};
+        $C{$dr,$dc}++;
       } else {
         $P{$dr,$dc} = "$er$;$ec";
       }
@@ -316,7 +319,6 @@ while (1) {
   #out(\%P);
   my $moves;
   while (my ($dst,$src) = each %P) {
-    next if $src eq "X";
     delete $H{$src};
     $H{$dst}++;
     $moves++;
@@ -342,6 +344,8 @@ while (1) {
   }
 }
 
+exit;
+
 push @STEPS,\%H;
 
 my ($minr,$minc,$maxr,$maxc) = (999,999,-999,-999);
@@ -353,15 +357,9 @@ for my $e (keys %H) {
   $maxc=$c if ($c > $maxc);
 }
 
-exit;
 my $i=0;
-open(IMG, ">23_anim.gif");
-binmode IMG;
-my $gif = GD::Simple->new(($maxc-$minc+1)*5,($maxr-$minr+1)*5);
-print IMG $gif->gifanimbegin;
-print IMG $gif->gifanimadd;
 for my $s (@STEPS) {
-  my $img =  GD::Simple->new($gif->getBounds);
+  my $img =  GD::Simple->new(5*($maxc-$minc+1),5*($maxr-$minr+1));
   $img->bgcolor('green');
   $img->fgcolor('yellow');
   for my $e (keys %$s) {
@@ -370,7 +368,8 @@ for my $s (@STEPS) {
     $c-=$minc;
     $img->rectangle($c*5,$r*5,5*$c+4,5*$r+4);
   }
-  print IMG $img->gifanimadd;
+  open(IMG, sprintf(">23_%04d.png", $i++));
+  binmode IMG;
+  print IMG $img->png;
+  close(IMG);
 }
-print IMG $gif->gifanimend;
-close IMG;
