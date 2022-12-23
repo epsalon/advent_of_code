@@ -361,6 +361,7 @@ for my $e (keys %H) {
   $maxc=$c if ($c > $maxc);
 }
 
+exit;
 my $i=0;
 open(IMG, ">23_anim.gif");
 binmode IMG;
