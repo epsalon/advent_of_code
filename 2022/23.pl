@@ -312,22 +312,14 @@ while (1) {
       }
       next ELFLOOP;
     }
-    if ($P{$er,$ec}) {
-      $P{$er,$ec} = "X";
-    } else {
-      $P{$er,$ec} = "$er$;$ec";
-    }
   }
   #out(\%P);
   my $moves;
-  for my $src (values %P) {
-    next if $src eq "X";
-    delete $H{$src};
-  }
   while (my ($dst,$src) = each %P) {
     next if $src eq "X";
+    delete $H{$src};
     $H{$dst}++;
-    $moves++ if ($src ne $dst);
+    $moves++;
   }
   push @DIREXP, (shift @DIREXP);
   if ($round == 10) {
