@@ -10,6 +10,7 @@ use Math::Complex;
 use List::PriorityQueue;
 use Memoize;
 use Storable qw(dclone);
+use GD::Simple;
 
 sub out {
   my $out = shift;
@@ -282,7 +283,11 @@ outgrid();
 
 my $round=0;
 
+my @STEPS = ();
+
 while (1) {
+  my %H2=%H;
+  push @STEPS,\%H2;
   $round++;
   my %P;
   ELFLOOP: for my $e (keys %H) {
@@ -341,7 +346,38 @@ while (1) {
   unless ($moves) {
     #outgrid();
     out ($round);
-    exit;
+    last;
   }
 }
 
+push @STEPS,\%H;
+
+my ($minr,$minc,$maxr,$maxc) = (999,999,-999,-999);
+for my $e (keys %H) {
+  my ($r,$c) = split($;,$e);
+  $minr=$r if ($r < $minr);
+  $maxr=$r if ($r > $maxr);
+  $minc=$c if ($c < $minc);
+  $maxc=$c if ($c > $maxc);
+}
+
+my $i=0;
+open(IMG, ">23_anim.gif");
+binmode IMG;
+my $gif = GD::Simple->new(($maxc-$minc+1)*5,($maxr-$minr+1)*5);
+print IMG $gif->gifanimbegin;
+print IMG $gif->gifanimadd;
+for my $s (@STEPS) {
+  my $img =  GD::Simple->new($gif->getBounds);
+  $img->bgcolor('green');
+  $img->fgcolor('yellow');
+  for my $e (keys %$s) {
+    my ($r,$c) = split($;,$e);
+    $r-=$minr;
+    $c-=$minc;
+    $img->rectangle($c*5,$r*5,5*$c+4,5*$r+4);
+  }
+  print IMG $img->gifanimadd;
+}
+print IMG $gif->gifanimend;
+close IMG;
