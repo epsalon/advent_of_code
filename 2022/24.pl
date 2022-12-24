@@ -12,6 +12,7 @@ use Memoize;
 use Term::ANSIColor qw(:constants);
 use Storable qw(dclone);
 use Time::HiRes qw(usleep);
+use Math::Utils qw/lcm/;
 
 sub out {
   my $out = shift;
@@ -194,6 +195,8 @@ sub end {
   }
 }
 
+my $lcm = lcm($rl-1,$cl);
+
 my @VHASH;
 
 sub vort {
@@ -227,6 +230,7 @@ sub nneigh {
   my $node = shift;
   my ($r,$c,$step,$megastep) = split(',', $node);
   $step++;
+  $step %= $lcm;
   my $V = vort($step);
   my @options;
   push @options, "$r,$c,$step,$megastep" unless $V->{$r,$c};
@@ -288,12 +292,12 @@ sub heuristic {
 }
 
 #out([astar($start,end(1),\&nneigh)]);
-my ($res,@path) = astar($start,end(3),\&nneigh,heuristic(3));
+my ($res,@path) = astar($start,end(7),\&nneigh,heuristic(7));
 print "\033[2J";    #clear the screen
 for my $p (@path) {
   print "\033[0;0H"; #jump to 0,0
   say "$p";
   viz($p);
-  Time::HiRes::sleep(0.1);
+  Time::HiRes::sleep(0.02);
 }
 out ($res);
