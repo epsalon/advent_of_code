@@ -236,78 +236,77 @@ while (<>) {
   }
   $rl++;
 }
+my @VORT=(\@A);
 
-my $start = "0,0;".join(';', map {join(',', @$_)} @A);
+my $start = "0,0,0,0";
 
 sub end {
   my $node = shift;
-  my ($xr) = split(',', $node);
-  return $xr == $rl;
+  my ($xr,$xc,$step,$megastep) = split(',', $node);
+  #say $node if ($megastep == 2);
+  return $xr == $rl && $megastep==2;
 }
 
-sub movevort {
-  my @vortex = @_;
-#  say "movevort";
-#  say join(';', @vortex);
-  @vortex = map {[split(',')]} @vortex;
-  for my $v (@vortex) {
-    my ($r,$c,$rd,$cd) = @$v;
-    $r+=$rd; $c+=$cd;
-    $r=1 if $r == $rl;
-    $r=$rl-1 if $r == 0;
-    $c=0 if $c == $cl;
-    $c=$cl-1 if $c < 0;
-    $v = [$r,$c,$rd,$cd];
+my @VHASH;
+
+sub vort {
+  my $step = shift;
+  unless ($VORT[$step]) {
+    my $prevvort = $VORT[$step-1];
+    my @vortex = @$prevvort;
+    for my $v (@vortex) {
+      my ($r,$c,$rd,$cd) = @$v;
+      $r+=$rd; $c+=$cd;
+      $r=1 if $r == $rl;
+      $r=$rl-1 if $r == 0;
+      $c=0 if $c == $cl;
+      $c=$cl-1 if $c < 0;
+      $v = [$r,$c,$rd,$cd];
+    }
+    $VORT[$step] = \@vortex;
   }
-  return @vortex;
+  unless ($VHASH[$step]) {
+    my %V;
+    for my $v (@{$VORT[$step]}) {
+      my ($vr,$vc) = @$v;
+      $V{$vr,$vc}++;
+    }
+    $VHASH[$step]=\%V;
+  }
+  return $VHASH[$step];
 }
-
-memoize('movevort');
 
 sub nneigh {
   my $node = shift;
-  my ($pos,@vortex) = split(';', $node);
-  my ($r,$c) = split(',', $pos);
-  #out (\@vortex);
-  @vortex = movevort(@vortex);
-  #out (\@vortex);
-  my %V;
-  for my $v (@vortex) {
-    my ($vr,$vc) = @$v;
-    $V{$vr,$vc}++;
-  }
+  my ($r,$c,$step,$megastep) = split(',', $node);
+  $step++;
+  my $V = vort($step);
   my @options;
-  push @options, "$r,$c" unless $V{$r,$c};
+  push @options, "$r,$c,$step,$megastep" unless $V->{$r,$c};
   for my $d (values %DIRS) {
     my ($nr,$nc) = ($r,$c);
     my ($dr,$dc) = @$d;
     $nr+=$dr;
     $nc+=$dc;
-    next if $V{$nr,$nc};
+    next if $V->{$nr,$nc};
     next if $nc < 0;
     next if $nc >= $cl;
     next if ($nr < 0 || $nr > $rl);
     next if ($nr == 0 && $nc != 0);
     next if ($nr == $rl && $nc != $cl-1);
-    push @options, "$nr,$nc";
+    if ($nr==$rl && $megastep == 0 || $nr == 0 && $megastep == 1) {
+      push @options, "$nr,$nc,$step,".($megastep+1);
+    } else {
+      push @options, "$nr,$nc,$step,$megastep";
+    }
   }
-  unless (@options) {
-    return ();
-  }
-  my $vstr = ";".join(';', map {join(',', @$_)} @vortex);
-  my @out;
-  for my $o (@options) {
-    push @out, $o.$vstr;
-  }
-#  out(\@out);
-  return @out;
+  return @options;
 }
 
-sub heuristic {
-  my $node = shift;
-  my ($pos) = split(';', $node); 
-  my ($r,$c) = split(',', $pos);
-  return $cl-$c-1 + $rl-$r;
-}
+#sub heuristic {
+#  my $node = shift;
+#  my ($r,$c) = split(',', $node);
+#  return $cl-$c-1 + $rl-$r;
+#}
 
-out(astar($start,\&end,\&nneigh,\&heuristic));
+out(astar($start,\&end,\&nneigh));
