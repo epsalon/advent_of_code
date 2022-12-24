@@ -9,7 +9,9 @@ use Math::Cartesian::Product;
 use Math::Complex;
 use List::PriorityQueue;
 use Memoize;
+use Term::ANSIColor qw(:constants);
 use Storable qw(dclone);
+use Time::HiRes qw(usleep);
 
 sub out {
   my $out = shift;
@@ -18,22 +20,6 @@ sub out {
   } else {
     Clipboard->copy_to_all_selections($out);
     print "$out\n";
-  }
-}
-
-# Utility function to make sure 2d array has equal rows
-# input arr,fill. no output
-sub equalize {
-  my $arr = shift;
-  my $fill = shift;
-  my $rows = @$arr;
-  my $cols = max(map {$_ ? scalar(@$_): 0} @$arr);
-  print "$rows $cols\n";
-  for my $row (@$arr) {
-    $row = [] unless $row;
-    while (@$row < $cols) {
-      push @$row, $fill;
-    }
   }
 }
 
@@ -89,47 +75,6 @@ sub oneigh {
   return neigh([[-1,0], [1, 0], [0, -1], [0, 1]], @_);
 }
 
-# All neighbors
-sub aneigh {
-  return neigh([
-    [-1, -1], [-1, 0], [-1, 1],
-    [ 0, -1],          [ 0, 1],
-    [ 1, -1], [ 1, 0], [ 1, 1]], @_);
-}
-
-# Numeric sort because sort defaults to lex
-# returns new array
-sub nsort {
-  my $in = \@_;
-  if (@$in == 1) {
-    $in = $in->[0];
-  }
-  return sort {$a <=> $b} @$in;
-}
-
-# Binary conversions
-sub bin2dec {
-  my $in = shift;
-  return oct("0b$in");
-}
-sub dec2bin {
-  my $in = shift;
-  return sprintf ("%b", $in);
-}
-sub hex2bin {
-  my $in = shift;
-  return join('', map {sprintf("%04b", oct("0x$_"))} split('', $in));
-}
-sub bin2hex {
-  my $in = shift;
-  my $out;
-  my @in = split('', $in);
-  die "Bad bin value $in" if (@in%4);
-  while (@in) {
-    $out .= sprintf("%X", bin2dec(join('',splice(@in, 0, 4))));
-  }
-  return $out;
-}
 
 # A* / BFS implementation
 # Args: start, end, neighbor function, heuristic function
@@ -241,10 +186,12 @@ my @VORT=(\@A);
 my $start = "0,0,0,0";
 
 sub end {
-  my $node = shift;
-  my ($xr,$xc,$step,$megastep) = split(',', $node);
-  #say $node if ($megastep == 2);
-  return $xr == $rl && $megastep==2;
+  my $step = shift;
+  return sub {
+    my $node = shift;
+    my $megastep = (split(',', $node))[-1];
+    return $megastep==$step;
+  }
 }
 
 my @VHASH;
@@ -294,7 +241,7 @@ sub nneigh {
     next if ($nr < 0 || $nr > $rl);
     next if ($nr == 0 && $nc != 0);
     next if ($nr == $rl && $nc != $cl-1);
-    if ($nr==$rl && $megastep == 0 || $nr == 0 && $megastep == 1) {
+    if ($nr==$rl && ($megastep&1) == 0 || $nr == 0 && ($megastep&1) == 1) {
       push @options, "$nr,$nc,$step,".($megastep+1);
     } else {
       push @options, "$nr,$nc,$step,$megastep";
@@ -303,10 +250,46 @@ sub nneigh {
   return @options;
 }
 
+sub viz {
+  my $node = shift;
+  my ($er,$ec,$step) = split(',', $node);
+  my $V = vort($step);
+  my $E = BOLD . ON_RED . 'E'. RESET;
+  if ($er == 0) {
+    say ("#$E" . ('#' x $cl));
+  } else {
+    say ('#.' . ('#' x $cl));
+  }
+  for my $r (1..$rl-1) {
+    print '#';
+    for my $c (0..$cl-1) {
+      if ($r == $er && $c == $ec) {
+        print "$E";
+        next;
+      }
+      print $V->{$r,$c} || '.';
+    }
+    say '#';
+  }
+  if ($er == $rl) {
+    say (('#' x $cl) . "$E#");
+  } else {
+    say (('#' x $cl) . '.#');
+  }
+}
+
 #sub heuristic {
 #  my $node = shift;
 #  my ($r,$c) = split(',', $node);
 #  return $cl-$c-1 + $rl-$r;
 #}
 
-out(astar($start,\&end,\&nneigh));
+#out([astar($start,end(1),\&nneigh)]);
+my ($res,@path) = astar($start,end(3),\&nneigh);
+out ($res);
+print "\033[2J";    #clear the screen
+for my $p (@path) {
+  print "\033[0;0H"; #jump to 0,0  say "$p";
+  viz($p);
+  Time::HiRes::sleep(0.1);
+}
