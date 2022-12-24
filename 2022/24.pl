@@ -230,15 +230,9 @@ sub nneigh {
   my $V = vort($step);
   my @options;
   push @options, "$r,$c,$step,$megastep" unless $V->{$r,$c};
-  for my $d (values %DIRS) {
-    my ($nr,$nc) = ($r,$c);
-    my ($dr,$dc) = @$d;
-    $nr+=$dr;
-    $nc+=$dc;
+  for my $n (oneigh($rl+1,$cl,$r,$c)) {
+    my ($nr,$nc) = @$n;
     next if $V->{$nr,$nc};
-    next if $nc < 0;
-    next if $nc >= $cl;
-    next if ($nr < 0 || $nr > $rl);
     next if ($nr == 0 && $nc != 0);
     next if ($nr == $rl && $nc != $cl-1);
     if ($nr==$rl && ($megastep&1) == 0 || $nr == 0 && ($megastep&1) == 1) {
@@ -278,18 +272,28 @@ sub viz {
   }
 }
 
-#sub heuristic {
-#  my $node = shift;
-#  my ($r,$c) = split(',', $node);
-#  return $cl-$c-1 + $rl-$r;
-#}
+sub heuristic {
+  my $steps = shift;
+  return sub {
+    my $node = shift;
+    my ($r,$c,$step,$megastep) = split(',', $node);
+    my $h = ($steps-$megastep-1) * ($rl+$cl-1);
+    if ($megastep & 1) {
+      $h += $r + $c;
+    } else {
+      $h += $cl-$c-1 + $rl-$r;
+    }
+    return $h;
+  }
+}
 
 #out([astar($start,end(1),\&nneigh)]);
-my ($res,@path) = astar($start,end(3),\&nneigh);
-out ($res);
+my ($res,@path) = astar($start,end(3),\&nneigh,heuristic(3));
 print "\033[2J";    #clear the screen
 for my $p (@path) {
-  print "\033[0;0H"; #jump to 0,0  say "$p";
+  print "\033[0;0H"; #jump to 0,0
+  say "$p";
   viz($p);
   Time::HiRes::sleep(0.1);
 }
+out ($res);
