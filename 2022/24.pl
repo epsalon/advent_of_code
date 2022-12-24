@@ -168,7 +168,7 @@ my $sum=0;
 my $rl=1;
 my $cl;
 
-my %DIRS = ('<', [0,-1], '>', [0,1], '^', [-1,0], 'v', [1,0]);
+my %DIRS = ('<', [0,-1,1], '>', [0,1,2], '^', [-1,0,4], 'v', [1,0,8]);
 
 while (<>) {
   chomp;
@@ -184,16 +184,7 @@ while (<>) {
 }
 my @VORT=(\@A);
 
-my $start = "0,0,0,0";
-
-sub end {
-  my $step = shift;
-  return sub {
-    my $node = shift;
-    my $megastep = (split(',', $node))[-1];
-    return $megastep==$step;
-  }
-}
+my $start = "0,0,0";
 
 my $lcm = lcm($rl-1,$cl);
 
@@ -205,21 +196,21 @@ sub vort {
     my $prevvort = $VORT[$step-1];
     my @vortex = @$prevvort;
     for my $v (@vortex) {
-      my ($r,$c,$rd,$cd) = @$v;
+      my ($r,$c,$rd,$cd,$x) = @$v;
       $r+=$rd; $c+=$cd;
       $r=1 if $r == $rl;
       $r=$rl-1 if $r == 0;
       $c=0 if $c == $cl;
       $c=$cl-1 if $c < 0;
-      $v = [$r,$c,$rd,$cd];
+      $v = [$r,$c,$rd,$cd,$x];
     }
     $VORT[$step] = \@vortex;
   }
   unless ($VHASH[$step]) {
     my %V;
     for my $v (@{$VORT[$step]}) {
-      my ($vr,$vc) = @$v;
-      $V{$vr,$vc}++;
+      my ($vr,$vc,$vrd,$vcd,$x) = @$v;
+      $V{$vr,$vc}|=$x;
     }
     $VHASH[$step]=\%V;
   }
@@ -228,76 +219,111 @@ sub vort {
 
 sub nneigh {
   my $node = shift;
-  my ($r,$c,$step,$megastep) = split(',', $node);
+  my ($r,$c,$step) = split(',', $node);
   $step++;
   $step %= $lcm;
   my $V = vort($step);
   my @options;
-  push @options, "$r,$c,$step,$megastep" unless $V->{$r,$c};
+  push @options, "$r,$c,$step" unless $V->{$r,$c};
   for my $n (oneigh($rl+1,$cl,$r,$c)) {
     my ($nr,$nc) = @$n;
     next if $V->{$nr,$nc};
     next if ($nr == 0 && $nc != 0);
     next if ($nr == $rl && $nc != $cl-1);
-    if ($nr==$rl && ($megastep&1) == 0 || $nr == 0 && ($megastep&1) == 1) {
-      push @options, "$nr,$nc,$step,".($megastep+1);
-    } else {
-      push @options, "$nr,$nc,$step,$megastep";
-    }
+    push @options, "$nr,$nc,$step";
   }
   return @options;
+}
+
+my @HARROW = qw/. ⇐ ⇒ ⇔/;
+my @VARROW = qw/. ⇑ ⇓ ⇕/;
+
+sub arrow {
+  my $v = shift || 0;
+  return GREEN.$HARROW[$v&3].YELLOW.$VARROW[$v>>2].RESET;
 }
 
 sub viz {
   my $node = shift;
   my ($er,$ec,$step) = split(',', $node);
   my $V = vort($step);
-  my $E = BOLD . ON_RED . 'E'. RESET;
+  my $E = BOLD . ON_RED . 'Ex'. RESET;
   if ($er == 0) {
-    say ("#$E" . ('#' x $cl));
+    say ("##$E" . ('#' x ($cl*2)));
   } else {
-    say ('#.' . ('#' x $cl));
+    say ('##..' . ('#' x ($cl*2)));
   }
   for my $r (1..$rl-1) {
-    print '#';
+    print '##';
     for my $c (0..$cl-1) {
       if ($r == $er && $c == $ec) {
         print "$E";
         next;
       }
-      print $V->{$r,$c} || '.';
+      print arrow($V->{$r,$c});
     }
-    say '#';
+    say '##';
   }
   if ($er == $rl) {
-    say (('#' x $cl) . "$E#");
+    say (('#' x ($cl*2)) . "$E##");
   } else {
-    say (('#' x $cl) . '.#');
+    say (('#' x ($cl*2)) . '..##');
   }
 }
 
-sub heuristic {
-  my $steps = shift;
-  return sub {
-    my $node = shift;
-    my ($r,$c,$step,$megastep) = split(',', $node);
-    my $h = ($steps-$megastep-1) * ($rl+$cl-1);
-    if ($megastep & 1) {
-      $h += $r + $c;
-    } else {
-      $h += $cl-$c-1 + $rl-$r;
-    }
-    return $h;
-  }
+sub end_bot {
+  my $node = shift;
+  my ($r) = split(',', $node);
+  return $r==$rl;
 }
+
+sub end_top {
+  my $node = shift;
+  my ($r) = split(',', $node);
+  return $r==0;
+}
+
+sub heuristic_bot {
+  my $node = shift;
+  my ($r,$c) = split(',', $node);
+  return $cl-$c-1 + $rl-$r;
+}
+sub heuristic_top {
+  my $node = shift;
+  my ($r,$c) = split(',', $node);
+  return $r + $c;
+}
+
+sub solve {
+  my ($step,$dir) = @_;
+  my ($res,@path) = 
+    ($dir ? astar("0,0,$step",\&end_bot,\&nneigh,\&heuristic_bot) :
+            astar("$rl,".($cl-1).",$step",\&end_top,\&nneigh,\&heuristic_top));
+  my $end = $path[-1];
+  $step = (split(',',$end))[2];
+  return ($res, $step, @path);
+}
+
+memoize('solve');
 
 #out([astar($start,end(1),\&nneigh)]);
-my ($res,@path) = astar($start,end(7),\&nneigh,heuristic(7));
+my @path;
+my $res;
+my $step = 0;
+for my $i (1..1) {
+  my ($r, $s, @p) = solve($step, $i & 1);
+  $res+=$r;
+  $step = $s;
+  push @path,@p;
+}
+
+out ($res);
+
 print "\033[2J";    #clear the screen
 for my $p (@path) {
   print "\033[0;0H"; #jump to 0,0
-  say "$p";
+  say "$p    ";
   viz($p);
-  Time::HiRes::sleep(0.02);
+  Time::HiRes::sleep(0.1);
 }
 out ($res);
