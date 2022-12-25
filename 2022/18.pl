@@ -208,7 +208,7 @@ sub floodfill {
   }
 }
 
-floodfill([$min-1,$min-1,$min-1]);
+floodfill([($min-1) x @WALLS]);
 
 $sum = 0;
 for my $d (@WALLS) {
