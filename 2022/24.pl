@@ -76,6 +76,8 @@ sub oneigh {
   return neigh([[-1,0], [1, 0], [0, -1], [0, 1]], @_);
 }
 
+my %considered;
+my $megastep;
 
 # A* / BFS implementation
 # Args: start, end, neighbor function, heuristic function
@@ -109,6 +111,7 @@ sub astar {
   my %path;
   while (%OHASH) {
     my $cur = $OPEN->pop();
+    $considered{$cur} = $megastep unless $considered{$cur};
     delete $OHASH{$cur};
     # Check for end
     if ($end->($cur)) {
@@ -243,31 +246,43 @@ sub arrow {
   return GREEN.$HARROW[$v&3].YELLOW.$VARROW[$v>>2].RESET;
 }
 
+my %visited;
+
+sub cons {
+  my $n = shift;
+  if (my $v =$visited{$n}) {
+    return ($v & 1 ? ON_RED : ON_BLUE) . sprintf("%02d", $v) . RESET;
+  } elsif ($v=$considered{$n}) {
+    return ($v & 1 ? RED : BLUE) . sprintf("%02d", $v) . RESET;
+  } else {
+    return undef;
+  }
+}
+
 sub viz {
-  my $node = shift;
-  my ($er,$ec,$step) = split(',', $node);
+  my $step = shift;
   my $V = vort($step);
   my $E = BOLD . ON_RED . 'Ex'. RESET;
-  if ($er == 0) {
-    say ("##$E" . ('#' x ($cl*2)));
+  if (my $c = cons("0,0,$step")) {
+    say ("  ##$c" . ('#' x ($cl*2)));
   } else {
-    say ('##..' . ('#' x ($cl*2)));
+    say ('  ##..' . ('#' x ($cl*2)));
   }
   for my $r (1..$rl-1) {
-    print '##';
+    print '  ##';
     for my $c (0..$cl-1) {
-      if ($r == $er && $c == $ec) {
-        print "$E";
+      if (my $c=cons("$r,$c,$step")) {
+        print $c;
         next;
       }
       print arrow($V->{$r,$c});
     }
     say '##';
   }
-  if ($er == $rl) {
-    say (('#' x ($cl*2)) . "$E##");
+  if (my $c = cons("$rl,".($cl-1).",$step")) {
+    say ('  '.('#' x ($cl*2)) . "$c##");
   } else {
-    say (('#' x ($cl*2)) . '..##');
+    say ('  '.('#' x ($cl*2)) . '..##');
   }
 }
 
@@ -310,20 +325,30 @@ memoize('solve');
 my @path;
 my $res;
 my $step = 0;
-for my $i (1..1) {
+my %cont;
+my $i;
+while (!$cont{$step}) {
+  $cont{$step}++;
+  $megastep = ++$i;
   my ($r, $s, @p) = solve($step, $i & 1);
   $res+=$r;
   $step = $s;
   push @path,@p;
+  for my $p (@path) {
+    $visited{$p} = $i unless $visited{$p};
+  }
 }
 
-out ($res);
+#out ($res);
 
 print "\033[2J";    #clear the screen
-for my $p (@path) {
-  print "\033[0;0H"; #jump to 0,0
-  say "$p    ";
-  viz($p);
-  Time::HiRes::sleep(0.1);
+while(1) {
+  for my $p (0..$lcm-1) {
+    print "\033[0;0H"; #jump to 0,0
+    say "";
+    say "  $p    ";
+    viz($p);
+    Time::HiRes::sleep(0.1);
+  }
 }
-out ($res);
+#out ($res);
