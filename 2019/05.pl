@@ -227,7 +227,7 @@ sub do_mode {
   for my $o (@$operand) {
     my $m = pop(@mode) || 0;
     if ($m == 0) {
-      push @out, \($MEM->[$o]);
+      push @out, \($MEM->{$o});
     } elsif ($m == 1) {
       push @out, \$o;
     } else {
@@ -244,16 +244,19 @@ sub run {
   my $IN = shift;
   my @out;
   my $pc = 0;
-  while ($PROG->[$pc] != 99) {
+  while ($PROG->{$pc} != 99) {
     say $pc;
-    my $op = $PROG->[$pc];
+    my $op = $PROG->{$pc};
     my $mode = int($op / 100);
     $op = $op % 100;
     my $oplen = $OPERATIONS[$op];
     say "op=$op mode=$mode oplen=$oplen";
-    my $oplist = [@{$PROG}[$pc+1..$pc+$oplen]];
-    out($oplist);
-    my @operands = do_mode($mode, $oplist, $PROG);
+    my @oplist;
+    for my $i ($pc+1..$pc+$oplen) {
+      push @oplist, $PROG->{$i};
+    }
+    out(\@oplist);
+    my @operands = do_mode($mode, \@oplist, $PROG);
     out (\@operands);
     if ($op == 1) {
       ${$operands[2]} = ${$operands[0]} + ${$operands[1]};
@@ -287,5 +290,9 @@ sub run {
 }
 
 my @IN = split(/,/, $in);
+my %IN;
+for my $i (0..$#IN) {
+  $IN{$i} = $IN[$i];
+}
 
-out([run(\@IN,[5])]);
+out([run(\%IN,[5])]);
