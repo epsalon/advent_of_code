@@ -41,7 +41,7 @@ out ($sum);
 
 my @res;
 my $c=0;
-while ($sum) {
+while ($sum || $c) {
   my $d = $sum % 5 + $c;
   if ($d > 2) {
     $d-=5;
