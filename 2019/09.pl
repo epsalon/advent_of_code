@@ -219,17 +219,27 @@ while (<>) {
   $in.=$_;
 }
 
+sub get_mem_ptr {
+  my ($mem, $addr) = @_;
+  unless ($mem->{$addr}) {
+    $mem->{$addr} = 0;
+  }
+  return \($mem->{$addr});
+}
+
 # returns array of refs
 sub do_mode {
-  my ($mode, $operand, $MEM) = @_;
+  my ($mode, $operand, $MEM, $base) = @_;
   my @mode = split('',$mode);
   my @out;
   for my $o (@$operand) {
     my $m = pop(@mode) || 0;
     if ($m == 0) {
-      push @out, \($MEM->{$o});
+      push @out, get_mem_ptr($MEM,$o);
     } elsif ($m == 1) {
       push @out, \$o;
+    } elsif ($m == 2) {
+      push @out, get_mem_ptr($MEM,$o+$base);
     } else {
       die;
     }
@@ -237,7 +247,7 @@ sub do_mode {
   return @out;
 }
 
-my @OPERATIONS = qw/0 3 3 1 1 2 2 3 3/;
+my @OPERATIONS = qw/0 3 3 1 1 2 2 3 3 1/;
 
 sub outprog {
   my $p = shift;
@@ -249,13 +259,14 @@ sub outprog {
 sub run {
   my $PROG = shift;
   my $pc = 0;
+  my $base = 0;
   if (ref($PROG) eq 'ARRAY') {
-    ($PROG,$pc) = @$PROG;
+    ($PROG,$pc,$base) = @$PROG;
   }
   my %PROG = %$PROG;
   my $IN = shift;
   my @out;
-  while ($PROG{$pc} != 99) {
+  while (${get_mem_ptr($PROG, $pc)} != 99) {
     #say $pc;
     my $op = $PROG{$pc};
     my $mode = int($op / 100);
@@ -264,10 +275,10 @@ sub run {
     #say "op=$op mode=$mode oplen=$oplen";
     my @oplist;
     for my $i ($pc+1..$pc+$oplen) {
-      push @oplist, $PROG{$i};
+      push @oplist, ${get_mem_ptr($PROG, $i)};
     }
     #out(\@oplist);
-    my @operands = do_mode($mode, \@oplist, \%PROG);
+    my @operands = do_mode($mode, \@oplist, \%PROG, $base);
     #out (\@operands);
     if ($op == 1) {
       ${$operands[2]} = ${$operands[0]} + ${$operands[1]};
@@ -275,7 +286,7 @@ sub run {
       ${$operands[2]} = ${$operands[0]} * ${$operands[1]};
     } elsif ($op == 3) {
       unless (@$IN) {
-        return \@out, [\%PROG, $pc];
+        return \@out, [\%PROG, $pc, $base];
       }
       ${$operands[0]} = (shift @$IN);
     } elsif ($op == 4) {
@@ -294,6 +305,8 @@ sub run {
       ${$operands[2]} = ${$operands[0]} < ${$operands[1]};
     } elsif ($op == 8) {
       ${$operands[2]} = ${$operands[0]} == ${$operands[1]};
+    } elsif ($op == 9) {
+      $base += ${$operands[0]};
     } else {
       die;
     }
@@ -309,65 +322,5 @@ for my $i (0..$#IN) {
   $IN{$i} = $IN[$i];
 }
 
-sub runchain {
-  #say "runchain(",join(',', @_),")";
-  my $in = shift;
-  my @AMP;
-  for my $p (@_) {
-    my ($out,$cont) = run(\%IN,[$p]);
-    die if (@$out || !$cont);
-    push @AMP, $cont;
-  }
-  my $done = 0;
-  while (!$done) {
-    for my $a (@AMP) {
-      my $out;
-      ($out, $a) = run($a,[$in]);
-      die unless (@$out == 1);
-      $in = $out->[0];
-      $done = 1 unless $a;
-    }
-  }
-  #say "result = $in";
-  return $in;
-}
+out(run(\%IN, [2]));
 
-
-sub permute {
-  return ([]) unless (@_);
-  my @out;
-  for my $i (0..$#_) {
-    my @a = @_;
-    my $v = splice(@a,$i,1);
-    my @p = permute(@a);
-    push @out, map {[$v, @$_]} @p;
-  }
-  return @out;
-}
-
-memoize('permute');
-
-
-#out([run(\%IN,[0])]);
-#out(runchain(0,4,3,2,1,0));
-
-my $sum = 0;
-for my $ph (permute(0..4)) {
-  #say join(',', @pha);
-  my $res = runchain(0,@$ph);
-  if ($res > $sum) {
-    $sum=$res;
-    #say "sum = $sum";
-  }
-}
-out($sum);
-$sum = 0;
-for my $ph (permute(5..9)) {
-  #say join(',', @pha);
-  my $res = runchain(0,@$ph);
-  if ($res > $sum) {
-    $sum=$res;
-    #say "sum = $sum";
-  }
-}
-out($sum);

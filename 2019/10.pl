@@ -213,161 +213,86 @@ sub hashify {
   my @arr = ref $_[0] ? @{$_[0]} : @_;
   return map {$_ => 1} @arr;
 }
-my $in;
+
+my @A;
+
+my $sum=0;
+
+my @B;
+
 while (<>) {
   chomp;
-  $in.=$_;
+  last unless $_;
+  push @A, [split('')];
 }
 
-# returns array of refs
-sub do_mode {
-  my ($mode, $operand, $MEM) = @_;
-  my @mode = split('',$mode);
-  my @out;
-  for my $o (@$operand) {
-    my $m = pop(@mode) || 0;
-    if ($m == 0) {
-      push @out, \($MEM->{$o});
-    } elsif ($m == 1) {
-      push @out, \$o;
-    } else {
-      die;
+for my $y (0..$#A) {
+  my $r = $A[$y];
+  for my $x (0..$#$r) {
+    if ($r->[$x] eq '#') {
+      push @B, cplx($x,$y);
     }
   }
-  return @out;
 }
 
-my @OPERATIONS = qw/0 3 3 1 1 2 2 3 3/;
+my $max = 0;
+my $stpos;
 
-sub outprog {
-  my $p = shift;
-  for my $pc (nsort(keys(%$p))) {
-    printf "%04d: %d\n", $pc, $p->{$pc};
-  }
-}
+my %CX;
 
-sub run {
-  my $PROG = shift;
-  my $pc = 0;
-  if (ref($PROG) eq 'ARRAY') {
-    ($PROG,$pc) = @$PROG;
-  }
-  my %PROG = %$PROG;
-  my $IN = shift;
-  my @out;
-  while ($PROG{$pc} != 99) {
-    #say $pc;
-    my $op = $PROG{$pc};
-    my $mode = int($op / 100);
-    $op = $op % 100;
-    my $oplen = $OPERATIONS[$op];
-    #say "op=$op mode=$mode oplen=$oplen";
-    my @oplist;
-    for my $i ($pc+1..$pc+$oplen) {
-      push @oplist, $PROG{$i};
-    }
-    #out(\@oplist);
-    my @operands = do_mode($mode, \@oplist, \%PROG);
-    #out (\@operands);
-    if ($op == 1) {
-      ${$operands[2]} = ${$operands[0]} + ${$operands[1]};
-    } elsif ($op == 2) {
-      ${$operands[2]} = ${$operands[0]} * ${$operands[1]};
-    } elsif ($op == 3) {
-      unless (@$IN) {
-        return \@out, [\%PROG, $pc];
+for my $loc (@B) { 
+      my %C;
+      for my $a (@B) {
+        my $dist = $a - $loc;
+        $dist /= i;
+        my $dir = arg($dist);
+        push @{$C{$dir}}, $a;
       }
-      ${$operands[0]} = (shift @$IN);
-    } elsif ($op == 4) {
-      push @out, ${$operands[0]};
-    } elsif ($op == 5) {
-      if (${$operands[0]}) {
-        $pc = ${$operands[1]};
-        next;
+      say "$loc ".scalar(%C);
+      if (scalar(%C) > $max) {
+      #if ($loc == 8 + 3*i) {
+        $max = scalar(%C);
+        $stpos = $loc;
+        %CX=();
+        while (my ($k,$v) = each %C) {
+          $CX{$k} = [sort {abs($a-$loc) <=> abs($b-$loc)} @$v];
+        }
       }
-    } elsif ($op == 6) {
-      unless (${$operands[0]}) {
-        $pc = ${$operands[1]};
-        next;
-      }
-    } elsif ($op == 7) {
-      ${$operands[2]} = ${$operands[0]} < ${$operands[1]};
-    } elsif ($op == 8) {
-      ${$operands[2]} = ${$operands[0]} == ${$operands[1]};
-    } else {
-      die;
-    }
-    $pc += $oplen + 1;
-  }
-  #outprog(\%PROG);
-  return \@out, 0;
 }
 
-my @IN = split(/,/, $in);
-my %IN;
-for my $i (0..$#IN) {
-  $IN{$i} = $IN[$i];
+say "$stpos";
+
+out ($max);
+
+#out(\%CX);
+
+my @CK = nsort(keys(%CX));
+unshift @CK, (pop @CK);
+if ($CX{0}[0] == $stpos) {
+  shift @{$CX{0}};
 }
 
-sub runchain {
-  #say "runchain(",join(',', @_),")";
-  my $in = shift;
-  my @AMP;
-  for my $p (@_) {
-    my ($out,$cont) = run(\%IN,[$p]);
-    die if (@$out || !$cont);
-    push @AMP, $cont;
-  }
-  my $done = 0;
-  while (!$done) {
-    for my $a (@AMP) {
-      my $out;
-      ($out, $a) = run($a,[$in]);
-      die unless (@$out == 1);
-      $in = $out->[0];
-      $done = 1 unless $a;
+for my $a (@CK) {
+  my $cx = $CX{$a};
+  #$a/=pi;
+  say "dir $a ast = ".(join(',', @$cx));
+}
+
+my $n = 0;
+BIG: while (1) {
+  my $seen = 0;
+  for my $a (@CK) {
+    if (@{$CX{$a}}) {
+      $seen=1;
+      my $aloc = shift @{$CX{$a}};
+      $n++;
+      say "Ast#" . ($n) . " pos $aloc dir = $a";
+      if ($n == 200) {
+        say "a = $a aloc = $aloc";
+        out(Re($aloc) * 100 + Im($aloc));
+        #last BIG;
+      }
     }
   }
-  #say "result = $in";
-  return $in;
+  last unless $seen;
 }
-
-
-sub permute {
-  return ([]) unless (@_);
-  my @out;
-  for my $i (0..$#_) {
-    my @a = @_;
-    my $v = splice(@a,$i,1);
-    my @p = permute(@a);
-    push @out, map {[$v, @$_]} @p;
-  }
-  return @out;
-}
-
-memoize('permute');
-
-
-#out([run(\%IN,[0])]);
-#out(runchain(0,4,3,2,1,0));
-
-my $sum = 0;
-for my $ph (permute(0..4)) {
-  #say join(',', @pha);
-  my $res = runchain(0,@$ph);
-  if ($res > $sum) {
-    $sum=$res;
-    #say "sum = $sum";
-  }
-}
-out($sum);
-$sum = 0;
-for my $ph (permute(5..9)) {
-  #say join(',', @pha);
-  my $res = runchain(0,@$ph);
-  if ($res > $sum) {
-    $sum=$res;
-    #say "sum = $sum";
-  }
-}
-out($sum);
