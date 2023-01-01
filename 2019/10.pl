@@ -229,7 +229,7 @@ while (<>) {
 for my $y (0..$#A) {
   my $r = $A[$y];
   for my $x (0..$#$r) {
-    if ($r->[$x] eq '#') {
+    if ($r->[$x] ne '.') {
       push @B, cplx($x,$y);
     }
   }
@@ -241,42 +241,32 @@ my $stpos;
 my %CX;
 
 for my $loc (@B) { 
-      my %C;
-      for my $a (@B) {
-        my $dist = $a - $loc;
-        $dist /= i;
-        my $dir = arg($dist);
-        push @{$C{$dir}}, $a;
-      }
-      say "$loc ".scalar(%C);
-      if (scalar(%C) > $max) {
-      #if ($loc == 8 + 3*i) {
-        $max = scalar(%C);
-        $stpos = $loc;
-        %CX=();
-        while (my ($k,$v) = each %C) {
-          $CX{$k} = [sort {abs($a-$loc) <=> abs($b-$loc)} @$v];
-        }
-      }
+  my %C;
+  for my $a (@B) {
+    next if ($a == $loc);
+    my $dist = $a - $loc;
+    $dist /= i;
+    my $dir = arg($dist);
+    push @{$C{$dir}}, $a;
+  }
+  #say "$loc ".scalar(%C);
+  if (scalar(%C) > $max) {
+    $max = scalar(%C);
+    $stpos = $loc;
+    %CX=();
+    while (my ($k,$v) = each %C) {
+      $CX{$k} = [sort {abs($a-$loc) <=> abs($b-$loc)} @$v];
+    }
+  }
 }
 
-say "$stpos";
-
+say "stpos = $stpos";
 out ($max);
 
 #out(\%CX);
 
 my @CK = nsort(keys(%CX));
 unshift @CK, (pop @CK);
-if ($CX{0}[0] == $stpos) {
-  shift @{$CX{0}};
-}
-
-for my $a (@CK) {
-  my $cx = $CX{$a};
-  #$a/=pi;
-  say "dir $a ast = ".(join(',', @$cx));
-}
 
 my $n = 0;
 BIG: while (1) {
@@ -286,7 +276,7 @@ BIG: while (1) {
       $seen=1;
       my $aloc = shift @{$CX{$a}};
       $n++;
-      say "Ast#" . ($n) . " pos $aloc dir = $a";
+      #say "Ast#" . ($n) . " pos $aloc dir = $a";
       if ($n == 200) {
         say "a = $a aloc = $aloc";
         out(Re($aloc) * 100 + Im($aloc));
