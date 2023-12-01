@@ -222,17 +222,20 @@ my %DIGITS;
 
 for my $i (0..$#DIGITS) {
   $DIGITS{$DIGITS[$i]} = $i;
+  $DIGITS{scalar reverse $DIGITS[$i]} = $i;
   $DIGITS{$i} = $i;
 }
 
 while (<>) {
-  print;
   chomp;
   last unless $_;
-  my $digit_re = "(?=(".join('|', @DIGITS)."|\\d))";
-  my @match = (m{$digit_re}og);
-  my $da = $DIGITS{$match[0]};
-  my $db = $DIGITS{$match[-1]};
+  my $digit_re = "(".join('|', @DIGITS)."|\\d)";
+  my $digit_rev =  "(".join('|', (map {scalar reverse($_)} @DIGITS))."|\\d)";
+  m{$digit_re}o;
+  my $da = $DIGITS{$1};
+  $_=reverse($_);
+  m{$digit_rev}o;
+  my $db = $DIGITS{$1};
   $sum+="$da$db";
 }
 
