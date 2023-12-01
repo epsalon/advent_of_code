@@ -35,3 +35,6 @@ inc/
 /MANIFEST.bak
 /pm_to_blib
 /*.zip
+
+# Ignore AoC inputs
+[0-9][0-9].in
