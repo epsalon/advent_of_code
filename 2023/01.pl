@@ -217,26 +217,23 @@ my @A;
 my %H;
 my $sum=0;
 
+my @DIGITS = qw/zero one two three four five six seven eight nine/;
+my %DIGITS;
+
+for my $i (0..$#DIGITS) {
+  $DIGITS{$DIGITS[$i]} = $i;
+  $DIGITS{$i} = $i;
+}
+
 while (<>) {
+  print;
   chomp;
   last unless $_;
-  s{one}{one1one}go;
-  s{two}{two2two}go;
-  s{three}{three3three}go;
-  s{four}{four4four}go;
-  s{five}{five5five}go;
-  s{six}{six6six}go;
-  s{seven}{seven7seven}go;
-  s{eight}{eight8eight}go;
-  s{nine}{nine9nine}go;
-  s{zero}{zero0zero}go;
-  print "$_\n";
-  m{^\D*(\d)};
-  my $a=$1;
-  m{(\d)\D*$};
-  my $b=$1;
-  print "$a$b\n";
-  $sum+="$a$b";
+  my $digit_re = "(?=(".join('|', @DIGITS)."|\\d))";
+  my @match = (m{$digit_re}og);
+  my $da = $DIGITS{$match[0]};
+  my $db = $DIGITS{$match[-1]};
+  $sum+="$da$db";
 }
 
 out ($sum);
