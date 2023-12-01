@@ -220,10 +220,23 @@ my $sum=0;
 while (<>) {
   chomp;
   last unless $_;
-  push @A, [split('')];
-  my @p = smart_split();
-  my ($a,$b,$c,$d,$e,$f,$g,$h) = @p;
-  print "a=$a;b=$b;c=$c;d=$d;e=$e;f=$f;g=$g;h=$h\n";
+  s{one}{one1one}go;
+  s{two}{two2two}go;
+  s{three}{three3three}go;
+  s{four}{four4four}go;
+  s{five}{five5five}go;
+  s{six}{six6six}go;
+  s{seven}{seven7seven}go;
+  s{eight}{eight8eight}go;
+  s{nine}{nine9nine}go;
+  s{zero}{zero0zero}go;
+  print "$_\n";
+  m{^\D*(\d)};
+  my $a=$1;
+  m{(\d)\D*$};
+  my $b=$1;
+  print "$a$b\n";
+  $sum+="$a$b";
 }
 
 out ($sum);
