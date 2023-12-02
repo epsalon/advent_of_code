@@ -214,16 +214,23 @@ sub hashify {
 }
 
 my @A;
-my %H;
 my $sum=0;
 
-while (<>) {
+LOOP: while (<>) {
   chomp;
   last unless $_;
-  push @A, [split('')];
-  my @p = smart_split();
-  my ($a,$b,$c,$d,$e,$f,$g,$h) = @p;
-  print "a=$a;b=$b;c=$c;d=$d;e=$e;f=$f;g=$g;h=$h\n";
+  m{^Game (\d+): (.+)$}go;
+  my ($g, $l) = ($1, $2);
+  my @G = split(/;/, $l);
+  my %H;
+  for my $gg (@G) {
+    my @LL = split(/,/, $gg);
+    for my $ll (@LL) {
+      $ll =~ m{\s*(\d+)\s*([a-z]+)\s*}go;
+      $H{$2}=$1 if (!$H{$2} || $H{$2} < $1);
+    }
+  }
+  $sum += $H{red} * $H{blue} * $H{green};
 }
 
 out ($sum);
