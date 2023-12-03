@@ -223,7 +223,6 @@ while (<>) {
   push @A, ['.',split(''),'.'];
 }
 
-my %STAR;
 my $ccc;
 my $n='';
 for my $r (0..$#A) {
@@ -238,24 +237,19 @@ for my $r (0..$#A) {
         say "r=$r c2=$c2 A[r][c2]=".$A[$r][$c2];
         for my $neigh (aneigh(\@A, $r, $c2)) {
           my ($nr, $nc, $nv) = @$neigh;
-          if ($nv eq '*') {
-            say "STAR[$nr,$nc]=$n";
-            $STAR{"$nr,$nc"}{"$r,$c"}=$n;
+          if ($nv =~ /[^\d\.]/) {
+            $sum += $n;
+            say "adding $n";
+            $n='';
+            next LOOP;
           }
         }
       }
+      say "not adding $n";
       $n='';
     }
   } 
 }
 out ($ccc);
-
-out(\%STAR);
-
-for my $s (values %STAR) {
-  my @n = values (%$s);
-  next unless @n == 2;
-  $sum += product(@n);
-}
 
 out ($sum);
