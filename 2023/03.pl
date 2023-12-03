@@ -97,6 +97,43 @@ sub aneigh {
     [ 1, -1], [ 1, 0], [ 1, 1]], @_);
 }
 
+sub rect {
+  my ($array, $r1, $c1, $r2, $c2) = @_;
+  my $maxrow = $#$array;
+  my $maxcol = $#{$array->[0]};
+  ($r1, $r2) = ($r2, $r1) if ($r1 > $r2);
+  ($c1, $c2) = ($c2, $c1) if ($c1 > $c2);
+  my @out;
+
+  #Horizontal portions
+  for my $c ($c1..$c2) {
+    next if ($c < 0 || $c > $maxcol);
+    if ($r1 <= $maxrow && $r1 >= 0) {
+      push @out, [$r1, $c, $array->[$r1][$c]];
+    }
+    next if ($r1 == $r2);
+    if ($r2 <= $maxrow && $r2 >= 0) {
+      push @out, [$r2, $c, $array->[$r2][$c]];
+    }
+  }
+
+  # Vertical portions
+  if ($r1 + 1 < $r2) {
+    for my $r ($r1+1 .. $r2-1) {
+      next if ($r < 0 || $r > $maxcol);
+      if ($c1 <= $maxcol && $c1 >= 0) {
+        push @out, [$r, $c1, $array->[$r][$c1]];
+      }
+      next if ($c1 == $c2);
+      if ($c2 <= $maxcol && $c2 >= 0) {
+        push @out, [$r, $c2, $array->[$r][$c2]];
+      }
+    }
+  }
+
+  return @out;
+}
+
 # Numeric sort because sort defaults to lex
 # returns new array
 sub nsort {
@@ -214,17 +251,16 @@ sub hashify {
 }
 
 my @A;
-my %H;
-my $sum=0;
+my $sumB=0;
 
 while (<>) {
   chomp;
   last unless $_;
-  push @A, ['.',split(''),'.'];
+  push @A, [split(''),'.'];
 }
 
 my %STAR;
-my $ccc;
+my %PART;
 my $n='';
 for my $r (0..$#A) {
   my $rr = $A[$r];
@@ -232,30 +268,25 @@ for my $r (0..$#A) {
     if ($rr->[$c] =~ /\d/) {
       $n.=$rr->[$c];
     } elsif ($n) {
-      say "$n $r $c";
-      $ccc++;
-      for my $c2 ($c-length($n)..$c-1) {
-        say "r=$r c2=$c2 A[r][c2]=".$A[$r][$c2];
-        for my $neigh (aneigh(\@A, $r, $c2)) {
-          my ($nr, $nc, $nv) = @$neigh;
-          if ($nv eq '*') {
-            say "STAR[$nr,$nc]=$n";
-            $STAR{"$nr,$nc"}{"$r,$c"}=$n;
-          }
+      for my $rc (rect(\@A, $r-1, $c-length($n)-1, $r+1, $c)) {
+        my ($nr, $nc, $nv) = @$rc;
+        if ($nv eq '*') {
+          push @{$STAR{"$nr,$nc"}}, $n;
+        }
+        if ($nv =~ /[^\d\.]/) {
+          $PART{"$r,$c"}=$n;
         }
       }
       $n='';
     }
   } 
 }
-out ($ccc);
 
-out(\%STAR);
+out(sum(values(%PART)));
 
 for my $s (values %STAR) {
-  my @n = values (%$s);
-  next unless @n == 2;
-  $sum += product(@n);
+  next unless @$s == 2;
+  $sumB += product(@$s);
 }
 
-out ($sum);
+out ($sumB);
