@@ -37,6 +37,21 @@ sub equalize {
   }
 }
 
+# Output a 2d array as text, pad based on longest entry
+sub oarr {
+  my $arr = \@_;
+  unless ($#_) {
+    $arr=$_[0];
+  }
+  my $maxlen = 0;
+  for my $r (@$arr) {
+    for my $c (@$r) {
+      $maxlen=length($c) if length($c) > $maxlen;
+    }
+  }
+  say join("\n", map {join('', map {sprintf("%${maxlen}s", $_)} @$_)} @$arr);
+}
+
 # Find neighbors
 # input
 #     neigh_arr, arr, row, col
