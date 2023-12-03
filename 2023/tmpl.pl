@@ -38,11 +38,13 @@ sub equalize {
 }
 
 # Find neighbors
-# input neigh_arr, arr, row, col
+# input
+#     neigh_arr, arr, row, col
 # OR: neigh_arr, arr, "row,col"
 # OR: neigh_arr, rows, cols, row, col
 # OR: neigh_arr, rows, cols, "row,col"
-# returns array of [row, col, value]
+# returns
+#     array of [row, col, value]
 # OR: array of ["row,col", value]
 # OR: array of "row,col"
 sub neigh {
@@ -95,6 +97,48 @@ sub aneigh {
     [-1, -1], [-1, 0], [-1, 1],
     [ 0, -1],          [ 0, 1],
     [ 1, -1], [ 1, 0], [ 1, 1]], @_);
+}
+
+# Search/find a rectangle boundary
+# Args:
+#   array, row 1, col 1, row 2, col 2
+# Output:
+#   array of [row, col, value]
+sub rect {
+  my ($array, $r1, $c1, $r2, $c2) = @_;
+  my $maxrow = $#$array;
+  my $maxcol = $#{$array->[0]};
+  ($r1, $r2) = ($r2, $r1) if ($r1 > $r2);
+  ($c1, $c2) = ($c2, $c1) if ($c1 > $c2);
+  my @out;
+
+  #Horizontal portions
+  for my $c ($c1..$c2) {
+    next if ($c < 0 || $c > $maxcol);
+    if ($r1 <= $maxrow && $r1 >= 0) {
+      push @out, [$r1, $c, $array->[$r1][$c]];
+    }
+    next if ($r1 == $r2);
+    if ($r2 <= $maxrow && $r2 >= 0) {
+      push @out, [$r2, $c, $array->[$r2][$c]];
+    }
+  }
+
+  # Vertical portions
+  if ($r1 + 1 < $r2) {
+    for my $r ($r1+1 .. $r2-1) {
+      next if ($r < 0 || $r > $maxcol);
+      if ($c1 <= $maxcol && $c1 >= 0) {
+        push @out, [$r, $c1, $array->[$r][$c1]];
+      }
+      next if ($c1 == $c2);
+      if ($c2 <= $maxcol && $c2 >= 0) {
+        push @out, [$r, $c2, $array->[$r][$c2]];
+      }
+    }
+  }
+
+  return @out;
 }
 
 # Numeric sort because sort defaults to lex
