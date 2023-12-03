@@ -4,11 +4,12 @@ no warnings 'portable';
 use Data::Dumper;
 use feature 'say';
 use Clipboard;
-use List::Util qw/sum min max reduce any all none notall first product uniq/;
+use List::Util qw/sum min max reduce any all none notall first product uniq pairs/;
 use Math::Cartesian::Product;
 use Math::Complex;
 use List::PriorityQueue;
 use Memoize;
+use Term::ANSIColor qw(:constants);
 use Storable qw(dclone);
 
 sub out {
@@ -37,12 +38,77 @@ sub equalize {
   }
 }
 
+# Print and array highlighting some cells
+# Args:
+#   - array ref, row, col, row, col, ...
+#   - array ref, "row,col", "row,col", ...
+#   - array ref, array of [row, col, row, col, ...]
+#   - array ref, array of ["row,col", "row,col", ...]
+#   - array ref, array of [[row, col, val?], ...]
+#   - array ref, array of [["row,col", val?], ...]
+sub hilite {
+  my $arr = shift;
+  my @hilite = @_;
+
+  # If neighbor array ref, deref
+  if (@hilite == 1 && ref($hilite[0])) {
+    @hilite = @{$hilite[0]};
+  }
+
+  # If the array is raw coords turn into array of [row, col]
+  if (@hilite && !ref($hilite[0])) {
+    my $h1 = $hilite[0];
+    if ($h1 =~ /^\d+,\d+$/o) {
+      # "row,col"
+      @hilite = map {/^(\d+),(\d+)$/o; [$1,$2]} @hilite;
+    } else {
+      # row, col, row, col
+      @hilite = pairs(@hilite);
+    }
+  }
+
+  my %hilite;
+  for my $h (@hilite) {
+    my ($r, $c) = @$h;
+    $hilite{"$r,$c"}++;
+  }
+
+  my $maxlen = 0;
+  for my $r (@$arr) {
+    for my $c (@$r) {
+      $maxlen=length($c) if length($c) > $maxlen;
+    }
+  }
+  for my $r (0..$#$arr) {
+    my $ra = $arr->[$r];
+    for my $c (0..$#$ra) {
+      my $v = $ra->[$c];
+      print BOLD . ON_RED if $hilite{"$r,$c"};
+      printf("%${maxlen}s", $v);
+      print RESET;
+    }
+    print "\n";
+  }
+  print "\n";
+}
+
+# Output a 2d array as text, pad based on longest entry
+sub oarr {
+  my $arr = \@_;
+  unless ($#_) {
+    $arr=$_[0];
+  }
+  return hilite($arr);
+}
+
 # Find neighbors
-# input neigh_arr, arr, row, col
+# input
+#     neigh_arr, arr, row, col
 # OR: neigh_arr, arr, "row,col"
 # OR: neigh_arr, rows, cols, row, col
 # OR: neigh_arr, rows, cols, "row,col"
-# returns array of [row, col, value]
+# returns
+#     array of [row, col, value]
 # OR: array of ["row,col", value]
 # OR: array of "row,col"
 sub neigh {
@@ -97,6 +163,11 @@ sub aneigh {
     [ 1, -1], [ 1, 0], [ 1, 1]], @_);
 }
 
+# Search/find a rectangle boundary
+# Args:
+#   array, row 1, col 1, row 2, col 2
+# Output:
+#   array of [row, col, value]
 sub rect {
   my ($array, $r1, $c1, $r2, $c2) = @_;
   my $maxrow = $#$array;
@@ -268,7 +339,9 @@ for my $r (0..$#A) {
     if ($rr->[$c] =~ /\d/) {
       $n.=$rr->[$c];
     } elsif ($n) {
-      for my $rc (rect(\@A, $r-1, $c-length($n)-1, $r+1, $c)) {
+      my @rect = rect(\@A, $r-1, $c-length($n)-1, $r+1, $c);
+      hilite(\@A, \@rect);
+      for my $rc (@rect) {
         my ($nr, $nc, $nv) = @$rc;
         if ($nv eq '*') {
           push @{$STAR{"$nr,$nc"}}, $n;

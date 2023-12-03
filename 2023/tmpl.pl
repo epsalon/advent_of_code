@@ -4,11 +4,12 @@ no warnings 'portable';
 use Data::Dumper;
 use feature 'say';
 use Clipboard;
-use List::Util qw/sum min max reduce any all none notall first product uniq/;
+use List::Util qw/sum min max reduce any all none notall first product uniq pairs/;
 use Math::Cartesian::Product;
 use Math::Complex;
 use List::PriorityQueue;
 use Memoize;
+use Term::ANSIColor qw(:constants);
 use Storable qw(dclone);
 
 sub out {
@@ -37,19 +38,67 @@ sub equalize {
   }
 }
 
-# Output a 2d array as text, pad based on longest entry
-sub oarr {
-  my $arr = \@_;
-  unless ($#_) {
-    $arr=$_[0];
+# Print and array highlighting some cells
+# Args:
+#   - array ref, row, col, row, col, ...
+#   - array ref, "row,col", "row,col", ...
+#   - array ref, array of [row, col, row, col, ...]
+#   - array ref, array of ["row,col", "row,col", ...]
+#   - array ref, array of [[row, col, val?], ...]
+#   - array ref, array of [["row,col", val?], ...]
+sub hilite {
+  my $arr = shift;
+  my @hilite = @_;
+
+  # If neighbor array ref, deref
+  if (@hilite == 1 && ref($hilite[0])) {
+    @hilite = @{$hilite[0]};
   }
+
+  # If the array is raw coords turn into array of [row, col]
+  if (@hilite && !ref($hilite[0])) {
+    my $h1 = $hilite[0];
+    if ($h1 =~ /^\d+,\d+$/o) {
+      # "row,col"
+      @hilite = map {/^(\d+),(\d+)$/o; [$1,$2]} @hilite;
+    } else {
+      # row, col, row, col
+      @hilite = pairs(@hilite);
+    }
+  }
+
+  my %hilite;
+  for my $h (@hilite) {
+    my ($r, $c) = @$h;
+    $hilite{"$r,$c"}++;
+  }
+
   my $maxlen = 0;
   for my $r (@$arr) {
     for my $c (@$r) {
       $maxlen=length($c) if length($c) > $maxlen;
     }
   }
-  say join("\n", map {join('', map {sprintf("%${maxlen}s", $_)} @$_)} @$arr);
+  for my $r (0..$#$arr) {
+    my $ra = $arr->[$r];
+    for my $c (0..$#$ra) {
+      my $v = $ra->[$c];
+      print BOLD . ON_RED if $hilite{"$r,$c"};
+      printf("%${maxlen}s", $v);
+      print RESET;
+    }
+    print "\n";
+  }
+  print "\n";
+}
+
+# Output a 2d array as text, pad based on longest entry
+sub oarr {
+  my $arr = \@_;
+  unless ($#_) {
+    $arr=$_[0];
+  }
+  return hilite($arr);
 }
 
 # Find neighbors
