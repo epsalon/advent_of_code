@@ -340,6 +340,7 @@ while (<>) {
     }
   }
   push @A, $v;
+  $sum += 1 << ($v-1);
 }
 
 my @B= (1) x @A;
@@ -352,6 +353,6 @@ for my $i (0..$#A) {
   }
 }
 
-out (\@B);
+out ($sum);
 
 out (sum(@B));
