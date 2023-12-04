@@ -349,7 +349,7 @@ for my $i (0..$#A) {
   my $cnt = $B[$i];
   next unless $A[$i];
   for my $j (1..$A[$i]) {
-    $B[$i + $j] += $cnt if (($i + $j) <= $#B);
+    $B[$i + $j] += $cnt;
   }
 }
 
