@@ -321,14 +321,16 @@ sub hashify {
   return map {$_ => 1} @arr;
 }
 
-my @A;
-my %H;
 my $sum=0;
 
+#read seeds line
 $_=<>;chomp;
 my @s = smart_split();
 shift @s;
 
+my @os = @s;
+
+# convert to pairs
 my @b;
 while (@s) {
   push @b, [shift(@s), shift(@s)];
@@ -341,7 +343,6 @@ my @y;
 while (<>) {
   chomp;
   unless ($_) {
-    <>;
     my @o;
     YY: while (@s) {
       my ($v, $vd) = @{shift @s};
@@ -372,6 +373,7 @@ while (<>) {
     @s=@o;
     out (\@s);
     @y=();
+    <>;
     next;
   }
   push @y, [smart_split()];
