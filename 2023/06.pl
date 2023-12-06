@@ -4,7 +4,7 @@ no warnings 'portable';
 use Data::Dumper;
 use feature 'say';
 use Clipboard;
-use List::Util qw/sum min max reduce any all none notall first product uniq pairs/;
+use List::Util qw/sum min max reduce any all none notall first product uniq pairs mesh zip/;
 use Math::Cartesian::Product;
 #use Math::Complex;
 use List::PriorityQueue;
@@ -341,10 +341,5 @@ $_=<>;
 my @d = smart_split();
 shift @d;
 
-for my $i (0..$#t) {
-  $sum *= solve($t[$i], $d[$i]);
-}
-
-out($sum);
-
-out(solve (join('',@t), join('',@d)));
+out(product(map {solve(@$_)} zip(\@t,\@d)));
+out(solve(join('',@t), join('',@d)));

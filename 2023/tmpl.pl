@@ -4,7 +4,7 @@ no warnings 'portable';
 use Data::Dumper;
 use feature 'say';
 use Clipboard;
-use List::Util qw/sum min max reduce any all none notall first product uniq pairs/;
+use List::Util qw/sum min max reduce any all none notall first product uniq pairs mesh zip/;
 use Math::Cartesian::Product;
 use Math::Complex;
 use List::PriorityQueue;
