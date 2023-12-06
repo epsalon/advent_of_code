@@ -325,9 +325,9 @@ sub hashify {
 sub solve {
   my ($t, $d) = @_;
   my $delta = sqrt($t*$t - 4*$d);
-  my $s1 = floor(($t - $delta)/2);
-  my $s2 = ceil(($t + $delta)/2);
-  return ($s2-$s1)-1;
+  my $s1 = ceil(($t - $delta)/2);
+  my $s2 = floor(($t + $delta)/2);
+  return $s2-$s1+1;
 }
 
 my @A;
