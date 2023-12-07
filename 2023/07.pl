@@ -15,15 +15,8 @@ sub nsort {
 
 sub jscore {
   my $h=shift;
-  $h =~ tr/AKQJT/EDC1B/;
-  my $s="";
-  for my $j (split('', $h)) {
-    my $x = $h;
-    $x =~ s/1/$j/g;
-    my $ss=score($x);
-    $s = $ss if ($ss gt $s);
-  }
-  return "$s$h";
+  $h =~ tr/AKQJT/EDC1A/;
+  return score($h)."$h";
 }
 
 sub hscore {
@@ -34,15 +27,20 @@ sub hscore {
 
 sub score{
   my %H;
+  my ($max,$amax) = (0);
   for my $x (split('', shift)) {
     $H{$x}++;
+    if ($H{$x} > $max && $x ne "1") {
+      $max = $H{$x};
+      $amax = $x;
+    }
+  }
+  if ($amax && $H{1}) {
+    $H{$amax} += $H{1};
+    delete $H{1};
   }
   return reverse(sprintf("%05s",join('',nsort([values %H]))));
 }
-
-memoize(\&score);
-memoize(\&hscore);
-memoize(\&jscore);
 
 sub getsum {
   my $sum;
@@ -51,6 +49,8 @@ sub getsum {
   }
   return $sum;
 }
+
+memoize('score');
 
 my @A;
 while (<>) {
