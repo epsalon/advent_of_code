@@ -330,7 +330,7 @@ sub jscore {
   my $h=shift;
   $h =~ tr/AKQJT/EDC1B/;
   my $s="";
-  for my $j (qw/B C D E 9 8 7 6 5 4 3 2/) {
+  for my $j (split('', $h)) {
     my $x = $h;
     $x =~ s/1/$j/g;
     my $ss=score($x);
