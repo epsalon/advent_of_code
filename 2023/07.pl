@@ -326,13 +326,62 @@ my @A;
 my %H;
 my $sum=0;
 
+sub jscore {
+  my $h=shift;
+  my $s="";
+  for my $j (qw/B C D E 9 8 7 6 5 4 3 2/) {
+    my $x = $h;
+    $x =~ s/1/$j/g;
+    my @s=split('',score($x));
+    my $ss=($s[0]);
+    $s = $ss if ($ss gt $s);
+  }
+  return "$s$h";
+}
+
+sub score{
+  my $h = shift;
+  my %H;
+  for my $x (split('', $h)) {
+    $H{$x}++;
+  }
+  my @v = values %H;
+  my @v = nsort(\@v);
+  if ($v[-1]==5) {
+    return "9$h";
+  }
+  if ($v[-1]==4) {
+    return "8$h";
+  }
+  if ($v[-1]==3 && $v[-2]==2) {
+    return "7$h";
+  }
+  if ($v[-1]==3) {
+    return "6$h";
+  }
+  if ($v[-1]==2 && $v[-2]==2) {
+    return "5$h";
+  }
+  if ($v[-1]==2) {
+    return "4$h";
+  }
+  return "0$h";
+}
+
 while (<>) {
   chomp;
   last unless $_;
-  push @A, [split('')];
-  my @p = smart_split();
-  my ($a,$b,$c,$d,$e,$f,$g,$h) = @p;
-  print "a=$a;b=$b;c=$c;d=$d;e=$e;f=$f;g=$g;h=$h\n";
+  tr/AKQJT/EDC1B/;
+  my @x = split();
+  push @A, [jscore($x[0]), $x[1]];
+}
+
+@A = sort {$a->[0] cmp $b->[0]} @A;
+
+out (\@A);
+
+for my $i (0..$#A) {
+  $sum += ($i+1) * $A[$i][1];
 }
 
 out ($sum);
