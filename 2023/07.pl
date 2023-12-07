@@ -33,32 +33,11 @@ sub hscore {
 }
 
 sub score{
-  my $h = shift;
   my %H;
-  for my $x (split('', $h)) {
+  for my $x (split('', shift)) {
     $H{$x}++;
   }
-  my @v = values %H;
-  @v = nsort(\@v);
-  if ($v[-1]==5) {
-    return "9";
-  }
-  if ($v[-1]==4) {
-    return "8";
-  }
-  if ($v[-1]==3 && $v[-2]==2) {
-    return "7";
-  }
-  if ($v[-1]==3) {
-    return "6";
-  }
-  if ($v[-1]==2 && $v[-2]==2) {
-    return "5";
-  }
-  if ($v[-1]==2) {
-    return "4";
-  }
-  return "0";
+  return reverse(sprintf("%05s",join('',nsort([values %H]))));
 }
 
 memoize(\&score);
@@ -76,7 +55,6 @@ sub getsum {
 my @A;
 while (<>) {
   chomp;
-  last unless $_;
   push @A, [split()];
 }
 
