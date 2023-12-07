@@ -328,15 +328,21 @@ my $sum=0;
 
 sub jscore {
   my $h=shift;
+  $h =~ tr/AKQJT/EDC1B/;
   my $s="";
   for my $j (qw/B C D E 9 8 7 6 5 4 3 2/) {
     my $x = $h;
     $x =~ s/1/$j/g;
-    my @s=split('',score($x));
-    my $ss=($s[0]);
+    my $ss=score($x);
     $s = $ss if ($ss gt $s);
   }
   return "$s$h";
+}
+
+sub hscore {
+  my $h=shift;
+  $h =~ tr/AKQJT/EDCBA/;
+  return score($h)."$h";
 }
 
 sub score{
@@ -346,42 +352,48 @@ sub score{
     $H{$x}++;
   }
   my @v = values %H;
-  my @v = nsort(\@v);
+  @v = nsort(\@v);
   if ($v[-1]==5) {
-    return "9$h";
+    return "9";
   }
   if ($v[-1]==4) {
-    return "8$h";
+    return "8";
   }
   if ($v[-1]==3 && $v[-2]==2) {
-    return "7$h";
+    return "7";
   }
   if ($v[-1]==3) {
-    return "6$h";
+    return "6";
   }
   if ($v[-1]==2 && $v[-2]==2) {
-    return "5$h";
+    return "5";
   }
   if ($v[-1]==2) {
-    return "4$h";
+    return "4";
   }
-  return "0$h";
+  return "0";
+}
+
+memoize(\&score);
+memoize(\&hscore);
+memoize(\&jscore);
+
+sub getsum {
+  my $sum;
+  for my $i (0..$#_) {
+    $sum += ($i+1) * $A[$i][1];
+  }
+  return $sum;
 }
 
 while (<>) {
   chomp;
   last unless $_;
-  tr/AKQJT/EDC1B/;
   my @x = split();
-  push @A, [jscore($x[0]), $x[1]];
+  push @A, [@x];
 }
 
-@A = sort {$a->[0] cmp $b->[0]} @A;
-
-out (\@A);
-
-for my $i (0..$#A) {
-  $sum += ($i+1) * $A[$i][1];
-}
-
-out ($sum);
+@A = sort {hscore($a->[0]) cmp hscore($b->[0])} @A;
+out (getsum(@A));
+@A = sort {jscore($a->[0]) cmp jscore($b->[0])} @A;
+out (getsum(@A));
