@@ -38,3 +38,10 @@ inc/
 
 # Ignore AoC inputs
 [0-9][0-9].in
+
+# joe backups
+*~
+
+# Profiler
+nytprof.out
+nytprof/*
