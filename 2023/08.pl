@@ -11,7 +11,8 @@ use List::PriorityQueue;
 use Memoize;
 use Term::ANSIColor qw(:constants);
 use Storable qw(dclone);
-# use POSIX;
+use Math::ModInt qw(mod);
+use Math::ModInt::ChineseRemainder qw(cr_combine);
 
 sub out {
   my $out = shift;
@@ -349,36 +350,25 @@ sub cycle {
   my $zeen;
   while  (!$seen{$n.($i % @dirs)}) {
     $seen{$n.($i % @dirs)}=$i+1;
-    $zeen = $i if ($n =~ /Z$/);
+    if ($n =~ /Z$/) {
+      die "Seen Z more than once :(\n" if $zeen;
+      $zeen = $i;
+    }
     $i++;
     my $d = shift @d;
     $n = $H{$n}{$d};
     push @d, $d;
   }
   my $delta = $seen{$n.($i % @dirs)}-1;
-  say "i=$i delta=$delta zeen=$zeen";
+  die "Cycle without Z :(\n" unless $zeen;
   return [$zeen, ($i - $delta)];
   # delta , cycle
 }
 
+out(cycle('AAA')->[0]);
+
 my @xs = grep {/A$/} keys %H;
-
-my @cy = map {&cycle($_)->[0]} @xs;
-
-out (\@cy);
-exit;
-
-out(\@xs);
-
-while (notall {/Z$/} @xs) {
-  my @y;
-  my $d = shift @dirs;
-  for my $x (@xs) {
-    push @y,$H{$x}{$d};
-  }
-  @xs=@y;
-  $sum++;
-  push @dirs, $d;
-}
-
-out ($sum);
+my @mods = (map {mod(@{&cycle($_)})} @xs);
+my $ans = cr_combine(@mods);
+$ans = sprintf("%s", $ans->residue || $ans->modulus);
+out($ans);
