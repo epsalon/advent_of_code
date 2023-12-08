@@ -361,14 +361,24 @@ sub cycle {
   }
   my $delta = $seen{$n.($i % @dirs)}-1;
   die "Cycle without Z :(\n" unless $zeen;
-  return [$zeen, ($i - $delta)];
+  return [$zeen, ($i - $delta), $delta];
   # delta , cycle
 }
 
 out(cycle('AAA')->[0]);
 
 my @xs = grep {/A$/} keys %H;
-my @mods = (map {mod(@{&cycle($_)})} @xs);
+my @cycles = map {cycle($_)} @xs;
+my @mods = (map {mod(@{$_}[0,1])} @cycles);
 my $ans = cr_combine(@mods);
-$ans = sprintf("%s", $ans->residue || $ans->modulus);
-out($ans);
+my $res = $ans->residue;
+
+while (@cycles) {
+  my $delta = (shift @cycles)->[2];
+  if ($res < $delta) {
+    $res += $ans->modulus;
+  }
+}
+
+$res = sprintf("%s",$res);
+out($res);
