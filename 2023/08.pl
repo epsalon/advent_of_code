@@ -344,6 +344,7 @@ while (<>) {
 
 sub cycle {
   my $n = shift;
+  my $n0=$n;
   my @d = @dirs;
   my %seen;
   my $i=0;
@@ -359,11 +360,16 @@ sub cycle {
     push @d, $d;
   }
   my $delta = $seen{$n.($i % @dirs)}-1;
+  my $cylen = ($i - $delta);
   die "Cycle without Z :(\n" unless @zeen;
   @zeen = grep {$_ >= $delta } @zeen;
-  return (($i - $delta), $delta, @zeen);
+  @zeen = map {$_ % $cylen} @zeen;
+  say "cycle($n0): cylen = $cylen delta = $delta zeen = ",join(',', @zeen);
+  return ($cylen, $delta, @zeen);
   # cycle, delta, zeen
 }
+
+$|=1;
 
 out((cycle('AAA'))[2]);
 
@@ -413,8 +419,12 @@ sub ext_cr {
   return cr_combine(@mods);
 }
 
+memoize('ext_cr');
+
 my @xs = grep {/A$/} keys %H;
 my @cycles = map {[cycle($_)]} @xs;
+
+out (\@cycles);
 
 my @residues;
 my @moduli;
@@ -429,6 +439,8 @@ for my $cy (@cycles) {
 
 my $min_ans;
 
+say "number of cases = ", product(map {scalar(@$_)} @residues);
+
 cartesian {
   #say "[",join(',', @_),"]";
   my @mods;
@@ -436,13 +448,14 @@ cartesian {
     push @mods, mod(@$z);
   }
   my $ans = ext_cr(@mods);
-  next unless defined($ans);
+  return unless defined($ans);
   my $res = $ans->residue;
   while ($res < $maxdelta) {
     $res += $ans->modulus;
   }
   if (!defined($min_ans) || $res < $min_ans) {
     $min_ans = sprintf("%s",$res);
+    say($min_ans);
   }
 } @residues;
 
