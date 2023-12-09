@@ -24,17 +24,15 @@ sub out {
 }
 
 sub nextval {
+  my @n = @_;
   my @r;
-  while (notall {!$_} @_) {
+  while (any {$_} @n) {
     my @b;
-    push @r, $_[-1];
-    my $x = shift(@_);
-    while (@_) {
-      my $y = shift(@_);
-      push @b, ($y - $x);
-      $x=$y;
+    push @r, $n[-1];
+    my $x = shift(@n);
+    for my $a (@n) {
+      ($x, $a) = ($a, $a-$x);
     }
-    @_ = @b;
   }
   return sum(@r);
 }
