@@ -347,7 +347,6 @@ sub cycle {
   my @d = @dirs;
   my %seen;
   my $i=0;
-  my @cy;
   my @zeen;
   while  (!$seen{$n.($i % @dirs)}) {
     $seen{$n.($i % @dirs)}=$i+1;
@@ -361,9 +360,12 @@ sub cycle {
   }
   my $delta = $seen{$n.($i % @dirs)}-1;
   die "Cycle without Z :(\n" unless @zeen;
+  @zeen = grep {$_ >= $delta } @zeen;
   return (($i - $delta), $delta, @zeen);
   # cycle, delta, zeen
 }
+
+out((cycle('AAA'))[2]);
 
 sub split_factor {
   my $mod = shift;
@@ -376,7 +378,6 @@ sub split_factor {
   return @out;
 }
 
-out((cycle('AAA'))[2]);
 
 sub compatible {
   my ($p, $er1, $er2) = @_;
