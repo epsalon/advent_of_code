@@ -23,6 +23,22 @@ sub out {
   }
 }
 
+sub nextval {
+  my @r;
+  while (notall {!$_} @_) {
+    my @b;
+    push @r, $_[-1];
+    my $x = shift(@_);
+    while (@_) {
+      my $y = shift(@_);
+      push @b, ($y - $x);
+      $x=$y;
+    }
+    @_ = @b;
+  }
+  return sum(@r);
+}
+
 my $sumA=0;
 my $sumB=0;
 
@@ -31,26 +47,8 @@ while (<>) {
   last unless $_;
 
   my @n = split(' ');
-  my @r;
-  my @e;
-  while (notall {!$_} @n) {
-    my @b;
-    push @r, $n[0];
-    push @e, $n[-1];
-    my $x = shift(@n);
-    while (@n) {
-      my $y = shift(@n);
-      push @b, ($y - $x);
-      $x=$y;
-    }
-    @n = @b;
-  }
-  my $sg = 1;
-  for my $rr (@r) {
-    $sumB += $sg*$rr;
-    $sg = -$sg;
-  }
-  $sumA+=sum(@e);
+  $sumA+=sum(nextval(@n));
+  $sumB+=sum(nextval(reverse(@n)));
 }
 
 out ($sumA);
