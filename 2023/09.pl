@@ -11,6 +11,7 @@ use List::PriorityQueue;
 use Memoize;
 use Term::ANSIColor qw(:constants);
 use Storable qw(dclone);
+use Math::Polynomial;
 # use POSIX;
 
 sub out {
@@ -22,21 +23,6 @@ sub out {
     print "$out\n";
   }
 }
-
-sub nextval {
-  my @n = @_;
-  my @r;
-  while (any {$_} @n) {
-    my @b;
-    push @r, $n[-1];
-    my $x = shift(@n);
-    for my $a (@n) {
-      ($x, $a) = ($a, $a-$x);
-    }
-  }
-  return sum(@r);
-}
-
 my $sumA=0;
 my $sumB=0;
 
@@ -45,8 +31,9 @@ while (<>) {
   last unless $_;
 
   my @n = split(' ');
-  $sumA+=sum(nextval(@n));
-  $sumB+=sum(nextval(reverse(@n)));
+  my $poly = Math::Polynomial->interpolate([0..$#n],\@n);
+  $sumA+=sum(sprintf("%.0f",$poly->evaluate(scalar(@n))));
+  $sumB+=sum(sprintf("%.0f",$poly->evaluate(-1)));
 }
 
 out ($sumA);
