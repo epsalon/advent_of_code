@@ -44,4 +44,4 @@ inc/
 
 # Profiler
 nytprof.out
-nytprof/*
+**/nytprof/**
