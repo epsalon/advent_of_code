@@ -13,6 +13,7 @@ use Term::ANSIColor qw(:constants);
 use Storable qw(dclone);
 use Math::ModInt qw(mod);
 use Math::ModInt::ChineseRemainder qw(cr_combine);
+use Math::Prime::Util 'factor_exp';
 
 sub out {
   my $out = shift;
@@ -347,12 +348,11 @@ sub cycle {
   my %seen;
   my $i=0;
   my @cy;
-  my $zeen;
+  my @zeen;
   while  (!$seen{$n.($i % @dirs)}) {
     $seen{$n.($i % @dirs)}=$i+1;
     if ($n =~ /Z$/) {
-      die "Seen Z more than once :(\n" if $zeen;
-      $zeen = $i;
+      push @zeen, $i;
     }
     $i++;
     my $d = shift @d;
@@ -360,25 +360,89 @@ sub cycle {
     push @d, $d;
   }
   my $delta = $seen{$n.($i % @dirs)}-1;
-  die "Cycle without Z :(\n" unless $zeen;
-  return [$zeen, ($i - $delta), $delta];
-  # delta , cycle
+  die "Cycle without Z :(\n" unless @zeen;
+  return (($i - $delta), $delta, @zeen);
+  # cycle, delta, zeen
 }
 
-out(cycle('AAA')->[0]);
+sub split_factor {
+  my $mod = shift;
+  my @out;
+  for my $fe (factor_exp($mod->modulus)) {
+    my ($p, $e) = @$fe;
+    my $pe = $p ** $e;
+    push @out, [$mod->residue % $pe, $p, $e];
+  }
+  return @out;
+}
+
+out((cycle('AAA'))[2]);
+
+sub compatible {
+  my ($p, $er1, $er2) = @_;
+  my $minE = min($er1->[0], $er2->[0]);
+  my $modulus = $p ** $minE;
+  return $er1->[1] % $modulus == $er2->[1] % $modulus;
+}
+
+sub ext_cr {
+  my @mods = @_;
+  @mods = map { split_factor($_) } @mods;
+  my %primes;
+  for my $m (@mods) {
+    my ($res, $p, $e) = @$m;
+    my $newval = [$e, $res];
+    if (my $oldval = $primes{$p}) {
+      if (compatible($p, $oldval, $newval)) {
+        if ($e > $oldval->[0]) {
+          $primes{$p} = $newval;
+        }
+      } else {
+        return undef;  # incompatible
+      }
+    } else {
+      $primes{$p} = $newval;
+    }
+  }
+  @mods = ();
+  while (my ($p, $er) = each %primes) {
+    push @mods, mod($er->[1], ($p ** $er->[0]));
+  }
+  #say join(',', @mods);
+  return cr_combine(@mods);
+}
 
 my @xs = grep {/A$/} keys %H;
-my @cycles = map {cycle($_)} @xs;
-my @mods = (map {mod(@{$_}[0,1])} @cycles);
-my $ans = cr_combine(@mods);
-my $res = $ans->residue;
+my @cycles = map {[cycle($_)]} @xs;
 
-while (@cycles) {
-  my $delta = (shift @cycles)->[2];
-  if ($res < $delta) {
-    $res += $ans->modulus;
-  }
+my @residues;
+my @moduli;
+my $maxdelta = 0;
+
+for my $cy (@cycles) {
+  my ($modulus, $delta, @residue_set) = @$cy;
+  push @moduli, $modulus;
+  push @residues, \@residue_set;
+  $maxdelta = $delta if ($delta > $maxdelta);
 }
 
-$res = sprintf("%s",$res);
-out($res);
+my $min_ans;
+
+cartesian {
+  #say "[",join(',', @_),"]";
+  my @mods;
+  for my $z (zip(\@_, \@moduli)) {
+    push @mods, mod(@$z);
+  }
+  my $ans = ext_cr(@mods);
+  next unless defined($ans);
+  my $res = $ans->residue;
+  while ($res < $maxdelta) {
+    $res += $ans->modulus;
+  }
+  if (!defined($min_ans) || $res < $min_ans) {
+    $min_ans = sprintf("%s",$res);
+  }
+} @residues;
+
+out($min_ans);
