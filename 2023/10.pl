@@ -137,9 +137,8 @@ DLOOP: for my $sd (qw/L D U/) {
 #hilite(\@A,keys %l);
 out (scalar(%l)/2);
 
-# Scan for "outside"
+# Scan for "inside"
 my @l;
-my $sum=0;
 for my $r (0..$#A) {
   my $out = 1;
   my $corner = 'X';
@@ -158,15 +157,15 @@ for my $r (0..$#A) {
       $out=!$out;
     }
     if (!$out && !$ch) {
-      $sum++;
       push @l,"$r,$c";
     }
   }
+  die unless $out;
 }
 
 # Output part 2
 #hilite(\@A,@l);
-out($sum);
+out(scalar(@l));
 
 @A = map {[map {tr/.LFJ7|-/·└┌┘┐│─/;$_} @$_]} @A;
 
