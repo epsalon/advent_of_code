@@ -84,7 +84,8 @@ my @A;
 while (<>) {
   chomp;
   last unless $_;
-  push @A, [split('')];
+  push @A, [map {($_,'-')} split('')];
+  push @A, [('|',' ') x length($_)];
 }
 
 # Utility constants
@@ -135,10 +136,11 @@ DLOOP: for my $sd (qw/L D U/) {
 
 # Output part 1
 #hilite(\@A,keys %l);
-out (scalar(%l)/2);
+out (scalar(%l)/4);
 
 # Scan for "inside"
 my @l;
+my $sum;
 for my $r (0..$#A) {
   my $out = 1;
   my $corner = 'X';
@@ -158,6 +160,9 @@ for my $r (0..$#A) {
     }
     if (!$out && !$ch) {
       push @l,"$r,$c";
+      unless ($r&1 || $c&1) {
+        $sum++;
+      }
     }
   }
   die unless $out;
@@ -165,7 +170,15 @@ for my $r (0..$#A) {
 
 # Output part 2
 #hilite(\@A,@l);
-out(scalar(@l));
+out($sum);
+
+for my $r (0..$#A) {
+  for my $c (0..$#{$A[0]}) {
+    if (!$l{"$r,$c"} && ($r&1 || $c&1)) {
+      $A[$r][$c] = ' ';
+    }
+  }
+}
 
 @A = map {[map {tr/.LFJ7|-/·└┌┘┐│─/;$_} @$_]} @A;
 
