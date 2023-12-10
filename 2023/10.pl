@@ -102,11 +102,11 @@ for my $k (keys %CHARS) {
 }
 
 # Find start
-my ($row,$col);
+my ($sr,$sc);
 for my $r (0..$#A) {
   for my $c (0..$#{$A[0]}) {
     if ($A[$r][$c] eq 'S') {
-      ($row,$col) = ($r,$c);
+      ($sr,$sc) = ($r,$c);
     }
   }
 }
@@ -114,10 +114,10 @@ for my $r (0..$#A) {
 # Find loop
 my %l;
 DLOOP: for my $sd (qw/L D U/) {
+  my ($row,$col) = ($sr,$sc);
   my $d = $sd;
   %l=();
   while (!$l{"$row,$col"}) {
-    #say "$row $col $d";
     $l{"$row,$col"}++;
     my $dir = [split(',', $DIRS{$d})];
     $row+=$dir->[0]; $col+=$dir->[1];
@@ -143,7 +143,7 @@ my $sum=0;
 for my $r (0..$#A) {
   my $out = 1;
   my $corner = 'X';
-  for my $c (0..$#A) {
+  for my $c (0..$#{$A[0]}) {
     my $ch = $l{"$r,$c"} ? $A[$r][$c] : 0;
     if ($ch eq '|') {
       $out=!$out;
