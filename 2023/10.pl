@@ -11,6 +11,7 @@ use List::PriorityQueue;
 use Memoize;
 use Term::ANSIColor qw(:constants);
 use Storable qw(dclone);
+use utf8::all;
 # use POSIX;
 
 sub out {
@@ -23,30 +24,14 @@ sub out {
   }
 }
 
-# Utility function to make sure 2d array has equal rows
-# input arr,fill. no output
-sub equalize {
-  my $arr = shift;
-  my $fill = shift;
-  my $rows = @$arr;
-  my $cols = max(map {$_ ? scalar(@$_): 0} @$arr);
-  print "$rows $cols\n";
-  for my $row (@$arr) {
-    $row = [] unless $row;
-    while (@$row < $cols) {
-      push @$row, $fill;
-    }
-  }
-}
-
 # Print and array highlighting some cells
 # Args:
 #   - array ref, row, col, row, col, ...
 #   - array ref, "row,col", "row,col", ...
 #   - array ref, array of [row, col, row, col, ...]
 #   - array ref, array of ["row,col", "row,col", ...]
-#   - array ref, array of [[row, col, val?], ...]
-#   - array ref, array of [["row,col", val?], ...]
+#   - array ref, array of [[row, col, color?], ...]
+#   - array ref, array of [["row,col", color?], ...]
 sub hilite {
   my $arr = shift;
   my @hilite = @_;
@@ -70,8 +55,8 @@ sub hilite {
 
   my %hilite;
   for my $h (@hilite) {
-    my ($r, $c) = @$h;
-    $hilite{"$r,$c"}++;
+    my ($r, $c, $v) = @$h;
+    $hilite{"$r,$c"}=($v || BOLD . ON_RED);
   }
 
   my $maxlen = 0;
@@ -84,7 +69,7 @@ sub hilite {
     my $ra = $arr->[$r];
     for my $c (0..$#$ra) {
       my $v = $ra->[$c];
-      print BOLD . ON_RED if $hilite{"$r,$c"};
+      print $hilite{"$r,$c"} || '';
       printf("%${maxlen}s", $v);
       print RESET;
     }
@@ -93,288 +78,73 @@ sub hilite {
   print "\n";
 }
 
-# Output a 2d array as text, pad based on longest entry
-sub oarr {
-  my $arr = \@_;
-  unless ($#_) {
-    $arr=$_[0];
-  }
-  return hilite($arr);
-}
-
-# Find neighbors
-# input
-#     neigh_arr, arr, row, col
-# OR: neigh_arr, arr, "row,col"
-# OR: neigh_arr, rows, cols, row, col
-# OR: neigh_arr, rows, cols, "row,col"
-# returns
-#     array of [row, col, value]
-# OR: array of ["row,col", value]
-# OR: array of "row,col"
-sub neigh {
-  my $neigh = shift;
-  my ($rows,$cols);
-  my $arr = shift;
-  if (ref $arr) {
-    $rows = @$arr;
-    $cols = @{$arr->[0]};
-  } else {
-    $rows = $arr;
-    $cols = shift;
-    undef $arr;
-  }
-  my $row = shift;
-  my $col = shift;
-  my $comma;
-  if ($row =~ /(\d+)(\D+)(\d+)/) {
-    ($row, $comma, $col) = ($1, $2, $3);
-  }
-  my @out;
-  for my $pair (@$neigh) {
-    my ($rd, $cd) = @$pair;
-    my ($nr, $nc) = ($row + $rd, $col + $cd);
-    next if $nr < 0;
-    next if $nc < 0;
-    next if $nr >= $rows;
-    next if $nc >= $cols;
-    if (defined($comma)) {
-      if ($arr) {
-        push @out, ["$nr$comma$nc", $arr->[$nr][$nc]];
-      } else {
-        push @out, "$nr$comma$nc";
-      }
-    } else {
-      push @out, [$nr, $nc, $arr ? ($arr->[$nr][$nc],) : ()];
-    }
-  }
-  return @out;
-}
-
-# Orthogonal
-sub oneigh {
-  return neigh([[-1,0], [1, 0], [0, -1], [0, 1]], @_);
-}
-
-# All neighbors
-sub aneigh {
-  return neigh([
-    [-1, -1], [-1, 0], [-1, 1],
-    [ 0, -1],          [ 0, 1],
-    [ 1, -1], [ 1, 0], [ 1, 1]], @_);
-}
-
-# Search/find a rectangle boundary
-# Args:
-#   array, row 1, col 1, row 2, col 2
-# Output:
-#   array of [row, col, value]
-sub rect {
-  my ($array, $r1, $c1, $r2, $c2) = @_;
-  my $maxrow = $#$array;
-  my $maxcol = $#{$array->[0]};
-  ($r1, $r2) = ($r2, $r1) if ($r1 > $r2);
-  ($c1, $c2) = ($c2, $c1) if ($c1 > $c2);
-  my @out;
-
-  #Horizontal portions
-  for my $c ($c1..$c2) {
-    next if ($c < 0 || $c > $maxcol);
-    if ($r1 <= $maxrow && $r1 >= 0) {
-      push @out, [$r1, $c, $array->[$r1][$c]];
-    }
-    next if ($r1 == $r2);
-    if ($r2 <= $maxrow && $r2 >= 0) {
-      push @out, [$r2, $c, $array->[$r2][$c]];
-    }
-  }
-
-  # Vertical portions
-  if ($r1 + 1 < $r2) {
-    for my $r ($r1+1 .. $r2-1) {
-      next if ($r < 0 || $r > $maxcol);
-      if ($c1 <= $maxcol && $c1 >= 0) {
-        push @out, [$r, $c1, $array->[$r][$c1]];
-      }
-      next if ($c1 == $c2);
-      if ($c2 <= $maxcol && $c2 >= 0) {
-        push @out, [$r, $c2, $array->[$r][$c2]];
-      }
-    }
-  }
-
-  return @out;
-}
-
-# Numeric sort because sort defaults to lex
-# returns new array
-sub nsort {
-  my $in = \@_;
-  if (@$in == 1) {
-    $in = $in->[0];
-  }
-  return sort {$a <=> $b} @$in;
-}
-
-# Binary conversions
-sub bin2dec {
-  my $in = shift;
-  return oct("0b$in");
-}
-sub dec2bin {
-  my $in = shift;
-  return sprintf ("%b", $in);
-}
-sub hex2bin {
-  my $in = shift;
-  return join('', map {sprintf("%04b", oct("0x$_"))} split('', $in));
-}
-sub bin2hex {
-  my $in = shift;
-  my $out;
-  my @in = split('', $in);
-  die "Bad bin value $in" if (@in%4);
-  while (@in) {
-    $out .= sprintf("%X", bin2dec(join('',splice(@in, 0, 4))));
-  }
-  return $out;
-}
-
-# A* / BFS implementation
-# Args: start, end, neighbor function, heuristic function
-#  - start is either a node or a list of nodes to start at.
-#  - end is either a node or a function that takes a single node
-#    and returns true/false.
-# - neighbor function: node -> ([new_node, cost], ...)
-#   - cost assumed 1 if missing
-# - heuristic function: node -> lower bound on cost to end (optional)
-sub astar {
-  my ($start, $end, $neigh, $h) = @_;
-  # Generalize parameters
-  $start = [$start] unless (ref($start) eq 'ARRAY');
-  if (ref($end) ne 'CODE') {
-    my $end_node = $end;
-    $end = sub { return $_[0] eq $end_node; };
-  }
-  die "bad neigh func $neigh" unless (ref($neigh) eq 'CODE');
-  $h = sub {return 0;} unless $h;
-
-  # Initialize open list
-  my $OPEN = new List::PriorityQueue;
-  my %gscore;
-  my %OHASH;
-  for my $s (@$start) {
-    $gscore{$s} = 0;
-    $OHASH{$s} = 1;
-    $OPEN->insert($s, $h->($s));
-  }
-
-  my %path;
-  while (%OHASH) {
-    my $cur = $OPEN->pop();
-    delete $OHASH{$cur};
-    # Check for end
-    if ($end->($cur)) {
-      say "reached end at $cur";
-      my $score = $gscore{$cur};
-      return $score unless wantarray;
-      my @path = ($cur);
-      while ($cur = $path{$cur}) {
-        unshift(@path, $cur)
-      }
-      return ($score, @path);
-    }
-    # Expand neighbors
-    for my $n ($neigh->($cur)) {
-      my ($np,$v);
-      if (ref($n) eq 'ARRAY') {
-        ($np,$v) = @$n;
-      } else {
-        $np = $n;
-      }
-      if (!defined($v)) {
-        $v = 1;
-      }
-      my $new_g = $gscore{$cur} + $v;
-      if (!exists($gscore{$np}) || $new_g < $gscore{$np}) {
-        # Found better path to $np
-        $path{$np} = $cur if wantarray;
-        $gscore{$np} = $new_g;
-        my $fscore = $new_g + $h->($np);
-        if (!$OHASH{$np}) {
-          $OPEN->insert($np, $fscore);
-          $OHASH{$np}++;
-        } else {
-          $OPEN->update($np, $fscore);
-        }
-      }
-    }
-  }
-}
-
-sub smart_split {
-  my $str = shift || $_;
-  return ($str =~ m{[a-zA-Z]+|\d+}go);
-}
-
-sub hashify {
-  my @arr = ref $_[0] ? @{$_[0]} : @_;
-  return map {$_ => 1} @arr;
-}
+# Parse input
 
 my @A;
-my %H;
-my $sum=0;
-
 while (<>) {
   chomp;
   last unless $_;
   push @A, [split('')];
 }
 
+# Utility constants
+no warnings 'qw';
 my %DIRS = qw/D 1,0 L 0,-1 U -1,0 R 0,1/;
 my %CHARS = qw/| DDUU - LLRR L LUDR 7 RDUL F URLD J RUDL/;
-
+my %RCHARS;
 for my $k (keys %CHARS) {
   my ($a,$b,$c,$d) = split ('', $CHARS{$k});
   delete $CHARS{$k};
   $CHARS{$k}{$a} = $b;
   $CHARS{$k}{$c} = $d;
+  $RCHARS{"$a$b"} = $k;
+  $RCHARS{"$c$d"} = $k;
 }
 
-out(\%CHARS); 
-
-my ($row,$col) = (79,85);
-my $d = 'L';
-my @l;
-my %l;
-while (!$l{"$row,$col"}) {
-  #say "$row $col $d";
-  $l{"$row,$col"}++;
-  my $dir = [split(',', $DIRS{$d})];
-  $row+=$dir->[0]; $col+=$dir->[1];
-  my $ch = $A[$row][$col];
-  last if ($ch eq 'S');
-  unless ($CHARS{$ch}{$d}) {
-    hilite(\@A,$row,$col);
-    die "d=$d";
+# Find start
+my ($row,$col);
+for my $r (0..$#A) {
+  for my $c (0..$#{$A[0]}) {
+    if ($A[$r][$c] eq 'S') {
+      ($row,$col) = ($r,$c);
+    }
   }
-  $d = $CHARS{$ch}{$d};
 }
 
+# Find loop
+my %l;
+DLOOP: for my $sd (qw/L D U/) {
+  my $d = $sd;
+  %l=();
+  while (!$l{"$row,$col"}) {
+    #say "$row $col $d";
+    $l{"$row,$col"}++;
+    my $dir = [split(',', $DIRS{$d})];
+    $row+=$dir->[0]; $col+=$dir->[1];
+    my $ch = $A[$row][$col];
+    last if ($ch eq 'S');
+    unless ($CHARS{$ch}{$d}) {
+      next DLOOP;
+    }
+    $d = $CHARS{$ch}{$d};
+  }
+  # Clean up the "S"
+  $A[$row][$col] = $RCHARS{"$d$sd"};
+  last DLOOP;
+}
+
+# Output part 1
+#hilite(\@A,keys %l);
 out (scalar(%l)/2);
 
-hilite(\@A,keys %l);
-
-$A[79][85] = 'J';
-
-$sum=0;
+# Scan for "outside"
+my @l;
+my $sum=0;
 for my $r (0..$#A) {
   my $out = 1;
   my $corner = 'X';
   for my $c (0..$#A) {
     my $ch = $l{"$r,$c"} ? $A[$r][$c] : 0;
-    say "$r $c $out $ch $corner";
     if ($ch eq '|') {
       $out=!$out;
     }
@@ -394,29 +164,14 @@ for my $r (0..$#A) {
   }
 }
 
-out(\@l);
-
-hilite(\@A,@l);
-
+# Output part 2
+#hilite(\@A,@l);
 out($sum);
-exit;
 
+@A = map {[map {tr/.LFJ7|-/·└┌┘┐│─/;$_} @$_]} @A;
 
-# 140 rows 140 cols
-#flood fill
-
-sub floodfill {
-  my ($row, $col) = @_;
-  return if $l{"$row,$col"};
-  $l{"$row,$col"}++;
-  if ($row > 0) {floodfill($row-1,$col)};
-  if ($row < 140) {floodfill($row+1,$col)};
-  if ($col > 0) {floodfill($row,$col-1)};
-  if ($col < 140) {floodfill($row,$col+1)};
-}
-
-floodfill(0,0);
-
-hilite(\@A,keys(%l));
-
-out((140*140) - scalar(%l));
+#viz
+hilite(
+  \@A,
+  (map {[split(',',$_), BOLD.ON_RED]} (keys %l)),
+  (map {[split(',',$_), BOLD.ON_BLUE]} @l));
