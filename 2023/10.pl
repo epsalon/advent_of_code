@@ -78,7 +78,7 @@ sub hilite {
   print "\n";
 }
 
-my $ADDSPACE = 0;
+my $ADDSPACE = 1;
 
 # Parse input
 
@@ -183,5 +183,6 @@ if ($ADDSPACE) {
 #viz
 hilite(
   \@A,
-  (map {[split(',',$_), BOLD.ON_RED]} (keys %l)),
-  (map {[split(',',$_), BOLD.ON_BLUE]} @l));
+  (map {[split(',',$_), ON_RED]} (keys %l)),
+  (map {[split(',',$_), ON_BLUE]} @l),
+  [$sr,$sc,BOLD.ON_GREEN]);
