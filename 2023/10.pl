@@ -78,14 +78,20 @@ sub hilite {
   print "\n";
 }
 
+my $ADDSPACE = 0;
+
 # Parse input
 
 my @A;
 while (<>) {
   chomp;
   last unless $_;
-  push @A, [map {($_,'-')} split('')];
-  push @A, [('|',' ') x length($_)];
+  if ($ADDSPACE) {
+    push @A, [map {($_,'-')} split('')];
+    push @A, [('|',' ') x length($_)];
+  } else {
+    push @A, [split('')];
+  }
 }
 
 # Utility constants
@@ -136,7 +142,7 @@ DLOOP: for my $sd (qw/L D U/) {
 
 # Output part 1
 #hilite(\@A,keys %l);
-out (scalar(%l)/4);
+out (scalar(%l)/($ADDSPACE?4:2));
 
 # Scan for "inside"
 my @l;
@@ -160,7 +166,7 @@ for my $r (0..$#A) {
     }
     if (!$out && !$ch) {
       push @l,"$r,$c";
-      unless ($r&1 || $c&1) {
+      unless ($ADDSPACE && ($r&1 || $c&1)) {
         $sum++;
       }
     }
@@ -172,10 +178,12 @@ for my $r (0..$#A) {
 #hilite(\@A,@l);
 out($sum);
 
-for my $r (0..$#A) {
-  for my $c (0..$#{$A[0]}) {
-    if (!$l{"$r,$c"} && ($r&1 || $c&1)) {
-      $A[$r][$c] = ' ';
+if ($ADDSPACE) {
+  for my $r (0..$#A) {
+    for my $c (0..$#{$A[0]}) {
+      if (!$l{"$r,$c"} && ($r&1 || $c&1)) {
+        $A[$r][$c] = ' ';
+      }
     }
   }
 }
