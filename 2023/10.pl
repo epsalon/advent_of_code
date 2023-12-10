@@ -118,7 +118,7 @@ DLOOP: for my $sd (qw/L D U/) {
   my $d = $sd;
   %l=();
   while (!$l{"$row,$col"}) {
-    $l{"$row,$col"}++;
+    $l{"$row,$col"}=$d;
     my $dir = [split(',', $DIRS{$d})];
     $row+=$dir->[0]; $col+=$dir->[1];
     my $ch = $A[$row][$col];
