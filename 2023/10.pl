@@ -149,19 +149,9 @@ my @l;
 my $sum;
 for my $r (0..$#A) {
   my $out = 1;
-  my $corner = 'X';
   for my $c (0..$#{$A[0]}) {
     my $ch = $l{"$r,$c"} ? $A[$r][$c] : 0;
-    if ($ch eq '|') {
-      $out=!$out;
-    }
-    if ($ch =~ /[LF]/) {
-      $corner = $ch;
-    }
-    if ($ch eq '7' && $corner eq 'L') {
-      $out=!$out;
-    }
-    if ($ch eq 'J' && $corner eq 'F') {
+    if ($ch =~ /[|7F]/) {
       $out=!$out;
     }
     if (!$out && !$ch) {
