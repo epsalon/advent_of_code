@@ -326,50 +326,46 @@ my @A;
 my %H;
 my $sum=0;
 
-my @erow;
+my %rmap;
+my $erow=0;
 
 while (<>) {
   chomp;
   last unless $_;
   push @A, [split('')];
-  push @erow, $#A if /^\.+$/;
+  if (/^\.+$/) {
+    $erow++;
+  } else {
+    $rmap{$#A}=$erow;
+  }
 }
 
-my @ecol;
+my %cmap;
+my $ecol=0;
+my @g;
 
 for my $c (0..$#{$A[0]}) {
   my $emp = 1;
   for my $r (0..$#A) {
-    $emp = 0 if ($A[$r][$c] eq '#');
-  }
-  push @ecol, $c if $emp;
-}
-
-my @g;
-
-for my $r (0..$#A) {
-  for my $c (0..$#{$A[0]}) {
     if ($A[$r][$c] eq '#') {
+      $emp = 0;
       push @g, [$r,$c];
     }
   }
+  if ($emp) {
+    $ecol++;
+  } else {
+    $cmap{$c}=$ecol;
+  }
 }
-
-my $AVAL = 1e6;
 
 sub dist {
   my $aval = shift;
   my $a = shift;
   my $b = shift;
-  my @e = @_;
+  my $e = shift;
   ($a, $b) = ($b, $a) if ($b < $a);
-  my $sum = $b-$a;
-  for my $e (@e) {
-    if ($e > $a && $e < $b) {
-      $sum+=$aval - 1;
-    }
-  }
-  return $sum;
+  return $b-$a + ($aval-1) * ($e->{$b} - $e->{$a});
 }
 
 sub totdist {
@@ -377,8 +373,8 @@ sub totdist {
   my $sum = 0;
   for my $i (0..$#g-1) {
     for my $j ($i+1..$#g) {
-      my $d = dist($aval,$g[$i][0],$g[$j][0],@erow)+
-              dist($aval,$g[$i][1],$g[$j][1],@ecol);
+      my $d = dist($aval,$g[$i][0],$g[$j][0],\%rmap)+
+              dist($aval,$g[$i][1],$g[$j][1],\%cmap);
       $sum += $d;
     }
   }
