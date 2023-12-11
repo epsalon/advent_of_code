@@ -27,6 +27,8 @@ my @A;
 my %rmap;
 my $erow=0;
 
+# Read the input, fill row map
+# Given a non-empty row $r, rmap{$r} is the number of empty rows before it.
 while (<>) {
   chomp;
   last unless $_;
@@ -42,6 +44,7 @@ my %cmap;
 my $ecol=0;
 my @g;
 
+# Fill in cmap (same as rmap but for columns), and find all galaxies in @g
 for my $c (0..$#{$A[0]}) {
   my $emp = 1;
   for my $r (0..$#A) {
@@ -57,6 +60,8 @@ for my $c (0..$#{$A[0]}) {
   }
 }
 
+# Given expansion rate (aval), two row/col indices, and the row/col map,
+# return distance in that dimension.
 sub dist {
   my $aval = shift;
   my $a = shift;
@@ -66,6 +71,7 @@ sub dist {
   return $b-$a + ($aval-1) * ($e->{$b} - $e->{$a});
 }
 
+# return total distance (uses @g global array)
 sub totdist {
   my $aval=shift;
   my $sum = 0;
