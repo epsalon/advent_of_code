@@ -322,94 +322,47 @@ sub hashify {
   return map {$_ => 1} @arr;
 }
 
-
 sub solve {
-  my $r = shift;
-  my $v = shift;
-  my @r = @$r;
-  my @v = @$v;
-  my $in = shift;
-  my $prefix = shift || '';
+  no warnings 'recursion';
+  my $str = shift;
+  my @v = @_;
+  my $sum = 0;
 
-  #say "${prefix}SOLVE (@r, [".join(',',@v)."], $in)";
+  #say "SOLVE($str,".join(',',@v).")";
 
-  if (!@r) {
-    if (!@v || (@v == 1 && !$v[0])) {
-      #say "${prefix}=1 because end 1";
-      return 1;
-    } else {
-      #say "${prefix}=0 because end 1";
-      return 0;
-    }
-  }
-  if ($in && !$v[0] && $r[0] =~ /[\.\?]/) {
-    shift @r; shift @v;
-    my $s = solve(\@r,\@v,0,"  $prefix");
-    #say "${prefix}=$s had to exit";
-    return $s;
-  }
   if (!@v) {
-    if (join('',@r) =~ /^[\.\?]+$/) {
-      #say "${prefix}=1 because end of v";
-      return 1;
-    } else {
-      #say "${prefix}=0 because end of v";
-      return 0;
-    }
+    my $ret = $str =~ /^([\.\?])*$/o;
+    #say "no more v - returning $ret";
+    return $ret;
   }
-  if (!$in && !$v[0]) {
-    shift (@v);
-    return solve(\@r,\@v,0,"  $prefix");
+  if ($str =~ /^[\.\?](.*)$/o) {
+    #say "assuming .";
+    $sum += solve($1,@v);
   }
-  my $c = shift @r;
-  if ($c eq '.') {
-    if ($in && $v[0]) {
-      #say "$prefix= 0 because in when . seen";
-      return 0;
-    }
-    $in=0;
-  } elsif ($c eq '#') {
-    $in = 1;
-    unless ($v[0]--) {
-      #say "$prefix= 0 because in when # seen and 0 needed";
-      return 0;
-    }
-  } elsif ($in) {
-    die unless $v[0]--;
-  } else {
-    #say "${prefix}[out case]";
-    my $s = solve(\@r,\@v,0,"$prefix  ");
-    $v[0]--;
-    #say "${prefix}[in case]";
-    $s += solve(\@r,\@v,1,"$prefix  ");
-    #say "$prefix= $s (sum)";
-    return $s;
+  my $v0 = shift(@v);
+  if ($str =~ /^[\#\?]{$v0}(?:[\.\?](.*))?$/) {
+    #say "placing series of #";
+    $sum += solve($1||'',@v);
   }
-  return solve(\@r, \@v, $in, "  $prefix");
+  #say "returning $sum";
+  return $sum;
 }
 
-sub normalize {
-  pop @_;
-  return Dumper(\@_);
-}
-
-memoize('solve', NORMALIZER => 'normalize');
-
-my $sum = 0;
+memoize('solve');
+my $sumA = 0;
+my $sumB = 0;
 
 while (<>) {
   chomp;
   last unless $_;
   m{([#\?\.]+) ([\d,]+)}o;
-  my @r = split('', $1);
+  my $r = $1;
   my @v = split(',',$2);
-  push @r, '?';
-  @r = (@r) x 5;
-  pop @r;
+  $sumA += solve($r,@v);
+  $r = join('?', ($r) x 5);
   @v = (@v) x 5;
-  my $res =solve(\@r,\@v,0);
-  say "RES $_ = $res";
-  $sum += $res;
+  $sumB += solve($r,@v);
 }
 
-out ($sum);
+out ($sumA);
+out ($sumB);
