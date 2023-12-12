@@ -23,67 +23,36 @@ sub out {
   }
 }
 
-my @A;
-my %rmap;
-my $erow=0;
-
-# Read the input, fill row map
-# Given a non-empty row $r, rmap{$r} is the number of empty rows before it.
+my @R;
+my @C;
+my $i=0;
 while (<>) {
   chomp;
-  last unless $_;
-  push @A, [split('')];
-  if (/^\.+$/) {
-    $erow++;
-  } else {
-    $rmap{$#A}=$erow;
+  while (/#/g) {
+    push @R, $i;
+    push @C, pos;
   }
+  $i++;
 }
 
-my %cmap;
-my $ecol=0;
-my @g;
+@C = sort {$a <=> $b} @C;
 
-# Fill in cmap (same as rmap but for columns), and find all galaxies in @g
-for my $c (0..$#{$A[0]}) {
-  my $emp = 1;
-  for my $r (0..$#A) {
-    if ($A[$r][$c] eq '#') {
-      $emp = 0;
-      push @g, [$r,$c];
+for my $scale (2, 1e6) {
+  my $sum;
+  for my $A (\@R, \@C) {
+    my @A = @$A;
+    my $n = @A;
+    my $p = shift @A;
+    while (@A) {
+      my $s = ($n - @A) * @A; # Scale factor
+      my $c = shift @A;       # Current value
+      my $d = ($c-$p);        # Delta from prev
+      $p = $c;                # Reset prev
+      if ($d > 1) {           # Adjust for expansion
+        $d += ($scale - 1) * ($d - 1);
+      }
+      $sum += $d * $s;
     }
   }
-  if ($emp) {
-    $ecol++;
-  } else {
-    $cmap{$c}=$ecol;
-  }
+  out($sum);
 }
-
-# Given expansion rate (aval), two row/col indices, and the row/col map,
-# return distance in that dimension.
-sub dist {
-  my $aval = shift;
-  my $a = shift;
-  my $b = shift;
-  my $e = shift;
-  ($a, $b) = ($b, $a) if ($b < $a);
-  return $b-$a + ($aval-1) * ($e->{$b} - $e->{$a});
-}
-
-# return total distance (uses @g global array)
-sub totdist {
-  my $aval=shift;
-  my $sum = 0;
-  for my $i (0..$#g-1) {
-    for my $j ($i+1..$#g) {
-      my $d = dist($aval,$g[$i][0],$g[$j][0],\%rmap)+
-              dist($aval,$g[$i][1],$g[$j][1],\%cmap);
-      $sum += $d;
-    }
-  }
-  return $sum;
-}
-
-out (totdist(2));
-out (totdist(1e6));
