@@ -30,15 +30,20 @@ sub solve {
 
   #say "SOLVE($str,".join(',',@v).")";
 
+  # If no more values, check if remainder can all be .
   if (!@_) {
     my $ret = $str =~ /^[\.\?]*$/o;
     #say "no more v - returning $ret";
     return $ret;
   }
+
+  # If the first char can be '.', try that option
   if ($str =~ /^[\.\?](.*)$/o) {
     #say "assuming .";
     $sum += solve($1,@_);
   }
+
+  # If the next series of # can start here, try that option
   my $v0 = shift;
   if ($str =~ /^[\#\?]{$v0}(?:[\.\?](.*))?$/) {
     #say "placing series of #";
