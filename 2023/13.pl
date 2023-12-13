@@ -322,10 +322,6 @@ sub hashify {
   return map {$_ => 1} @arr;
 }
 
-my @A;
-my %H;
-my $sum=0;
-my $r=0;
 
 #   |
 # 01 234
@@ -349,41 +345,47 @@ sub find_mirror {
     }
     #found
     if ($e == $exp) {
-      say "found row $i";
       return $i;
     }
   }
   return undef;
 }
 
-EXT: while (<>) {
+sub find_mirror_2d {
+  my ($H,$r,$c,$exp)=@_;
+  my $m = find_mirror($r-1, sub {
+      return $H->{$_[0].','.$_[1]};
+    }, $exp, keys(%$H));
+  if ($m) {
+    return $m * 100;
+  }
+  $m = find_mirror($c - 1, sub {
+    return $H->{$_[1].','.$_[0]};
+  }, $exp, (map {s/^(\d+),(\d+)$/$2,$1/; $_} keys(%$H)));
+  die unless $m;
+  return $m;
+}
+
+my %H;
+my $sumA=0;
+my $sumB=0;
+my $r=0;
+my $c;
+
+while (<>) {
   chomp;
   unless ($_) {
-    my $m = find_mirror($#A, sub {
-        say "chk(".join(',',@_).")";
-        return $H{$_[0].','.$_[1]};
-      }, 1, keys(%H));
-    if ($m) {
-      $sum+=$m * 100;
-    } else {
-      my @M = (map {s/^(\d+),(\d+)$/$2,$1/; $_} keys(%H));
-      out(\@M);
-      $m = find_mirror($#{$A[0]}, sub {
-        say "chk(".join(',',@_).")";
-        return $H{$_[1].','.$_[0]};
-      }, 1, @M);
-      $sum+=$m;
-    }
-    die unless $m;
-    %H=(); $r=0; @A=();
+    $sumA+=find_mirror_2d(\%H,$r,$c,0);
+    $sumB+=find_mirror_2d(\%H,$r,$c,1);
+    %H=(); $r=0;
     next;
   }
   while (/#/g) {
     $H{"$r,".(pos()-1)}++;
   }
-  push @A,[split('')];
-  say "XX$_";
+  $c=length($_);
   $r++;
 }
 
-out ($sum);
+out ($sumA);
+out ($sumB);
