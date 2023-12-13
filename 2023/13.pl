@@ -331,51 +331,50 @@ my $r=0;
 # 01 234
 # 32 10
 
+sub find_mirror {
+  my $l=shift;
+  my $chk=shift;
+  my $exp=shift;
+  my @k=@_;
+  MLOOP: for my $i (1..$l) {
+    my $e=0;
+    for my $p (@k) {
+      my ($r,$c) = split(',',$p);
+      my $m = 2*$i - $r - 1;
+      next if ($m < 0 || $m > $l);
+      unless ($chk->($m,$c)) {
+        $e++;
+        next MLOOP if ($e > 1);
+      }
+    }
+    #found
+    if ($e == $exp) {
+      say "found row $i";
+      return $i;
+    }
+  }
+  return undef;
+}
+
 EXT: while (<>) {
   chomp;
   unless ($_) {
-    out(\%H);
-    my $f=0;
-    RLOOP: for my $i (1..$#A) {
-      my $e=0;
-      say "trying $i";
-      for my $p (keys %H) {
-        my ($r,$c) = split(',',$p);
-        my $m = 2*$i - $r - 1;
-        next if ($m < 0 || $m > $#A);
-        unless ($H{"$m,$c"}) {
-          say "r=$r not H{$m,$c}";
-          $e++;
-          next RLOOP if ($e > 1);
-        }
-      }
-      #found
-      if ($e == 1) {
-        say "found row $i";
-        $sum+=$i*100; $f=1; last;
-      }
+    my $m = find_mirror($#A, sub {
+        say "chk(".join(',',@_).")";
+        return $H{$_[0].','.$_[1]};
+      }, 1, keys(%H));
+    if ($m) {
+      $sum+=$m * 100;
+    } else {
+      my @M = (map {s/^(\d+),(\d+)$/$2,$1/; $_} keys(%H));
+      out(\@M);
+      $m = find_mirror($#{$A[0]}, sub {
+        say "chk(".join(',',@_).")";
+        return $H{$_[1].','.$_[0]};
+      }, 1, @M);
+      $sum+=$m;
     }
-    if (!$f) {
-      say $#{$A[0]};
-      CLOOP: for my $i (1..$#{$A[0]}) {
-        my $e=0;
-        for my $p (keys %H) {
-          my ($r,$c) = split(',',$p);
-          my $m = 2*$i - $c - 1;
-          next if ($m < 0 || $m > $#{$A[0]});
-          unless ($H{"$r,$m"}) {
-            say "c=$c not H{$r,$m}";
-            $e++;
-            next CLOOP if ($e > 1);
-          }
-        }
-        #found
-        if ($e == 1) {
-          $sum+=$i; $f=1; last;
-        }
-      }
-    }
-    die unless $f;
+    die unless $m;
     %H=(); $r=0; @A=();
     next;
   }
