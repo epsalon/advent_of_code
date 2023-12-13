@@ -353,13 +353,13 @@ sub find_mirror {
 
 sub find_mirror_2d {
   my ($H,$r,$c,$exp)=@_;
-  my $m = find_mirror($r-1, sub {
+  my $m = find_mirror($r, sub {
       return $H->{$_[0].','.$_[1]};
     }, $exp, keys(%$H));
   if ($m) {
     return $m * 100;
   }
-  $m = find_mirror($c - 1, sub {
+  $m = find_mirror($c, sub {
     return $H->{$_[1].','.$_[0]};
   }, $exp, (map {s/^(\d+),(\d+)$/$2,$1/; $_} keys(%$H)));
   die unless $m;
@@ -375,8 +375,8 @@ my $c;
 while (<>) {
   chomp;
   unless ($_) {
-    $sumA+=find_mirror_2d(\%H,$r,$c,0);
-    $sumB+=find_mirror_2d(\%H,$r,$c,1);
+    $sumA+=find_mirror_2d(\%H,$r-1,$c-1,0);
+    $sumB+=find_mirror_2d(\%H,$r-1,$c-1,1);
     %H=(); $r=0;
     next;
   }
