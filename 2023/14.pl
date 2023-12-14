@@ -413,10 +413,6 @@ sub transpose {
   return (wantarray ? @oarr : \@oarr);
 }
 
-my @A;
-my %H;
-my $sum=0;
-
 sub tilt {
   my $dir = shift;
   my @Q;
@@ -439,12 +435,25 @@ sub cycle {
   return tilt(0,transpose(tilt(0,transpose(tilt(1,transpose(tilt(1,transpose(@_))))))));
 }
 
-my @Q;
+sub score {
+  my @Q=transpose(@_);
+  my $sum;
+  for my $r (@Q) {
+    my @s = split('', $r);
+    for my $i (0..$#s) {
+      $sum+=@s-$i if ($s[$i] eq 'O');
+    }
+  }
+  return $sum;
+}
 
+my @Q;
 while (<>) {
   chomp;
   push @Q,$_;
 }
+
+out(score(transpose(tilt(1,transpose(@Q)))));
 
 my %seen;
 my $N=0;
@@ -453,23 +462,13 @@ while (!defined($seen{my $k = join('', @Q)})) {
   @Q=cycle(@Q);
 }
 my $prev = $seen{join('', @Q)};
-say "$N $prev";
 my $cyc = $N - $prev;
-say "cyc = $cyc";
+#say "cyc = $cyc";
 my $extra = (1000000000 - $prev) % $cyc;
-say "extra = $extra";
+#say "extra = $extra";
 
 for my $i (1..$extra) {
   @Q=cycle(@Q);
 }
 
-@Q=transpose(@Q);
-
-for my $r (@Q) {
-  my @s = split('', $r);
-  for my $i (0..$#s) {
-    $sum+=@s-$i if ($s[$i] eq 'O');
-  }
-}
-
-out ($sum);
+out (score(@Q));
