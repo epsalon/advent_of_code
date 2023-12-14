@@ -322,6 +322,124 @@ sub hashify {
   return map {$_ => 1} @arr;
 }
 
+# Read a 2d array and possibly empty line after
+sub read_2d_array {
+  my @arr;
+  while (<>) {
+    chomp;
+    last unless $_;
+    push @arr, [split('')];
+  }
+  return @arr;
+}
+
+# arr_to_coords
+# Usage:
+#   arr_to_coords('.', @A)
+#   arr_to_coords(sub {/[abc]/}, @A)
+#   arr_to_coords(\{'.' => 1, '*' => 1}, @A)
+#
+# Returns (wantarray):
+#   ("0,0", "0,2", ...)
+# Otherwise:
+#   \{"0,0" => '.', "0,2" => '$', ...}
+#
+# Example:
+#   while (my @A = arr_to_coords('#', read_2d_array())) { ...
+#
+sub arr_to_coords {
+  my $match_par = shift;
+  my $match;
+  if (ref($match_par) eq '') {
+    $match = sub {$_[0] eq $match_par};
+  } elsif (ref($match_par) eq 'HASH') {
+    $match = sub {$match_par->{$_[0]}};
+  } elsif (ref($match_par) eq 'CODE') {
+    $match = sub {local $_; $_=$_[0]; $match_par->()};
+  } else {
+    die "Bad match parameter - $match_par";
+  }
+
+  my @arr = @_;
+  if (@arr == 1 && ref($arr[0][0])) {
+    @arr = @{$arr[0]};
+  }
+
+  my %ret;
+  for my $r (0..$#arr) {
+    for my $c (0..$#{$arr[0]}) {
+      if ($match->($arr[$r][$c])) {
+        $ret{"$r,$c"} = $arr[$r][$c];
+      }
+    }
+  }
+  if (wantarray) {
+    return keys(%ret);
+  } else {
+    return \%ret;
+  }
+}
+
+# Transpose a two dimensional array
+# Usage:
+#  transpose('....#..#..', '....#..#..', ...)
+#  transpose(['.', '.', '#' ...], ['.', '.', '#' ...], ...)
+#  transpose('0,1', '2,1', '3,2')
+#  transpose(\{'0,1' => 1, '2,1' => 1, ...})
+#
+# Returns results in same form as input.
+sub transpose {
+  # coord hash
+  if (ref($_[0]) eq 'HASH') {
+    my %h;
+    while (my ($k, $v) = each %{$_[0]}) {
+      $k =~ /^(\d+),(\d+)$/o;
+      $h{"$2,$1"}=$v;
+    }
+    return \%h;
+  }
+  # coord array
+  if (!ref($_[0]) && $_[0] =~ /\d+,\d+/) {
+    my @o;
+    for my $k (@_) {
+      goto NOTCOORD unless ($k =~ /^(\d+),(\d+)$/o);
+      push @o, "$2,$1";
+    }
+    return (wantarray ? @o : \@o);
+  }
+NOTCOORD:
+  my $stringify = 0;
+  my $sarr=\@_;
+  # array of array passed by ref
+  if (@_ == 1 && ref($_[0]) eq 'ARRAY' && ref($_[0][0]) eq 'ARRAY') {
+    $sarr=$_[0];
+  }
+  # row strings
+  if (!ref($_[0])) {
+    $stringify = 1;
+    for my $rstr (@_) {
+      chomp $rstr;
+      push @$sarr, [split('', $rstr)];
+    }
+  }
+
+  # actual transpose
+  my @oarr;
+  for my $c (0..$#{$sarr->[0]}) {
+    my @orow;
+    for my $r (0..$#$sarr) {
+      push @orow, $sarr->[$r][$c];
+    }
+    push @oarr, \@orow;
+  }
+
+  # stringify if needed
+  if ($stringify) {
+    @oarr = map {join('', @$_)} @oarr;
+  }
+  return (wantarray ? @oarr : \@oarr);
+}
+
 my @A;
 my %H;
 my $sum=0;
@@ -329,10 +447,7 @@ my $sum=0;
 while (<>) {
   chomp;
   last unless $_;
-  push @A, [split('')];
-  my @p = smart_split();
-  my ($a,$b,$c,$d,$e,$f,$g,$h) = @p;
-  print "a=$a;b=$b;c=$c;d=$d;e=$e;f=$f;g=$g;h=$h\n";
+  
 }
 
 out ($sum);
