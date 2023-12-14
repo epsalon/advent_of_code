@@ -426,6 +426,7 @@ sub transpose {
   }
   # row strings
   if (!ref($_[0])) {
+    $sarr = [];
     $stringify = 1;
     for my $rstr (@_) {
       chomp $rstr;

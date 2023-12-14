@@ -335,7 +335,7 @@ sub hashify {
 # Read a 2d array and possibly empty line after
 sub read_2d_array {
   my @arr;
-  while (<>) {
+  while (my $v = <>) {
     chomp;
     last unless $_;
     push @arr, [split('')];
@@ -399,35 +399,23 @@ sub arr_to_coords {
 #
 # Returns results in same form as input.
 sub transpose {
-  my $stringify = 0;
   my $sarr=\@_;
-  my @sarr;
-  for my $rstr (@_) {
-    chomp $rstr;
-    push @sarr, [split('', $rstr)];
-  }
-  $sarr=\@sarr;
-
   # actual transpose
   my @oarr;
-  for my $c (0..$#{$sarr->[0]}) {
-    my @orow;
+  for my $c (0..length($sarr->[0])-1) {
+    my $orow;
     for my $r (0..$#$sarr) {
-      push @orow, $sarr->[$r][$c];
+      $orow.=substr($sarr->[$r],$c,1);
     }
-    push @oarr, \@orow;
+    push @oarr, $orow;
   }
 
-  # stringify if needed
-  @oarr = map {join('', @$_)} @oarr;
   return (wantarray ? @oarr : \@oarr);
 }
 
 my @A;
 my %H;
 my $sum=0;
-
-$|=1;
 
 sub tilt {
   my $dir = shift;
@@ -451,45 +439,37 @@ sub cycle {
   return tilt(0,transpose(tilt(0,transpose(tilt(1,transpose(tilt(1,transpose(@_))))))));
 }
 
+my @Q;
+
+while (<>) {
+  chomp;
+  push @Q,$_;
+}
+
 my %seen;
+my $N=0;
+while (!defined($seen{my $k = join('', @Q)})) {
+  $seen{$k}=$N++;
+  @Q=cycle(@Q);
+}
+my $prev = $seen{join('', @Q)};
+say "$N $prev";
+my $cyc = $N - $prev;
+say "cyc = $cyc";
+my $extra = (1000000000 - $prev) % $cyc;
+say "extra = $extra";
 
-while (my @R = read_2d_array()) {
-  oarr(\@R);
-  my @Q=map{join('', @$_)} @R;
+for my $i (1..$extra) {
+  @Q=cycle(@Q);
+}
 
-  my $N=0;
-  while (!defined($seen{my $k = join('', @Q)})) {
-    $seen{$k}=$N++;
-    @Q=cycle(@Q);
-    #my @Z=map{[split('',$_)]} @Q;
-    #oarr(\@Z);
-  }
-  my $prev = $seen{join('', @Q)};
-  say "$N $prev";
-  my $cyc = $N - $prev;
-  say "cyc = $cyc";
-  my $extra = (1000000000 - $prev) % $cyc;
-  say "extra = $extra";
+@Q=transpose(@Q);
 
-  for my $i (1..$extra) {
-    @Q=cycle(@Q);
-  }
-
-  @Q=transpose(@Q);
-
-  for my $r (@Q) {
-    my @s = split('', $r);
-    for my $i (0..$#s) {
-      $sum+=@s-$i if ($s[$i] eq 'O');
-    }
+for my $r (@Q) {
+  my @s = split('', $r);
+  for my $i (0..$#s) {
+    $sum+=@s-$i if ($s[$i] eq 'O');
   }
 }
 
 out ($sum);
-
-
-# M = prev + (k*cyc) + extra
-# extra = M - prev (mod cyc)
-
-# 0 no cycles
-#
