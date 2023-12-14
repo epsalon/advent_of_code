@@ -399,39 +399,14 @@ sub arr_to_coords {
 #
 # Returns results in same form as input.
 sub transpose {
-  # coord hash
-  if (ref($_[0]) eq 'HASH') {
-    my %h;
-    while (my ($k, $v) = each %{$_[0]}) {
-      $k =~ /^(\d+),(\d+)$/o;
-      $h{"$2,$1"}=$v;
-    }
-    return \%h;
-  }
-  # coord array
-  if (!ref($_[0]) && $_[0] =~ /\d+,\d+/) {
-    my @o;
-    for my $k (@_) {
-      goto NOTCOORD unless ($k =~ /^(\d+),(\d+)$/o);
-      push @o, "$2,$1";
-    }
-    return (wantarray ? @o : \@o);
-  }
- NOTCOORD:
   my $stringify = 0;
   my $sarr=\@_;
-  # array of array passed by ref
-  if (@_ == 1 && ref($_[0]) eq 'ARRAY' && ref($_[0][0]) eq 'ARRAY') {
-    $sarr=$_[0];
+  my @sarr;
+  for my $rstr (@_) {
+    chomp $rstr;
+    push @sarr, [split('', $rstr)];
   }
-  # row strings
-  if (!ref($_[0])) {
-    $stringify = 1;
-    for my $rstr (@_) {
-      chomp $rstr;
-      push @$sarr, [split('', $rstr)];
-    }
-  }
+  $sarr=\@sarr;
 
   # actual transpose
   my @oarr;
@@ -444,9 +419,7 @@ sub transpose {
   }
 
   # stringify if needed
-  if ($stringify) {
-    @oarr = map {join('', @$_)} @oarr;
-  }
+  @oarr = map {join('', @$_)} @oarr;
   return (wantarray ? @oarr : \@oarr);
 }
 
@@ -454,12 +427,69 @@ my @A;
 my %H;
 my $sum=0;
 
-#while (my @R = arr_to_coords('#', read_2d_array())) {
+$|=1;
 
-while (<>) {
-  chomp;
-  last unless $_;
+sub tilt {
+  my $dir = shift;
+  my @Q;
+  for my $r (@_) {
+    my $p;
+    do {
+      $p = $r;
+      if ($dir) {
+        $r =~ s{\.O}{O\.}go;
+      } else {
+        $r =~ s{O\.}{\.O}go;
+      }
+    } while ($p ne $r);
+    push @Q, $r;
+  }
+  return @Q;
+}
 
+sub cycle {
+  return tilt(0,transpose(tilt(0,transpose(tilt(1,transpose(tilt(1,transpose(@_))))))));
+}
+
+my %seen;
+
+while (my @R = read_2d_array()) {
+  oarr(\@R);
+  my @Q=map{join('', @$_)} @R;
+
+  my $N=0;
+  while (!defined($seen{my $k = join('', @Q)})) {
+    $seen{$k}=$N++;
+    @Q=cycle(@Q);
+    #my @Z=map{[split('',$_)]} @Q;
+    #oarr(\@Z);
+  }
+  my $prev = $seen{join('', @Q)};
+  say "$N $prev";
+  my $cyc = $N - $prev;
+  say "cyc = $cyc";
+  my $extra = (1000000000 - $prev) % $cyc;
+  say "extra = $extra";
+
+  for my $i (1..$extra) {
+    @Q=cycle(@Q);
+  }
+
+  @Q=transpose(@Q);
+
+  for my $r (@Q) {
+    my @s = split('', $r);
+    for my $i (0..$#s) {
+      $sum+=@s-$i if ($s[$i] eq 'O');
+    }
+  }
 }
 
 out ($sum);
+
+
+# M = prev + (k*cyc) + extra
+# extra = M - prev (mod cyc)
+
+# 0 no cycles
+#
