@@ -322,73 +322,134 @@ sub hashify {
   return map {$_ => 1} @arr;
 }
 
+# Read a 2d array and possibly empty line after
+sub read_2d_array {
+  my @arr;
+  while (<>) {
+    chomp;
+    last unless $_;
+    push @arr, [split('')];
+  }
+  return @arr;
+}
 
-#   |
-# 01 234
-# 32 10
+# arr_to_coords
+# Usage:
+#   arr_to_coords('.', @A)
+#   arr_to_coords(sub {/[abc]/}, @A)
+#   arr_to_coords(\{'.' => 1, '*' => 1}, @A)
+#
+# Returns (wantarray):
+#   ("0,0", "0,2", ...)
+# Otherwise:
+#   \{"0,0" => '.', "0,2" => '$', ...}
+#
+# Example:
+#   while (my @A = arr_to_coords('#', read_2d_array())) { ...
+#
+sub arr_to_coords {
+  my $match_par = shift;
+  my $match;
+  if (ref($match_par) eq '') {
+    $match = sub {$_[0] eq $match_par};
+  } elsif (ref($match_par) eq 'HASH') {
+    $match = sub {$match_par->{$_[0]}};
+  } elsif (ref($match_par) eq 'CODE') {
+    $match = sub {local $_; $_=$_[0]; $match_par->()};
+  } else {
+    die "Bad match parameter - $match_par";
+  }
 
-sub find_mirror {
-  my $l=shift;
-  my $chk=shift;
-  my $exp=shift;
-  my @k=@_;
-  MLOOP: for my $i (1..$l) {
-    my $e=0;
-    for my $p (@k) {
-      my ($r,$c) = split(',',$p);
-      my $m = 2*$i - $r - 1;
-      next if ($m < 0 || $m > $l);
-      unless ($chk->($m,$c)) {
-        $e++;
-        next MLOOP if ($e > 1);
+  my @arr = @_;
+  if (@arr == 1 && ref($arr[0][0])) {
+    @arr = @{$arr[0]};
+  }
+
+  my %ret;
+  for my $r (0..$#arr) {
+    for my $c (0..$#{$arr[0]}) {
+      if ($match->($arr[$r][$c])) {
+        $ret{"$r,$c"} = $arr[$r][$c];
       }
     }
-    #found
-    if ($e == $exp) {
-      return $i;
+  }
+  if (wantarray) {
+    return keys(%ret);
+  } else {
+    return \%ret;
+  }
+}
+
+# Transpose a two dimensional array
+# Usage:
+#  transpose('....#..#..', '....#..#..', ...)
+#  transpose(['.', '.', '#' ...], ['.', '.', '#' ...], ...)
+#  transpose('0,1', '2,1', '3,2')
+#  transpose(\{'0,1' => 1, '2,1' => 1, ...})
+#
+# Returns results in same form as input.
+sub transpose {
+  # coord hash
+  if (ref($_[0]) eq 'HASH') {
+    my %h;
+    while (my ($k, $v) = each %{$_[0]}) {
+      $k =~ /^(\d+),(\d+)$/o;
+      $h{"$2,$1"}=$v;
+    }
+    return \%h;
+  }
+  # coord array
+  if (!ref($_[0]) && $_[0] =~ /\d+,\d+/) {
+    my @o;
+    for my $k (@_) {
+      goto NOTCOORD unless ($k =~ /^(\d+),(\d+)$/o);
+      push @o, "$2,$1";
+    }
+    return (wantarray ? @o : \@o);
+  }
+NOTCOORD:
+  my $stringify = 0;
+  my $sarr=\@_;
+  # array of array passed by ref
+  if (@_ == 1 && ref($_[0]) eq 'ARRAY' && ref($_[0][0]) eq 'ARRAY') {
+    $sarr=$_[0];
+  }
+  # row strings
+  if (!ref($_[0])) {
+    $stringify = 1;
+    for my $rstr (@_) {
+      chomp $rstr;
+      push @$sarr, [split('', $rstr)];
     }
   }
-  return undef;
-}
 
-sub find_mirror_2d {
-  my ($H,$r,$c,$exp)=@_;
-  my $m = find_mirror($r, sub {
-      return $H->{$_[0].','.$_[1]};
-    }, $exp, keys(%$H));
-  if ($m) {
-    return $m * 100;
+  # actual transpose
+  my @oarr;
+  for my $c (0..$#{$sarr->[0]}) {
+    my @orow;
+    for my $r (0..$#$sarr) {
+      push @orow, $sarr->[$r][$c];
+    }
+    push @oarr, \@orow;
   }
-  $m = find_mirror($c, sub {
-    return $H->{$_[1].','.$_[0]};
-  }, $exp, (map {s/^(\d+),(\d+)$/$2,$1/; $_} keys(%$H)));
-  die unless $m;
-  return $m;
+
+  # stringify if needed
+  if ($stringify) {
+    @oarr = map {join('', @$_)} @oarr;
+  }
+  return (wantarray ? @oarr : \@oarr);
 }
 
+my @A;
 my %H;
-my $sumA=0;
-my $sumB=0;
-my $r=0;
-my $c;
+my $sum=0;
+
+#while (my @R = arr_to_coords('#', read_2d_array())) {
 
 while (<>) {
   chomp;
-  unless ($_) {
-    $sumA+=find_mirror_2d(\%H,$r-1,$c-1,0);
-    $sumB+=find_mirror_2d(\%H,$r-1,$c-1,1);
-    %H=(); $r=0;
-    next;
-  }
-  while (/#/g) {
-    $H{"$r,".(pos()-1)}++;
-  }
-  $c=length($_);
-  $r++;
+  last unless $_;
+  
 }
 
-$sumA+=find_mirror_2d(\%H,$r-1,$c-1,0);
-$sumB+=find_mirror_2d(\%H,$r-1,$c-1,1);
-
-out ($sumA);
-out ($sumB);
+out ($sum);
