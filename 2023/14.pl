@@ -417,7 +417,7 @@ sub transpose {
     }
     return (wantarray ? @o : \@o);
   }
-NOTCOORD:
+ NOTCOORD:
   my $stringify = 0;
   my $sarr=\@_;
   # array of array passed by ref
