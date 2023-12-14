@@ -444,10 +444,12 @@ my @A;
 my %H;
 my $sum=0;
 
+#while (my @R = arr_to_coords('#', read_2d_array())) {
+
 while (<>) {
   chomp;
   last unless $_;
-  
+
 }
 
 out ($sum);
