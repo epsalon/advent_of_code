@@ -80,8 +80,18 @@ sub hilite {
       $maxlen=length($c) if length($c) > $maxlen;
     }
   }
+  print "     ";
+  for my $c (0..$#{$arr->[0]}) {
+    print $c % 10 ? ' ':$c/10;
+  }
+  print "\n     ";
+  for my $c (0..$#{$arr->[0]}) {
+    print $c % 10;
+  }
+  print "\n";
   for my $r (0..$#$arr) {
     my $ra = $arr->[$r];
+    printf "%4d ", $r;
     for my $c (0..$#$ra) {
       my $v = $ra->[$c];
       print BOLD . ON_RED if $hilite{"$r,$c"};
