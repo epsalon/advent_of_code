@@ -500,7 +500,7 @@ my $sum=0;
 while (<>) {
   chomp;
   last unless $_;
-
+  
 }
 
 out ($sum);
