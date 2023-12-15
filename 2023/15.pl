@@ -48,21 +48,19 @@ while (<>) {
   last unless $_;
   LOOP: for my $s (split(',')) {
     $sum+=hash($s);
-    if (my ($nk,$nv) = $s =~ /^(.*)=(\d+)$/) {
-      my $box=$A[hash($nk)];
+    my ($nk,$nv) = $s =~ /^(.*)[-=](\d+)?$/ or die;
+    my $box=$A[hash($nk)];
+    if (defined($nv)) {
       for my $it (@$box) {
         my ($k,$v) = @$it;
         if ($k eq $nk) {
-          $it = [$k, $nv];
+          $it->[1] = $nv;
           next LOOP;
         }
       }
       push @$box, [$nk,$nv];
-    } elsif (my ($k) = $s =~ /^(.*)-$/) {
-      my $box=$A[hash($k)];
-      @$box = grep {$_->[0] ne $k} @$box;
     } else {
-      die;
+      @$box = grep {$_->[0] ne $nk} @$box;
     }
   }
 }
