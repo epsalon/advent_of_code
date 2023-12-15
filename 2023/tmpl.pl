@@ -497,6 +497,8 @@ my $sum=0;
 
 #while (my @R = arr_to_coords('#', read_2d_array())) {
 
+$|=1;
+
 while (<>) {
   chomp;
   last unless $_;
