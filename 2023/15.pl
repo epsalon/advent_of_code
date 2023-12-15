@@ -32,7 +32,7 @@ sub hash {
   for my $c (split('', shift)) {
     $h+=ord($c);
     $h*=17;
-    $h%=256;
+    $h&=0xff;
   }
   return $h;
 }
