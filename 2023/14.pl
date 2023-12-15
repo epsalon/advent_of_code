@@ -468,10 +468,6 @@ sub tilt {
   return @Q;
 }
 
-sub cycle {
-  return tilt(0,transpose(tilt(0,transpose(tilt(1,transpose(tilt(1,transpose(@_))))))));
-}
-
 sub score {
   my @Q=transpose(@_);
   my $sum;
@@ -493,7 +489,8 @@ while (<>) {
 out(score(transpose(tilt(1,transpose(@Q)))));
 
 find_cycle(sub {
-  @Q=cycle(@Q);
+  @Q=tilt(0,transpose(tilt(0,transpose(
+    tilt(1,transpose(tilt(1,transpose(@Q))))))));
   return join('', @Q);
 }, 1000000000, join('', @Q));
 
