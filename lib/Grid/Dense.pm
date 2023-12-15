@@ -4,6 +4,7 @@ use strict;
 use warnings;
 use Term::ANSIColor qw(:constants);
 use Storable qw(dclone);
+use Carp;
 
 sub new {
     my ($class, $array) = @_;
@@ -85,6 +86,9 @@ sub translate_coord {
     $r = $self->rows() - 1 - $r if $self->{flipV};
     $c = $self->cols() - 1 - $c if $self->{flipH};
     ($r,$c) = ($c,$r) if ($self->{transpose});
+    if ($r < 0 || $c < 0 || $r >= $self->{data_rows} || $c >= $self->{data_cols}) {
+      croak("[$r,$c] out of bounds");
+    }
     return ($r,$c);
 }
 

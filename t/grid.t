@@ -1,6 +1,7 @@
-use Test::More;
 use Grid::Dense;
 use Data::Dumper;
+use Test::More;
+use Test::Exception;
 use feature 'say';
 
 sub expect {
@@ -22,6 +23,8 @@ expect($grid->flipV(), '63|52|41', 'flipV');
 expect($grid->transpose(), '654|321', 'transpose again');
 expect($grid->flipH(), '456|123', 'flipH');
 expect($grid->rot90L(), '63|52|41', 'rotate left');
+
+dies_ok {$grid->at(0,2);} "bounds check";
 
 my $grid_str = $grid->to_str();
 ok($grid_str =~ /63.*52/os, 'to_str');
