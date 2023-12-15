@@ -12,6 +12,14 @@ sub expect {
   is($grid_str, $exp, $test_name);
 }
 
+sub expect_2d {
+  my $arr = shift;
+  my $exp = shift;
+  my $test_name = shift;
+  my $grid_str = join('|',map {join('&',@$_)} @$arr);
+  is($grid_str, $exp, $test_name);
+}
+
 my $grid;
 expect($grid = new Grid::Dense([[qw/1 2 3/],[qw/4 5 6/]]),
        '123|456', 'parse');
@@ -26,9 +34,12 @@ expect($grid->rot90L(), '63|52|41', 'rotate left');
 
 dies_ok {$grid->at(0,2);} "bounds check";
 
+expect_2d([$grid->oneigh(2,1)],'1&1&2|2&0&4','oneigh');
+expect_2d([$grid->aneigh(1,0)],'0&0&6|0&1&3|1&1&2|2&0&4|2&1&1','aneigh');
+
 my $grid_str = $grid->to_str();
 ok($grid_str =~ /63.*52/os, 'to_str');
-ok($grid_str !~ /123/os, 'to_str');
+ok($grid_str !~ /123/os, 'to_str (negative)');
 
 my @T;
 $grid->iterate(sub {

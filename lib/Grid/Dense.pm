@@ -195,7 +195,54 @@ sub as_array {
   return wantarray ? @A : \@A;
 }
 
-# TODO: bounds checking, neighbor function
+# Find neighbors
+# input
+#     neigh_arr, row, col
+# OR: neigh_arr, "row,col"
+# returns
+#     array of [row, col, value]
+# OR: array of ["row,col", value]
+sub neigh {
+  my $self = shift;
+  my $neigh = shift;
+  my ($rows,$cols)=($self->rows(),$self->cols);
+  my $row = shift;
+  my $col = shift;
+  my $comma;
+  if ($row =~ /(\d+)(\D+)(\d+)/) {
+    ($row, $comma, $col) = ($1, $2, $3);
+  }
+  my @out;
+  for my $pair (@$neigh) {
+    my ($rd, $cd) = @$pair;
+    my ($nr, $nc) = ($row + $rd, $col + $cd);
+    next if $nr < 0;
+    next if $nc < 0;
+    next if $nr >= $rows;
+    next if $nc >= $cols;
+    if (defined($comma)) {
+      push @out, ["$nr$comma$nc", $self->at($nr,$nc)];
+    } else {
+      push @out, [$nr, $nc, $self->at($nr,$nc)];
+    }
+  }
+  return @out;
+}
+
+# Orthogonal
+sub oneigh {
+  my $self = shift;
+  return $self->neigh([[-1,0], [1, 0], [0, -1], [0, 1]], @_);
+}
+
+# All neighbors
+sub aneigh {
+  my $self = shift;
+  return $self->neigh([
+    [-1, -1], [-1, 0], [-1, 1],
+    [ 0, -1],          [ 0, 1],
+    [ 1, -1], [ 1, 0], [ 1, 1]], @_);
+}
 
 1;
 
