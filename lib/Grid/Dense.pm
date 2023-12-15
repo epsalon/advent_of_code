@@ -191,6 +191,8 @@ sub as_array {
   return wantarray ? @A : \@A;
 }
 
+# TODO: bounds checking, neighbor function
+
 1;
 
 __END__

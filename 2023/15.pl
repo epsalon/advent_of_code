@@ -497,10 +497,49 @@ my $sum=0;
 
 #while (my @R = arr_to_coords('#', read_2d_array())) {
 
+sub hash {
+  my $h=0;
+  for my $c (split('', shift)) {
+    $h+=ord($c);
+    $h*=17;
+    $h%=256;
+  }
+  return $h;
+}
+
+for my $i (0..255) {push @A,[];}
+
+$|=1;
+
 while (<>) {
   chomp;
   last unless $_;
+  LOOP: for my $s (split(',')) {
+    if ($s =~ /^(.*)=(\d+)$/) {
+      my $x=$1;
+      my $nv=$2;
+      for my $it (@{$A[hash($x)]}) {
+        my ($k,$v) = @$it;
+        if ($k eq $x) {
+          $it = [$k, $nv];
+          next LOOP;
+        }
+      }
+      push @{$A[hash($x)]},[$x,$nv];
+    } elsif ($s =~ /^(.*)-/) {
+      my $x=$1;
+      @{$A[hash($x)]} = grep {$_->[0] ne $x} @{$A[hash($x)]};
+    }
+    #say "$s";
+    #out(\@A);
+    #say "";
+  }
+}
 
+for my $box (0..$#A) {
+  for my $slot (0..$#{$A[$box]}) {
+    $sum += ($box + 1) * ($slot + 1) * $A[$box][$slot][1];
+  }
 }
 
 out ($sum);
