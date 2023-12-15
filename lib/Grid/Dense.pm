@@ -149,7 +149,7 @@ sub to_str {
   }
   $ostr.= "\n";
   for my $r (0..$self->rows()-1) {
-    $ostr.= "%4d ", $r;
+    $ostr.= sprintf("%4d ", $r);
     for my $c (0..$self->cols()-1) {
       my $v = $self->at($r,$c);
       $ostr.= BOLD . ON_RED if $hilite{"$r,$c"};
