@@ -413,6 +413,43 @@ sub transpose {
   return (wantarray ? @oarr : \@oarr);
 }
 
+# Executes a cyclic procedure a large number of times
+#
+# Args:
+#  - fun(state, n) - returns new state (must be hashable)
+#      will always be called on the previous returned state.
+#  - num_iters - large number of iterations
+#  - start_state - must be hashable
+#
+# Returns:
+#  - state after num_iters
+# or:
+#  - (end_state, pre_cycle_length, cycle_length)
+#
+sub find_cycle {
+  my $fun = shift;
+  my $num_iters = shift;
+  my $state = shift || '';
+  my %seen;
+  my $n=0;
+  while (!defined($seen{$state})) {
+    $seen{$state}=$n;
+    local $_;
+    $_ = $state;
+    $state = $fun->($state, $n++);
+  }
+  my $prev = $seen{$state};
+  my $cyc = $n - $prev;
+  my $extra = ($num_iters - $prev) % $cyc;
+
+  for my $i (1..$extra) {
+    local $_;
+    $_ = $state;
+    $state = $fun->($state, $n++);
+  }
+  return wantarray ? ($state, $prev, $cyc) : $state;
+}
+
 sub tilt {
   my $dir = shift;
   my @Q;
@@ -455,20 +492,9 @@ while (<>) {
 
 out(score(transpose(tilt(1,transpose(@Q)))));
 
-my %seen;
-my $N=0;
-while (!defined($seen{my $k = join('', @Q)})) {
-  $seen{$k}=$N++;
+find_cycle(sub {
   @Q=cycle(@Q);
-}
-my $prev = $seen{join('', @Q)};
-my $cyc = $N - $prev;
-#say "cyc = $cyc";
-my $extra = (1000000000 - $prev) % $cyc;
-#say "extra = $extra";
-
-for my $i (1..$extra) {
-  @Q=cycle(@Q);
-}
+  return join('', @Q);
+}, 1000000000, join('', @Q));
 
 out (score(@Q));

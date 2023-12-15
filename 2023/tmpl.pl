@@ -451,6 +451,43 @@ sub transpose {
   return (wantarray ? @oarr : \@oarr);
 }
 
+# Executes a cyclic procedure a large number of times
+#
+# Args:
+#  - fun(state, n) - returns new state (must be hashable)
+#      will always be called on the previous returned state.
+#  - num_iters - large number of iterations
+#  - start_state - must be hashable
+#
+# Returns:
+#  - state after num_iters
+# or:
+#  - (end_state, pre_cycle_length, cycle_length)
+#
+sub find_cycle {
+  my $fun = shift;
+  my $num_iters = shift;
+  my $state = shift || '';
+  my %seen;
+  my $n=0;
+  while (!defined($seen{$state})) {
+    $seen{$state}=$n;
+    local $_;
+    $_ = $state;
+    $state = $fun->($state, $n++);
+  }
+  my $prev = $seen{$state};
+  my $cyc = $n - $prev;
+  my $extra = ($num_iters - $prev) % $cyc;
+
+  for my $i (1..$extra) {
+    local $_;
+    $_ = $state;
+    $state = $fun->($state, $n++);
+  }
+  return wantarray ? ($state, $prev, $cyc) : $state;
+}
+
 my @A;
 my %H;
 my $sum=0;
