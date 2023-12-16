@@ -20,8 +20,13 @@ sub expect_2d {
   is($grid_str, $exp, $test_name);
 }
 
+sub expect_sparse {
+  my $grid = shift;
+  return expect($grid->to_dense('.'), @_);
+}
+
 my $grid;
-expect($grid = new Grid::Dense([[qw/1 2 3/],[qw/4 5 6/]]),
+expect($grid = Grid::Dense->new([[qw/1 2 3/],[qw/4 5 6/]]),
        '123|456', 'parse');
 expect($grid->transpose(), '14|25|36', 'transpose');
 expect($grid->rot90R(), '321|654', 'rotate right');
@@ -62,5 +67,19 @@ expect($grid = Grid::Dense->read(\*RD), "abc|def", "read multi 1");
 close (WR);
 expect($grid = Grid::Dense->read(\*RD), "ghi|jkl", "read multi 2");
 close (RD);
+
+expect_sparse($grid = Grid::Dense->new([[qw/. . . 4/],[qw/. 5 . ./]])->to_sparse('.'),
+       '..4|5..', 'to_sparse');
+
+expect_sparse($grid->flipH(), '4..|..5', 'flipH sparse');
+
+expect_sparse($grid->set("1;0",'x'), '4...|..5x', 'set ; sparse');
+expect_sparse($grid->transpose(), '4.|..|.5|.x', 'transpose sparse');
+expect_sparse($grid->set([-1,2],'y'), '4..|...|.5y|.x.', 'set arr sparse');
+
+expect_sparse($grid->map(sub { ($_[0] * 2, $_[1] * 3) }),
+       '4......|.......|.......|.......|...5..y|.......|...x...', 'map coords');
+
+expect_sparse($grid->map(sub {chr(ord($_) + 1);}), '5..|...|.6z|.y.', 'map vals');
 
 done_testing;
