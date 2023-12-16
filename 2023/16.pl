@@ -16,9 +16,6 @@ while (my $line = <>) {
 my $rows = scalar(@A);
 my $cols = scalar(@{$A[0]});
 
-my @STACK;
-my %STACKHASH;
-
 sub try {
   my @OPEN=@_;
   my %CLOSED;
