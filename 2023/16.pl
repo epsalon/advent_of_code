@@ -26,7 +26,15 @@ sub out {
 
 $|=1;
 
-my $grid = Grid::Dense::read(\*ARGV);
+my @A;
+while (my $line = <>) {
+    chomp $line;
+    last unless $line;
+    push @A, [split('', $line)];
+}
+
+my $rows = scalar(@A);
+my $cols = scalar(@{$A[0]});
 
 my @STACK;
 my %STACKHASH;
@@ -41,7 +49,7 @@ sub try {
     $CLOSED{$x}++;
     my ($r,$c,$rd,$cd) = split(',', $x);
     $SEEN{"$r,$c"}++;
-    my $ch = $grid->at($r,$c);
+    my $ch = $A[$r][$c];
     if ($ch eq '/') {
       ($rd,$cd) = (-$cd,-$rd);
     } elsif ($ch eq '\\') {
@@ -54,7 +62,7 @@ sub try {
       next;
     }
     $r+=$rd; $c+=$cd;
-    next if ($r<0 || $c<0 || $r >= $grid->rows() || $c >= $grid->cols());
+    next if ($r<0 || $c<0 || $r >= $rows || $c >= $cols);
     push @OPEN,"$r,$c,$rd,$cd";
   }
   return scalar(%SEEN);
@@ -63,17 +71,17 @@ sub try {
 my $sum=0;
 my $part1;
 
-for my $r (0..$grid->rows()-1) {
+for my $r (0..$rows-1) {
   $sum = max($sum,try("$r,0,0,1"));
   unless ($part1) {
     out($sum); $part1++;
   }
-  $sum = max($sum,try("$r,".($grid->cols()-1).",0,-1"));
+  $sum = max($sum,try("$r,".($cols-1).",0,-1"));
 }
 
-for my $c (0..$grid->cols()-1) {
+for my $c (0..$cols-1) {
   $sum = max($sum,try("0,$c,1,0"));
-  $sum = max($sum,try(($grid->rows()-1).",$c,-1,0"));
+  $sum = max($sum,try(($rows-1).",$c,-1,0"));
 }
 
 out($sum);
