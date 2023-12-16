@@ -1,28 +1,8 @@
 #!/usr/bin/perl -w
 use strict;
 no warnings 'portable';
-use Data::Dumper;
 use feature 'say';
-use List::Util qw/sum min max reduce any all none notall first product uniq pairs mesh zip/;
-use Math::Cartesian::Product;
-use Math::Complex;
-use List::PriorityQueue;
-use Memoize;
-use Term::ANSIColor qw(:constants);
-use Storable qw(dclone);
-# use POSIX;
-
-BEGIN {push @INC, "../lib";}
-use Grid::Dense;
-
-sub out {
-  my $out = shift;
-  if (ref($out)) {
-    print Dumper($out);
-  } else {
-    print "$out\n";
-  }
-}
+use List::Util qw/max/;
 
 $|=1;
 
@@ -74,7 +54,7 @@ my $part1;
 for my $r (0..$rows-1) {
   $sum = max($sum,try("$r,0,0,1"));
   unless ($part1) {
-    out($sum); $part1++;
+    say($sum); $part1++;
   }
   $sum = max($sum,try("$r,".($cols-1).",0,-1"));
 }
@@ -84,7 +64,5 @@ for my $c (0..$cols-1) {
   $sum = max($sum,try(($rows-1).",$c,-1,0"));
 }
 
-out($sum);
-#$grid->print(keys %SEEN);
+say($sum);
 
-#out (scalar(%SEEN));
