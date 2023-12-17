@@ -57,6 +57,11 @@ sub translate_coord {
   return ($r,$c);
 }
 
+sub get_bounds {
+  my $self=shift;
+  return (0,0,$self->rows()-1,$self->cols()-1);
+}
+
 sub bounds {
   my $self = shift;
   my $r = shift;
@@ -84,67 +89,6 @@ sub set {
   ($r,$c) = $self->translate_coord($r,$c);
   $self->{data}[$r][$c] = $v;
   return $self;
-}
-
-sub to_str {
-  my $self = shift;
-  my @hilite = @_;
-  my $ostr;
-
-  # If neighbor array ref, deref
-  if (@hilite == 1 && ref($hilite[0])) {
-    @hilite = @{$hilite[0]};
-  }
-
-  # If the array is raw coords turn into array of [row, col]
-  if (@hilite && !ref($hilite[0])) {
-    my $h1 = $hilite[0];
-    if ($h1 =~ /^\d+,\d+$/o) {
-      # "row,col"
-      @hilite = map {/^(\d+),(\d+)$/o; [$1,$2]} @hilite;
-    } else {
-      # row, col, row, col
-      @hilite = pairs(@hilite);
-    }
-  }
-
-  my %hilite;
-  for my $h (@hilite) {
-    my ($r, $c) = @$h;
-    $hilite{"$r,$c"}++;
-  }
-
-  my $maxlen = 0;
-  $self->iterate(sub {
-    my ($c) = $_[2];
-    $maxlen=length($c) if length($c) > $maxlen;
-  });
-  $ostr.= "     ";
-  for my $c (0..$self->cols()-1) {
-    $ostr.= $c % 10 ? ' ':$c/10;
-  }
-  $ostr.= "\n     ";
-  for my $c (0..$self->cols()-1) {
-    $ostr.= $c % 10;
-  }
-  $ostr.= "\n";
-  for my $r (0..$self->rows()-1) {
-    $ostr.= sprintf("%4d ", $r);
-    for my $c (0..$self->cols()-1) {
-      my $v = $self->at($r,$c);
-      $ostr.= BOLD . ON_RED if $hilite{"$r,$c"};
-      $ostr.=sprintf("%${maxlen}s", $v);
-      $ostr.= RESET if $hilite{"$r,$c"};
-    }
-    $ostr.= "\n";
-  }
-  $ostr.= "\n";
-  return $ostr;
-}
-
-sub print {
-  my $self=shift;
-  print $self->to_str(@_);
 }
 
 sub iterate {
@@ -175,7 +119,9 @@ sub to_sparse {
   my $self = shift;
   my $rule_arg = shift;
   my $rule = $rule_arg;
+  my $default;
   if (!ref($rule_arg)) {
+    $default = $rule_arg;
     $rule = sub { $_ ne $rule_arg };
   }
   my %ret;
@@ -184,7 +130,9 @@ sub to_sparse {
     local $_ = $v;
     $ret{"$r,$c"} = $v if $rule->(@_);
   });
-  return Grid::Sparse->new(\%ret);
+  my $ret = Grid::Sparse->new(\%ret);
+  $ret->{default} = $default if defined($default);
+  return $ret;
 }
 
 1;

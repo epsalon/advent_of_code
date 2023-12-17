@@ -2,6 +2,7 @@ use Grid::Dense;
 use Data::Dumper;
 use Test::More;
 use Test::Exception;
+use Storable qw(dclone);
 use feature 'say';
 
 sub expect {
@@ -22,7 +23,7 @@ sub expect_2d {
 
 sub expect_sparse {
   my $grid = shift;
-  return expect($grid->to_dense('.'), @_);
+  return expect($grid->to_dense(), @_);
 }
 
 my $grid;
@@ -73,9 +74,16 @@ expect_sparse($grid = Grid::Dense->new([[qw/. . . 4/],[qw/. 5 . ./]])->to_sparse
 
 expect_sparse($grid->flipH(), '4..|..5', 'flipH sparse');
 
+$grid_str = dclone($grid)->set("-2*-5","word")->to_str();
+ok($grid_str =~ /-5  -4  -3/os, 'to_str');
+ok($grid_str =~ /-2 word   \./os, 'to_str');
+
 expect_sparse($grid->set("1;0",'x'), '4...|..5x', 'set ; sparse');
 expect_sparse($grid->transpose(), '4.|..|.5|.x', 'transpose sparse');
 expect_sparse($grid->set([-1,2],'y'), '4..|...|.5y|.x.', 'set arr sparse');
+
+$grid_str = $grid->to_str();
+ok($grid_str =~ /-1 \.5y/os, 'to_str');
 
 expect_sparse($grid->map(sub { ($_[0] * 2, $_[1] * 3) }),
        '4......|.......|.......|.......|...5..y|.......|...x...', 'map coords');
