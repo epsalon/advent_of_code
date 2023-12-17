@@ -119,35 +119,18 @@ sub solve {
     my $node = shift;
     my ($r, $c, $rx, $cx) = split(',', $node);
     my @out;
-    if ($rx + $cx == 0) {
-      return (["1,0,1,0", $g->at(1,0)],["0,1,0,1", $g->at(0,1)])
-    }
-    my $cost = 0;
-    while (abs($rx+$cx) < $min_steps) {
-      my $dr=$rx && $rx/abs($rx);
-      my $dc=$cx && $cx/abs($cx);
-      $r+=$dr; $c+=$dc;
-      $rx+=$dr; $cx+=$dc;
-      return () unless $g->bounds($r,$c);
-      $cost += $g->at($r,$c);
-    }
-    for my $n ([-1,0],[1,0],[0,-1],[0,1]) {
-      my ($dr,$dc) = @$n;
-      my $nr = $r+$dr;
-      my $nc = $c+$dc;
-      if ($rx && $dr) {
-        next if abs($rx) == $max_steps;
-        next if $rx*$dr < 0;
-        $dr+=$rx;
+    for my $dir ([-1,0],[1,0],[0,-1],[0,1]) {
+      my ($dr,$dc) = @$dir;
+      next if ($dr && $rx || $dc && $cx);
+      my $cost;
+      my ($nr,$nc) = ($r,$c);
+      for my $d (1..$max_steps) {
+        $nr += $dr; $nc += $dc;
+        last unless $g->bounds($nr,$nc);
+        $cost+=$g->at($nr,$nc);
+        next if ($d < $min_steps);
+        push @out,["$nr,$nc,".abs($dr).",".abs($dc), $cost];
       }
-      if ($cx && $dc) {
-        next if abs($cx) == $max_steps;
-        next if $cx*$dc < 0;
-        $dc+=$cx;
-      }
-      next unless $g->bounds($nr,$nc);
-      my $v = $g->at($nr,$nc);
-      push @out,["$nr,$nc,$dr,$dc", $v+$cost];
     }
     return @out;
   }, sub {
@@ -157,7 +140,7 @@ sub solve {
   });
 }
 
-my @out=solve($g,0,3);
+my @out=solve($g,1,3);
 $sum=shift(@out);
 $g->print(@out);
 out ($sum);
