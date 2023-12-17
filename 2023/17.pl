@@ -162,10 +162,10 @@ sub solve {
 
 my @out=solve($g,0,3);
 $sum=shift(@out);
-$g->print(map {m{^(\d+),(\d+),}; [$1,$2]} @out);
+$g->print(@out);
 out ($sum);
 
 @out=solve($g,4,10);
 $sum=shift(@out);
-$g->print(map {m{^(\d+),(\d+),}; [$1,$2]} @out);
+$g->print(@out);
 out ($sum);

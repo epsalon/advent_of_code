@@ -5,6 +5,7 @@ use warnings;
 use Term::ANSIColor qw(:constants);
 use Storable qw(dclone);
 use Carp;
+use List::Util qw/pairs/;
 
 sub transpose {
   my $self = shift;
@@ -121,9 +122,9 @@ sub to_str {
   # If the array is raw coords turn into array of [row, col]
   if (@hilite && !ref($hilite[0])) {
     my $h1 = $hilite[0];
-    if ($h1 =~ /^\d+,\d+$/o) {
+    if ($h1 =~ /^\d+,\d+/o) {
       # "row,col"
-      @hilite = map {/^(\d+),(\d+)$/o; [$1,$2]} @hilite;
+      @hilite = map {/^(\d+),(\d+)/o; [$1,$2]} @hilite;
     } else {
       # row, col, row, col
       @hilite = pairs(@hilite);
@@ -133,7 +134,7 @@ sub to_str {
   my %hilite;
   for my $h (@hilite) {
     my ($r, $c) = @$h;
-    $hilite{"$r,$c"}++;
+    $hilite{"$r,$c"}=BOLD . ON_RED;
   }
 
   my $maxlen = 0;
@@ -144,6 +145,7 @@ sub to_str {
   $ostr.= "     ";
   if ($maxlen < 2) {
     for my $c ($min_c..$max_c) {
+      # TODO: Make it work for c > 100
       $ostr.= abs($c) % 10 ? (' '):$c/10;
     }
     $ostr.= "\n     ";
@@ -156,7 +158,7 @@ sub to_str {
     $ostr.= sprintf("%4d ", $r);
     for my $c ($min_c..$max_c) {
       my $v = $self->at($r,$c) // $self->{default} // ' ';
-      $ostr.= BOLD . ON_RED if $hilite{"$r,$c"};
+      $ostr.= $hilite{"$r,$c"} // '';
       $ostr.=sprintf("%${maxlen}s", $v);
       $ostr.= RESET if $hilite{"$r,$c"};
     }
