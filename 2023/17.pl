@@ -125,13 +125,14 @@ sub solve {
     if ($rx + $cx == 0) {
       return (["1,0,1,0", $g->at(1,0)],["0,1,0,1", $g->at(0,1)])
     }
-    if (abs($rx+$cx) < $min_steps) {
+    my $cost = 0;
+    while (abs($rx+$cx) < $min_steps) {
       my $dr=$rx && $rx/abs($rx);
       my $dc=$cx && $cx/abs($cx);
       $r+=$dr; $c+=$dc;
       $rx+=$dr; $cx+=$dc;
       return () unless $g->bounds($r,$c);
-      return (["$r,$c,$rx,$cx", $g->at($r,$c)]);
+      $cost += $g->at($r,$c);
     }
     for my $n ([-1,0],[1,0],[0,-1],[0,1]) {
       my ($dr,$dc) = @$n;
@@ -149,7 +150,7 @@ sub solve {
       }
       next unless $g->bounds($nr,$nc);
       my $v = $g->at($nr,$nc);
-      push @out,["$nr,$nc,$dr,$dc", $v];
+      push @out,["$nr,$nc,$dr,$dc", $v+$cost];
     }
     return @out;
   }, sub {
