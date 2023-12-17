@@ -497,69 +497,70 @@ my $sum=0;
 
 $|=1;
 
-#while (my @R = arr_to_coords('#', read_2d_array())) {
-
-# A* / BFS implementation
-# Args: start, end, neighbor function, heuristic function
-#  - start is either a node or a list of nodes to start at.
-#  - end is either a node or a function that takes a single node
-#    and returns true/false.
-# - neighbor function: node -> ([new_node, cost], ...)
-#   - cost assumed 1 if missing
-# - heuristic function: node -> lower bound on cost to end (optional)
 
 my $g = Grid::Dense->read();
 #my $end = ($g->rows()-1).",".($g->cols()-1);
 #say "end is $end";
-my @out=astar("0,0,0,0", sub {
-  my $node = shift;
-  my ($r, $c, $rx, $cx) = split(',', $node);
-  return 0 if (abs($rx + $cx) < 4);
-  return 0 if ($r != $g->rows()-1);
-  return 0 if ($c != $g->cols()-1);
-  return 1;
-}, sub {
-  my $node = shift;
-  my ($r, $c, $rx, $cx) = split(',', $node);
-  my @out;
-  if ($rx + $cx == 0) {
-    return (["1,0,1,0", $g->at(1,0)],["0,1,0,1", $g->at(0,1)])
-  }
-  if (abs($rx+$cx) < 4) {
-    my $dr=$rx && $rx/abs($rx);
-    my $dc=$cx && $cx/abs($cx);
-    $r+=$dr; $c+=$dc;
-    $rx+=$dr; $cx+=$dc;
-    return () unless $g->bounds($r,$c);
-    return (["$r,$c,$rx,$cx", $g->at($r,$c)]);
-  }
-  for my $n ([-1,0],[1,0],[0,-1],[0,1]) {
-    my ($dr,$dc) = @$n;
-    my $nr = $r+$dr;
-    my $nc = $c+$dc;
-    if ($rx && $dr) {
-      next if abs($rx) == 10;
-      next if $rx*$dr < 0;
-      $dr+=$rx;
-    }
-    if ($cx && $dc) {
-      next if abs($cx) == 10;
-      next if $cx*$dc < 0;
-      $dc+=$cx;
-    }
-    next unless $g->bounds($nr,$nc);
-    my $v = $g->at($nr,$nc);
-    push @out,["$nr,$nc,$dr,$dc", $v];
-  }
-  return @out;
-}, sub {
-  my $node = shift;
-  my ($r, $c) = split(',', $node);
-  return $g->rows()+$g->cols()-2-$r-$c;
-});
 
+sub solve {
+  my $g = shift;
+  my $min_steps = shift;
+  my $max_steps = shift;
+
+  return astar("0,0,0,0", sub {
+    my $node = shift;
+    my ($r, $c, $rx, $cx) = split(',', $node);
+    return 0 if (abs($rx + $cx) < $min_steps);
+    return 0 if ($r != $g->rows()-1);
+    return 0 if ($c != $g->cols()-1);
+    return 1;
+  }, sub {
+    my $node = shift;
+    my ($r, $c, $rx, $cx) = split(',', $node);
+    my @out;
+    if ($rx + $cx == 0) {
+      return (["1,0,1,0", $g->at(1,0)],["0,1,0,1", $g->at(0,1)])
+    }
+    if (abs($rx+$cx) < $min_steps) {
+      my $dr=$rx && $rx/abs($rx);
+      my $dc=$cx && $cx/abs($cx);
+      $r+=$dr; $c+=$dc;
+      $rx+=$dr; $cx+=$dc;
+      return () unless $g->bounds($r,$c);
+      return (["$r,$c,$rx,$cx", $g->at($r,$c)]);
+    }
+    for my $n ([-1,0],[1,0],[0,-1],[0,1]) {
+      my ($dr,$dc) = @$n;
+      my $nr = $r+$dr;
+      my $nc = $c+$dc;
+      if ($rx && $dr) {
+        next if abs($rx) == $max_steps;
+        next if $rx*$dr < 0;
+        $dr+=$rx;
+      }
+      if ($cx && $dc) {
+        next if abs($cx) == $max_steps;
+        next if $cx*$dc < 0;
+        $dc+=$cx;
+      }
+      next unless $g->bounds($nr,$nc);
+      my $v = $g->at($nr,$nc);
+      push @out,["$nr,$nc,$dr,$dc", $v];
+    }
+    return @out;
+  }, sub {
+    my $node = shift;
+    my ($r, $c) = split(',', $node);
+    return $g->rows()+$g->cols()-2-$r-$c;
+  });
+}
+
+my @out=solve($g,0,3);
 $sum=shift(@out);
-out(\@out);
 $g->print(map {m{^(\d+),(\d+),}; [$1,$2]} @out);
+out ($sum);
 
+@out=solve($g,4,10);
+$sum=shift(@out);
+$g->print(map {m{^(\d+),(\d+),}; [$1,$2]} @out);
 out ($sum);
