@@ -114,11 +114,7 @@ sub solve {
 
   return astar("0,0,0,0", sub {
     my $node = shift;
-    my ($r, $c, $rx, $cx) = split(',', $node);
-    return 0 if ($r != $max_row);
-    return 0 if ($c != $max_col);
-    return 0 if (abs($rx + $cx) < $min_steps);
-    return 1;
+    return $node =~ /^$max_row,$max_col,/
   }, sub {
     my $node = shift;
     my ($r, $c, $rx, $cx) = split(',', $node);
