@@ -108,6 +108,7 @@ sub solve {
   my $g = shift;
   my $min_steps = shift;
   my $max_steps = shift;
+  my $bias = shift // 1;
   my $max_row = $g->rows()-1;
   my $max_col = $g->rows()-1;
 
@@ -156,7 +157,7 @@ sub solve {
   }, sub {
     my $node = shift;
     my ($r, $c) = split(',', $node);
-    return $max_row+$max_col-$r-$c;
+    return ($max_row+$max_col-$r-$c)*$bias;
   });
 }
 
