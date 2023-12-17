@@ -509,7 +509,7 @@ $|=1;
 # - heuristic function: node -> lower bound on cost to end (optional)
 
 my $g = Grid::Dense->read();
-my $end = ($g->rows()-1).",".($g->cols()-1);
+#my $end = ($g->rows()-1).",".($g->cols()-1);
 #say "end is $end";
 my @out=astar("0,0,0,0", sub {
   my $node = shift;
@@ -535,7 +535,6 @@ my @out=astar("0,0,0,0", sub {
   }
   for my $n ([-1,0],[1,0],[0,-1],[0,1]) {
     my ($dr,$dc) = @$n;
-    #say "r=$r c=$c rx=$rx cx=$cx dr=$dr dc=$dc";
     my $nr = $r+$dr;
     my $nc = $c+$dc;
     if ($rx && $dr) {
@@ -553,6 +552,10 @@ my @out=astar("0,0,0,0", sub {
     push @out,["$nr,$nc,$dr,$dc", $v];
   }
   return @out;
+}, sub {
+  my $node = shift;
+  my ($r, $c) = split(',', $node);
+  return $g->rows()+$g->cols()-2-$r-$c;
 });
 
 $sum=shift(@out);
