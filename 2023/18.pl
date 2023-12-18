@@ -14,7 +14,6 @@ use Storable qw(dclone);
 # use POSIX;
 
 BEGIN {push @INC, "../lib";}
-use Grid::Dense;
 
 sub out {
   my $out = shift;
@@ -495,7 +494,6 @@ sub find_cycle {
 $|=1;
 my @A;
 my %H;
-my $sum=0;
 
 #while (my @R = arr_to_coords('#', read_2d_array())) {
 
@@ -505,31 +503,35 @@ for my $k (keys %dir) {
   $dir{$k} = [split(',', $v)];
 }
 
-my $g = Grid::Sparse->new("0,0");
-
-sub floodfill {
-  my ($r, $c) = @_;
-  return if $g->at($r,$c);
-  $g->set($r,$c,1);
-  for my $d (values %dir) {
-    floodfill($r+$d->[0], $c+$d->[1]);
+sub solve_area {
+  my ($area, $perimeter) = (0,1);
+  my ($r,$c) = (0,0);
+  while (@_) {
+    my $dir = shift;
+    my $count = shift;
+    my ($dr,$dc) = @$dir;
+    $dr *= $count; $dc *= $count;
+    my ($nr,$nc) = ($r+$dr,$c+$dc);
+    $perimeter += $count/2;
+    $area += ($c*$nr - $nc*$r)/2;
+    ($r,$c)=($nr,$nc);
   }
+  return abs($area) + $perimeter;
 }
 
-my ($r,$c) = (0,0);
+my (@p1, @p2);
+
 while (<>) {
   chomp;
   last unless $_;
-  m{(\w) (\d+) \(\#([\da-f]+)([0123])\)} or die;
-  my $dir = ([0,1], [1,0], [0,-1], [-1,0])[$4];
-  my ($dr,$dc) = @{$dir};
-  my $count = oct("0x$3");
-  say "$dr,$dc,$count";
-  $sum+=$count/2;
-  my ($nr,$nc) = ($r+$dr*$count, $c+$dc*$count);
-  $sum += ($c*$nr - $nc*$r)/2;
-  ($r,$c)=($nr,$nc);
+  my($adir,$acount,$bcounthex,$bdir) = m{(\w) (\d+) \(\#([\da-f]+)([0123])\)} or die;
+  push @p1, $dir{$adir}, $acount;
+  $bdir = ([0,1], [1,0], [0,-1], [-1,0])[$bdir];
+  my $bcount = oct("0x$bcounthex");
+  push @p2, $bdir, $bcount;
 }
-out ($sum+1);
+
+out (solve_area(@p1));
+out (solve_area(@p2));
 
 #out (scalar(%{$g->{data}}));

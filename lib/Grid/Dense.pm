@@ -22,6 +22,15 @@ sub new {
   };
 }
 
+sub from_string {
+  my ($class, $str) = @_;
+  my @A;
+  for my $line (split("\n", $str)) {
+      push @A, [split('', $line)];
+  }
+  return new($class, \@A);
+}
+
 sub read {
   my ($class, $fh) = @_;
   $fh = \*ARGV unless $fh;

@@ -168,6 +168,78 @@ sub to_str {
   return $ostr;
 }
 
+sub _floodfill {
+  my $self = shift;
+  my $r = shift;
+  my $c = shift;
+  my $boundary_func = shift;
+  my $set_func = shift;
+
+  return unless $self->bounds($r,$c);
+  return if ($boundary_func->($r, $c));
+  $set_func->($r,$c);
+  for my $d ([0,1], [0,-1], [1,0], [-1,0]) {
+    $self->_floodfill($r+$d->[0], $c+$d->[1], $boundary_func, $set_func);
+  }
+}
+
+sub floodfill {
+  my $self = shift;
+  my $r = shift;
+  my $c = shift;
+  my $boundary_func = shift;
+  my $set_func = shift // 1;
+  my $seen_hash = shift;
+
+  if (!defined($boundary_func)) {
+    $boundary_func = sub {
+      return $self->at(@_);
+    };
+  } elsif (ref($boundary_func) eq 'HASH') {
+    my $old_boundary_func = $boundary_func;
+    $boundary_func = sub {
+      return $old_boundary_func->{$self->at(@_)};
+    };
+  } elsif (!ref($boundary_func)) {
+    my $old_boundary_func = $boundary_func;
+    $boundary_func = sub {
+      return $old_boundary_func eq $self->at(@_);
+    };
+    if (!defined($seen_hash) && (!ref($set_func)) && $set_func ne $old_boundary_func) {
+      $seen_hash = 1;
+    }
+  } else {
+    croak "Bad boundary func - $boundary_func";
+  }
+
+  if (!ref($set_func)) {
+    my $old_set_func = $set_func;
+    $set_func = sub {
+      return $self->set(@_, $old_set_func);
+    };
+  } else {
+    croak "Bad set func - $set_func";
+  }
+
+  if (defined($seen_hash) && !(ref($seen_hash) eq 'HASH')) {
+    $seen_hash = {};
+  }
+  if ($seen_hash) {
+    my $old_boundary_func = $boundary_func;
+    $boundary_func = sub {
+      return $seen_hash->{join(',', @_)} || $old_boundary_func->(@_);
+    };
+    my $old_set_func = $set_func;
+    $set_func = sub {
+      $seen_hash->{join(',', @_)}++;
+      return $old_set_func->(@_);
+    };
+  }
+
+  $self->_floodfill($r, $c, $boundary_func, $set_func);
+  return $self;
+}
+
 sub print {
   my $self=shift;
   print $self->to_str(@_);

@@ -90,4 +90,24 @@ expect_sparse($grid->map(sub { ($_[0] * 2, $_[1] * 3) }),
 
 expect_sparse($grid->map(sub {chr(ord($_) + 1);}), '5..|...|.6z|.y.', 'map vals');
 
+$grid_str = <<'EOF';
+##########
+#       ##
+0###   ##0
+000##  #00
+0000####00
+EOF
+
+expect($grid = Grid::Dense->from_string($grid_str),
+  '##########|#       ##|0###   ##0|000##  #00|0000####00', 'from_string');
+
+expect($grid->floodfill(3,0),
+  '##########|#       ##|1###   ##0|111##  #00|1111####00', 'floodfill');
+
+expect($grid->floodfill(1,1),
+  '##########|#       ##|1###   ##0|111##  #00|1111####00', 'floodfill noop');
+
+expect($grid->floodfill(1,1,'#','*'),
+  '##########|#*******##|1###***##0|111##**#00|1111####00', 'floodfill with boundary, implicit hash');
+
 done_testing;
