@@ -497,50 +497,6 @@ my @A;
 my %H;
 my $sum=0;
 
-sub scan {
-  my $w = shift;
-  my $cond = shift;
-
-  say "scan $w";
-
-  if ($w eq 'R') {
-    return 0;
-  } elsif ($w eq 'A') {
-    my $res = product(map {$_->[1]-$_->[0]+1} values(%$cond));
-    out($cond);
-    say " ==> $res";
-    return $res;
-  }
-
-  my $res = 0;
-  my @w = @{$H{$w}};
-  for my $st (@w) {
-    my ($c,$op,$n,$nw) = $st =~ /^(?:(.)(.)(\d+):)?(\w+)$/o or die;
-    if (!defined($c)) {
-      $res += scan($nw,$cond);
-      last;
-    }
-    if ($op eq '<') {
-      my $ncond = dclone($cond);
-      $ncond->{$c}[1] = min($cond->{$c}[1],$n-1);
-      if ($ncond->{$c}[1] < $ncond->{$c}[0]) {
-        next;
-      }
-      $res += scan($nw, $ncond);
-      $cond->{$c}[0] = max($cond->{$c}[0],$n);
-    } else {
-      my $ncond = dclone($cond);
-      $ncond->{$c}[0] = max($cond->{$c}[0],$n+1);
-      if ($ncond->{$c}[1] < $ncond->{$c}[0]) {
-        next;
-      }
-      $cond->{$c}[1] = min($cond->{$c}[1],$n);
-      $res += scan($nw, $ncond);
-    }
-  }
-  return $res;
-}
-
 while (<>) {
   chomp;
   last unless $_;
@@ -548,12 +504,6 @@ while (<>) {
   say "$n $w";
   $H{$n} = [split(',',$w)];
 }
-
-
-
-out(scan('in',{'x', [1,4000], 'm', [1,4000], 'a', [1,4000], 's', [1,4000]}));
-
-exit;
 
 while (<>) {
   chomp;
