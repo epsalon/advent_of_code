@@ -22,16 +22,22 @@ $|=1;
 my @A;
 my %H;
 
+sub split_range {
+  my ($min, $max, $value) = @_;
+  if ($value <= $min) {
+    return (undef, [$min,$max]);
+  } elsif ($value >= $max) {
+    return ([$min,$max], undef);
+  }
+  return ([$min,$value], [$value,$max]);
+}
+
 sub scan {
   my $w = shift;
   my $cond = shift;
 
-  if ($w eq 'R') {
-    return 0;
-  } elsif ($w eq 'A') {
-    my $res = product(map {$_->[1]-$_->[0]+1} values(%$cond));
-    return $res;
-  }
+  return 0 if ($w eq 'R');
+  return product(map {$_->[1]-$_->[0]} values(%$cond)) if ($w eq 'A');
 
   my $res = 0;
   my @w = @{$H{$w}};
@@ -41,20 +47,11 @@ sub scan {
       $res += scan($nw,$cond);
       last;
     }
-    if ($op eq '<') {
-      my $ncond = dclone($cond);
-      $ncond->{$c}[1] = min($cond->{$c}[1],$n-1);
-      next if ($ncond->{$c}[1] < $ncond->{$c}[0]);
-      $res += scan($nw, $ncond);
-      $cond->{$c}[0] = max($cond->{$c}[0],$n);
-    } else {
-      my $ncond = dclone($cond);
-      $ncond->{$c}[0] = max($cond->{$c}[0],$n+1);
-      next if ($ncond->{$c}[1] < $ncond->{$c}[0]);
-      $cond->{$c}[1] = min($cond->{$c}[1],$n);
-      $res += scan($nw, $ncond);
-    }
-    last if ($cond->{$c}[1] < $cond->{$c}[0]);
+    my ($lo,$hi) = split_range(@{$cond->{$c}}, $n + ($op eq '>'));
+    my $ncond = dclone($cond);
+    $ncond->{$c} = ($op eq '<' ? $lo : $hi) or next;
+    $res += scan($nw, $ncond);
+    $cond->{$c} = ($op eq '<' ? $hi : $lo) or last;
   }
   return $res;
 }
@@ -71,13 +68,8 @@ my $sum=0;
 while (<>) {
   chomp;
   last unless $_;
-  chop;
-  $_=substr($_,1);
-  my %v;
-  for my $a (split(',')) {
-    my ($x,$v) = split('=', $a);
-    $v{$x}=$v;
-  }
+  ($_) = m%^{(.*)}$%;
+  my %v = map {split('=', $_)} split(',');
   my @w = @{$H{'in'}};
   while (@w) {
     my $st = shift @w;
@@ -96,4 +88,4 @@ while (<>) {
 }
 
 out ($sum);
-out(scan('in',{'x', [1,4000], 'm', [1,4000], 'a', [1,4000], 's', [1,4000]}));
+out(scan('in',{map {$_ => [1,4001]} qw/x m a s/}));
