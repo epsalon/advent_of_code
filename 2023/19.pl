@@ -44,23 +44,17 @@ sub scan {
     if ($op eq '<') {
       my $ncond = dclone($cond);
       $ncond->{$c}[1] = min($cond->{$c}[1],$n-1);
-      if ($ncond->{$c}[1] < $ncond->{$c}[0]) {
-        next;
-      }
+      next if ($ncond->{$c}[1] < $ncond->{$c}[0]);
       $res += scan($nw, $ncond);
       $cond->{$c}[0] = max($cond->{$c}[0],$n);
     } else {
       my $ncond = dclone($cond);
       $ncond->{$c}[0] = max($cond->{$c}[0],$n+1);
-      if ($ncond->{$c}[1] < $ncond->{$c}[0]) {
-        next;
-      }
+      next if ($ncond->{$c}[1] < $ncond->{$c}[0]);
       $cond->{$c}[1] = min($cond->{$c}[1],$n);
       $res += scan($nw, $ncond);
     }
-    if ($cond->{$c}[1] < $cond->{$c}[0]) {
-      last;
-    }
+    last if ($cond->{$c}[1] < $cond->{$c}[0]);
   }
   return $res;
 }
