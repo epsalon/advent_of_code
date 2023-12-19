@@ -36,9 +36,6 @@ sub scan {
   my $res = 0;
   my @w = @{$H{$w}};
   for my $st (@w) {
-    if ($cond->{$c}[1] < $cond->{$c}[0]) {
-      last;
-    }
     my ($c,$op,$n,$nw) = $st =~ /^(?:(.)(.)(\d+):)?(\w+)$/o or die;
     if (!defined($c)) {
       $res += scan($nw,$cond);
@@ -60,6 +57,9 @@ sub scan {
       }
       $cond->{$c}[1] = min($cond->{$c}[1],$n);
       $res += scan($nw, $ncond);
+    }
+    if ($cond->{$c}[1] < $cond->{$c}[0]) {
+      last;
     }
   }
   return $res;
