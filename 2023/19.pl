@@ -1,27 +1,12 @@
 #!/usr/bin/perl -w
 use strict;
-no warnings 'portable';
-use Data::Dumper;
 use feature 'say';
-use Clipboard;
 use List::Util qw/sum min max reduce any all none notall first product uniq pairs mesh zip/;
 use Storable qw(dclone);
 
-sub out {
-  my $out = shift;
-  if (ref($out)) {
-    print Dumper($out);
-  } else {
-    Clipboard->copy_to_all_selections("./submit.py $out");
-    print "$out\n";
-  }
-}
-
-$|=1;
-
-my @A;
 my %H;
 
+# Split a semi-open range [min,max) at value.
 sub split_range {
   my ($min, $max, $value) = @_;
   if ($value <= $min) {
@@ -32,30 +17,35 @@ sub split_range {
   return ([$min,$value], [$value,$max]);
 }
 
+# Follow the workflow tree and count accepted cases
 sub scan {
-  my $w = shift;
-  my $cond = shift;
+  my $w = shift;     # Current workflow
+  my $cond = shift;  # hash from key to [min,max) for that key
 
   return 0 if ($w eq 'R');
   return product(map {$_->[1]-$_->[0]} values(%$cond)) if ($w eq 'A');
 
   my $res = 0;
-  my @w = @{$H{$w}};
-  for my $st (@w) {
+  for my $st (@{$H{$w}}) {
     my ($c,$op,$n,$nw) = $st =~ /^(?:(.)(.)(\d+):)?(\w+)$/o or die;
+    # Unconditional jump
     if (!defined($c)) {
       $res += scan($nw,$cond);
       last;
     }
+    # Condition, correct for > not being >=
     my ($lo,$hi) = split_range(@{$cond->{$c}}, $n + ($op eq '>'));
+    # Recurse when condition is true
     my $ncond = dclone($cond);
     $ncond->{$c} = ($op eq '<' ? $lo : $hi) or next;
     $res += scan($nw, $ncond);
+    # Loop when condition is false
     $cond->{$c} = ($op eq '<' ? $hi : $lo) or last;
   }
   return $res;
 }
 
+# Read workflows
 while (<>) {
   chomp;
   last unless $_;
@@ -63,13 +53,14 @@ while (<>) {
   $H{$n} = [split(',',$w)];
 }
 
+# Solve part 1
 my $sum=0;
-
 while (<>) {
   chomp;
   last unless $_;
   ($_) = m%^{(.*)}$%;
   my %v = map {split('=', $_)} split(',');
+  # Follow workflow, @w is remaining actions.
   my @w = @{$H{'in'}};
   while (@w) {
     my $st = shift @w;
@@ -86,6 +77,7 @@ while (<>) {
     }
   }
 }
+say $sum;
 
-out ($sum);
-out(scan('in',{map {$_ => [1,4001]} qw/x m a s/}));
+# Part 2 with initial map
+say scan('in',{map {$_ => [1,4001]} qw/x m a s/});
