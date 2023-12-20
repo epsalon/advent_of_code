@@ -26,10 +26,15 @@ my $sum=0;
 
 #while (my @R = arr_to_coords('#', read_2d_array())) {
 
+say "digraph x {";
 while (<>) {
   chomp;
   last unless $_;
-
+  my ($f,$n,$r) = m{^(.)(\w+) -> (.+)$}o;
+  say "$n [label=\"$f$n\"];";
+  for my $x (split(', ', $r)) {
+    say "$n -> $x";
+  }
 }
+say "}";
 
-out ($sum);

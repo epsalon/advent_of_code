@@ -1,0 +1,169 @@
+digraph x {
+rq [label="%rq"];
+rq -> ch
+rq -> sj
+nf [label="%nf"];
+nf -> sm
+nf -> rg
+pc [label="%pc"];
+pc -> rz
+pc -> zp
+xt [label="%xt"];
+xt -> bc
+nt [label="%nt"];
+nt -> kq
+nt -> sj
+hc [label="%hc"];
+hc -> kb
+hc -> zp
+rd [label="%rd"];
+rd -> lk
+ml [label="%ml"];
+ml -> pp
+ml -> xt
+sq [label="%sq"];
+sq -> kl
+sq -> sj
+jg [label="%jg"];
+jg -> fl
+jg -> rg
+xl [label="&xl"];
+xl -> df
+kl [label="%kl"];
+kl -> mb
+kl -> sj
+nd [label="%nd"];
+nd -> rg
+nd -> jg
+rg [label="&rg"];
+rg -> cs
+rg -> zb
+rg -> cp
+rg -> vz
+rg -> gp
+mf [label="%mf"];
+mf -> zp
+rz [label="%rz"];
+rz -> zp
+rz -> fr
+kk [label="%kk"];
+kk -> rg
+kk -> bj
+nb [label="%nb"];
+nb -> qj
+pr [label="%pr"];
+pr -> pp
+zp [label="&zp"];
+zp -> vl
+zp -> lk
+zp -> rd
+zp -> kb
+zp -> xl
+fl [label="%fl"];
+fl -> nf
+fl -> rg
+tb [label="%tb"];
+tb -> pk
+tb -> pp
+bh [label="%bh"];
+bh -> pp
+bh -> pr
+nh [label="%nh"];
+nh -> sj
+nh -> rq
+lk [label="%lk"];
+lk -> hc
+cp [label="%cp"];
+cp -> kk
+ln [label="&ln"];
+ln -> df
+xp [label="&xp"];
+xp -> df
+bc [label="%bc"];
+bc -> nb
+bc -> pp
+lj [label="%lj"];
+lj -> rg
+vz [label="%vz"];
+vz -> nd
+vl [label="%vl"];
+vl -> lv
+vl -> zp
+gp [label="&gp"];
+gp -> df
+hd [label="%hd"];
+hd -> pp
+hd -> bq
+fq [label="%fq"];
+fq -> pp
+fq -> bh
+pk [label="%pk"];
+pk -> fq
+pk -> pp
+cs [label="%cs"];
+cs -> zb
+cs -> rg
+sn [label="%sn"];
+sn -> fd
+kq [label="%kq"];
+kq -> sj
+kq -> qq
+zb [label="%zb"];
+zb -> vz
+lv [label="%lv"];
+lv -> zp
+lv -> rd
+qj [label="%qj"];
+qj -> pp
+qj -> hd
+fd [label="%fd"];
+fd -> nt
+df [label="&df"];
+df -> rx
+roadcaster [label="broadcaster"];
+roadcaster -> vl
+roadcaster -> cs
+roadcaster -> cn
+roadcaster -> ml
+bq [label="%bq"];
+bq -> tb
+kb [label="%kb"];
+kb -> pc
+cn [label="%cn"];
+cn -> sn
+cn -> sj
+qq [label="%qq"];
+qq -> sq
+mb [label="%mb"];
+mb -> sj
+mb -> nh
+jd [label="%jd"];
+jd -> zp
+jd -> mf
+sj [label="&sj"];
+sj -> xp
+sj -> qq
+sj -> cn
+sj -> fd
+sj -> sn
+pp [label="&pp"];
+pp -> ln
+pp -> ml
+pp -> xt
+pp -> bq
+pp -> nb
+sm [label="%sm"];
+sm -> rg
+sm -> cp
+ch [label="%ch"];
+ch -> sj
+bj [label="%bj"];
+bj -> lj
+bj -> rg
+fr [label="%fr"];
+fr -> zp
+fr -> mr
+mr [label="%mr"];
+mr -> zp
+mr -> jd
+}
