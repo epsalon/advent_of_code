@@ -16,6 +16,17 @@ use Storable qw(dclone);
 BEGIN {push @INC, "../lib";}
 use Grid::Dense;
 
+my $DEBUG_ENABLED = 1;
+
+sub dbg {
+  return unless $DEBUG_ENABLED;
+  if (ref($out)) {
+    print Dumper($out);
+  } else {
+    say $out;
+  }
+}
+
 sub out {
   my $out = shift;
   if (ref($out)) {
