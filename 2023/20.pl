@@ -11,11 +11,9 @@ use AOC ':all';
 $AOC::DEBUG_ENABLED=0;
 $|=1;
 
-my @A;
-my %H;
-my %H2;
-my $sum=0;
-my %M;
+my %types;
+my %outputs;
+my %memory;
 my %interest;
 my %result;
 
@@ -23,15 +21,15 @@ while (<>) {
   chomp;
   last unless $_;
   my ($type,$mod,$to) = m{(.)(\S+) -> (.+)$};
-  $H{$mod} = $type;
-  $H2{$mod} = [split(', ',$to)];
+  $types{$mod} = $type;
+  $outputs{$mod} = [split(', ',$to)];
   $interest{$mod}++ if ($type eq '&')
 }
 
-while (my ($k,$v) = each %H2) {
+while (my ($k,$v) = each %outputs) {
   for my $n (@$v) {
-    next unless (($H{$n}//'') eq '&');
-    $M{$n}{$k}=0;
+    next unless (($types{$n}//'') eq '&');
+    $memory{$n}{$k}=0;
   }
 }
 
@@ -43,33 +41,26 @@ BIGLOOP: for (my $i=1; ; $i++) {
   while (@q) {
     my ($sig,$node,$prev) = @{shift @q};
     $counts[$sig]++;
-    my $type = $H{$node} or next; #die "node = $node";
+    my $type = $types{$node} or next; #die "node = $node";
     dbg "$prev -".($sig?'high':'low')."-> $type$node " unless ($type eq '%' && $sig);
-    if ($type eq 'b') {
-      for my $n (@{$H2{$node}}) {
-        push @q, [$sig,$n, $node];
-      }
-    } elsif ($type eq '%') {
+    if ($type eq '%') {
       next if $sig;
-      $M{$node}=!$M{$node};
-      for my $n (@{$H2{$node}}) {
-        push @q, [$M{$node},$n,$node];
-      }
+      $sig=$memory{$node}=!$memory{$node};
     } elsif ($type eq '&') {
-      $M{$node}{$prev} = $sig;
-      my $out = (notall {$_} (values(%{$M{$node}})));
-      if (!$out && $interest{$node}) {
+      $memory{$node}{$prev} = $sig;
+      $sig = (notall {$_} (values(%{$memory{$node}})));
+      if ($sig && $interest{$node}) {
         dbg("$node happy at $i");
         $result{$node} = $i;
         delete $interest{$node};
-        if (%interest == 1 && ($i > 1000)) {
+        if (!%interest && ($i > 1000)) {
           out(lcm(values(%result)));
           last BIGLOOP;
         }
       }
-      for my $n (@{$H2{$node}}) {
-        push @q, [$out,$n,$node];
-      }
+    }
+    for my $n (@{$outputs{$node}}) {
+      push @q, [$sig, $n, $node];
     }
   }
   out (product(@counts)) if ($i == 1000);
