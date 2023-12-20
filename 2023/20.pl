@@ -3,6 +3,7 @@ use strict;
 no warnings 'portable';
 use feature 'say';
 use List::Util qw/sum min max reduce any all none notall first product uniq pairs mesh zip/;
+use Math::Utils qw(:utility);    # Useful functions
 
 BEGIN {push @INC, "../lib";}
 use AOC ':all';
@@ -62,7 +63,7 @@ BIGLOOP: for (my $i=1; ; $i++) {
         $result{$node} = $i;
         delete $interest{$node};
         if (%interest == 1 && ($i > 1000)) {
-          out(product(values(%result)));
+          out(lcm(values(%result)));
           last BIGLOOP;
         }
       }
