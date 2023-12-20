@@ -8,7 +8,7 @@ use Math::Utils qw(:utility);    # Useful functions
 BEGIN {push @INC, "../lib";}
 use AOC ':all';
 
-$AOC::DEBUG_ENABLED=0;
+$AOC::DEBUG_ENABLED=1;
 $|=1;
 
 my %types;
@@ -43,7 +43,7 @@ BIGLOOP: for (my $i=1; ; $i++) {
     my ($sig,$node,$prev) = @{shift @q};
     $counts[$sig]++;
     my $type = $types{$node} // '';
-    dbg (($types{$prev}//'')."$prev -".($sig?'high':'low')."-> $type$node ");
+    dbg (($types{$prev}//'')."$prev -".($sig?'high':'low')."-> $type$node");
     next unless $type;
     if ($type eq '%') {
       next if $sig;
@@ -65,6 +65,9 @@ BIGLOOP: for (my $i=1; ; $i++) {
       push @q, [$sig, $n, $node];
     }
   }
-  out (product(@counts)) if ($i == 1000);
+  if ($i == 1000) {
+    dbg(\@counts);
+    out(product(@counts));
+  }
 }
 
