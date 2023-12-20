@@ -46,9 +46,10 @@ while (my ($k,$v) = each %H2) {
 my @counts;
 
 my %interest = (qw/zp 1 rg 1 sj 1 pp 1/);
+my %result;
 
-for my $i (1..1<<13) {
-  my @q=([0,'roadcaster','']);
+BIGLOOP: for (my $i=1; ; $i++) {
+  my @q=([0,'roadcaster','button']);
   while (@q) {
     my ($sig,$node,$prev) = @{shift @q};
     $counts[$sig]++;
@@ -69,13 +70,19 @@ for my $i (1..1<<13) {
       my $out = !(all {$_} (values(%{$M{$node}})));
       if (!$out && $interest{$node}) {
         say "$node happy at $i";
+        $result{$node} = $i;
+        delete $interest{$node};
+        unless (%interest) {
+          out(product(values(%result)));
+          last BIGLOOP;
+        }
       }
       for my $n (@{$H2{$node}}) {
         push @q, [$out,$n,$node];
       }
     }
   }
+  out (product(@counts)) if ($i == 1000);
 }
 #dbg(\%H);
 
-out (product(@counts));
