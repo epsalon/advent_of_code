@@ -61,7 +61,7 @@ BIGLOOP: for (my $i=1; ; $i++) {
         dbg("$node happy at $i");
         $result{$node} = $i;
         delete $interest{$node};
-        if (%interest == 1) {
+        if (%interest == 1 && ($i > 1000)) {
           out(product(values(%result)));
           last BIGLOOP;
         }
