@@ -37,12 +37,14 @@ my @counts;
 
 
 BIGLOOP: for (my $i=1; ; $i++) {
+  dbg "iteration $i";
   my @q=([0,'roadcaster','button']);
   while (@q) {
     my ($sig,$node,$prev) = @{shift @q};
     $counts[$sig]++;
-    my $type = $types{$node} or next; #die "node = $node";
-    dbg "$prev -".($sig?'high':'low')."-> $type$node " unless ($type eq '%' && $sig);
+    my $type = $types{$node} // '';
+    dbg (($types{$prev}//'')."$prev -".($sig?'high':'low')."-> $type$node ");
+    next unless $type;
     if ($type eq '%') {
       next if $sig;
       $sig=$memory{$node}=!$memory{$node};
