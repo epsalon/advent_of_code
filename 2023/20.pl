@@ -1,23 +1,13 @@
 #!/usr/bin/perl -w
 use strict;
 no warnings 'portable';
-use Data::Dumper;
 use feature 'say';
-use Clipboard;
 use List::Util qw/sum min max reduce any all none notall first product uniq pairs mesh zip/;
-use POSIX qw/floor ceil Inf log2/;
-use Math::Cartesian::Product;
-use Math::Complex;
-use List::PriorityQueue;
-use Memoize;
-use Term::ANSIColor qw(:constants);
-use Storable qw(dclone);
 
 BEGIN {push @INC, "../lib";}
 use AOC ':all';
-use Grid::Dense;
 
-#$AOC::DEBUG_ENABLED=0;
+$AOC::DEBUG_ENABLED=0;
 $|=1;
 
 my @A;
@@ -25,15 +15,16 @@ my %H;
 my %H2;
 my $sum=0;
 my %M;
-
-#while (my @R = arr_to_coords('#', read_2d_array())) {
+my %interest;
+my %result;
 
 while (<>) {
   chomp;
   last unless $_;
-  my ($mod,$to) = m{(.)(\S+) -> (.+)$};
-  $H{$2} = $1;
-  $H2{$2} = [split(', ',$3)];
+  my ($type,$mod,$to) = m{(.)(\S+) -> (.+)$};
+  $H{$mod} = $type;
+  $H2{$mod} = [split(', ',$to)];
+  $interest{$mod}++ if ($type eq '&')
 }
 
 while (my ($k,$v) = each %H2) {
@@ -45,8 +36,6 @@ while (my ($k,$v) = each %H2) {
 
 my @counts;
 
-my %interest = (qw/zp 1 rg 1 sj 1 pp 1/);
-my %result;
 
 BIGLOOP: for (my $i=1; ; $i++) {
   my @q=([0,'roadcaster','button']);
@@ -54,7 +43,7 @@ BIGLOOP: for (my $i=1; ; $i++) {
     my ($sig,$node,$prev) = @{shift @q};
     $counts[$sig]++;
     my $type = $H{$node} or next; #die "node = $node";
-    #dbg "$prev -".($sig?'high':'low')."-> $type$node " unless ($type eq '%' && $sig);
+    dbg "$prev -".($sig?'high':'low')."-> $type$node " unless ($type eq '%' && $sig);
     if ($type eq 'b') {
       for my $n (@{$H2{$node}}) {
         push @q, [$sig,$n, $node];
@@ -67,12 +56,12 @@ BIGLOOP: for (my $i=1; ; $i++) {
       }
     } elsif ($type eq '&') {
       $M{$node}{$prev} = $sig;
-      my $out = !(all {$_} (values(%{$M{$node}})));
+      my $out = (notall {$_} (values(%{$M{$node}})));
       if (!$out && $interest{$node}) {
-        say "$node happy at $i";
+        dbg("$node happy at $i");
         $result{$node} = $i;
         delete $interest{$node};
-        unless (%interest) {
+        if (%interest == 1) {
           out(product(values(%result)));
           last BIGLOOP;
         }
@@ -84,5 +73,4 @@ BIGLOOP: for (my $i=1; ; $i++) {
   }
   out (product(@counts)) if ($i == 1000);
 }
-#dbg(\%H);
 
