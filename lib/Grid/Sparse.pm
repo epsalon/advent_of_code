@@ -40,6 +40,7 @@ sub new {
       flipV => 0,
       data => {},
   };
+  return $self unless @data;
   if (ref($data[0]) eq 'HASH') {
     while (my ($k,$v) = each %{$data[0]}) {
       $self->_put(_clean($k), $v);
