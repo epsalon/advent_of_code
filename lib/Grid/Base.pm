@@ -145,8 +145,15 @@ sub to_str {
   $ostr.= "     ";
   if ($maxlen < 2) {
     for my $c ($min_c..$max_c) {
-      # TODO: Make it work for c > 100
-      $ostr.= abs($c) % 10 ? (' '):$c/10;
+      if (abs($c) % 10) {
+        $ostr.=' ';
+      } else {
+        my $c10 = $c/10;
+        if (length($c10) > 1) {
+          $ostr=substr($ostr,0,-length($c10)+1);
+        }
+        $ostr.= $c/10;
+      }
     }
     $ostr.= "\n     ";
   }
