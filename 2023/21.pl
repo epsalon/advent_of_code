@@ -24,40 +24,39 @@ $grid->iterate(sub {
   }
 });
 
-die "not centered" unless ($size == $sr*2+1 && $sr == $sc);
-
-die "Target is not multiplier of size" unless $TARGET % $size == $sr;
-my $multiplier = ($TARGET - $sr) / $size;
-
-sub megagrid {
-  my ($r,$c) = @_;
-  $r %= $size; $c %= $size;
-  return ($grid->at($r,$c) ne '#');
-}
-memoize('megagrid');
+my $modulus = $TARGET % $size;
+my $multiplier = ($TARGET - $modulus) / $size;
 
 my @values;
 my @open = "$sr,$sc";
-my %closed0;
-my %closed1;
-for my $i (1..$sr + 2*$size) {
+my @closed;
+for my $i (1..$modulus + 2*$size) {
   dbg($i);
   my %nopen;
-  my $closed = ($i&1?\%closed1:\%closed0);
+  my $closed = $closed[$i&1];
   for my $o (@open) {
     $closed->{$o}++;
     my ($r,$c) = split(',', $o);
     for my $d ([1,0],[-1,0],[0,1],[0,-1]) {
       my ($nr,$nc) = ($r+$d->[0],$c+$d->[1]);
-      next unless megagrid($nr,$nc);
-      next if $closed0{"$nr,$nc"};
-      next if $closed1{"$nr,$nc"};
+      next if $grid->at($nr % $size,$nc % $size) eq '#';
+      next if $closed[0]{"$nr,$nc"};
+      next if $closed[1]{"$nr,$nc"};
       $nopen{"$nr,$nc"}++;
     }
   }
   @open = keys %nopen;
-  my $count = ($i&1?%closed0:%closed1) + @open;
-  push @values, $count if ($i % $size == $sr);
+  my $count = %{$closed[1-$i&1]} + @open;
+  if ($i % $size == $modulus) {
+    push @values, $count;
+    # Verify that the input allows all possible values at cycle point
+    for my $j (0..$i) {
+      for my $c ([$j,$i-$j],[-$j,$i-$j],[-$j,$j-$i],[$j,$j-$i]) {
+        my ($cr,$cc) = ($sr+$c->[0], $sc+$c->[1]);
+        die "Not complete at ($cr,$cc)" unless $nopen{"$cr,$cc"};
+      }
+    }
+  }
   out($count) if ($i == $PART1);
   dbg($count);
 }
