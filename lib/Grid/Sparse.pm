@@ -20,7 +20,7 @@ sub _clean {
 
 sub _put {
   my ($self,$r,$c,$v) = @_;
-  unless (defined($v)) {
+  if (!defined($v) || (defined($self->{default}) && $v eq $self->{default})) {
     delete $self->{data}{"$r,$c"};
     return;
   }
