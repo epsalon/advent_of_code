@@ -122,9 +122,9 @@ sub to_str {
   # If the array is raw coords turn into array of [row, col]
   if (@hilite && !ref($hilite[0])) {
     my $h1 = $hilite[0];
-    if ($h1 =~ /^\d+,\d+/o) {
+    if ($h1 =~ /^[-\d]+,[-\d]+/o) {
       # "row,col"
-      @hilite = map {/^(\d+),(\d+)/o; [$1,$2]} @hilite;
+      @hilite = map {/^([-\d]+),([-\d]+)/o; [$1,$2]} @hilite;
     } else {
       # row, col, row, col
       @hilite = pairs(@hilite);
