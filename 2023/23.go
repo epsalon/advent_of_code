@@ -90,8 +90,8 @@ func simplify(graph map[coord][]neighbor, start coord, end coord) [][]simpleNeig
 		}
 		return coordMap[c]
 	}
-	getIdx(start)
 	getIdx(end)
+	getIdx(start)
 	for c, ns := range graph {
 		outNeigh := make([]simpleNeighbor, len(ns))
 		cidx := getIdx(c)
@@ -104,15 +104,15 @@ func simplify(graph map[coord][]neighbor, start coord, end coord) [][]simpleNeig
 	return outGraph
 }
 
-func dfs(graph [][]simpleNeighbor, c int, end int, pathMap uint64) int {
-	if c == end {
+func dfs(graph [][]simpleNeighbor, c int, pathMap uint64) int {
+	if c == 0 {
 		return 0
 	}
 	best := math.MinInt
 	pathMap = pathMap | (1 << c)
 	for _, n := range graph[c] {
 		if pathMap&(1<<n.Id) == 0 {
-			cost := dfs(graph, n.Id, end, pathMap) + n.Weight
+			cost := dfs(graph, n.Id, pathMap) + n.Weight
 			if cost > best {
 				best = cost
 			}
@@ -125,8 +125,8 @@ func longestPath(graph map[coord][]neighbor, start coord, end coord) int {
 	if len(graph) > 64 {
 		log.Fatalf("Graph size %d too large (max is 64)", len(graph))
 	}
-	simpleGraph := simplify(graph, 1, end)
-	return dfs(simpleGraph, 0, 1, 0)
+	simpleGraph := simplify(graph, start, end)
+	return dfs(simpleGraph, 1, 0)
 }
 
 func readGrid(fileName string) [][]string {
