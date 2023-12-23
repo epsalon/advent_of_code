@@ -104,27 +104,26 @@ func simplify(graph map[coord][]neighbor, start coord, end coord) [][]simpleNeig
 	return outGraph
 }
 
-func dfs(graph [][]simpleNeighbor, c int, end int, pathMap []bool) int {
+func dfs(graph [][]simpleNeighbor, c int, end int, pathMap uint64) int {
 	if c == end {
 		return 0
 	}
 	best := math.MinInt
-	pathMap[c] = true
+	pathMap = pathMap | (1 << c)
 	for _, n := range graph[c] {
-		if !pathMap[n.Id] {
+		if pathMap&(1<<n.Id) == 0 {
 			cost := dfs(graph, n.Id, end, pathMap) + n.Weight
 			if cost > best {
 				best = cost
 			}
 		}
 	}
-	pathMap[c] = false
 	return best
 }
 
 func longestPath(graph map[coord][]neighbor, start coord, end coord) int {
 	simpleGraph := simplify(graph, 1, end)
-	return dfs(simpleGraph, 0, 1, make([]bool, len(graph)))
+	return dfs(simpleGraph, 0, 1, 0)
 }
 
 func readGrid(fileName string) [][]string {
