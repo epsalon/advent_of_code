@@ -100,9 +100,13 @@ sub expand {
 
 sub find_path {
   my ($neigh,$start,$end) = @_;
-  my $shortcut = memoize(sub {
-    return shortcut($neigh,$end,@_);
-  });
+  my %shortcut;
+  my $shortcut = sub {
+   if (!$shortcut{$_[0]}) {
+     $shortcut{$_[0]} = [shortcut($neigh,$end,@_)];
+   }
+   return @{$shortcut{$_[0]}};
+  };
   my %best;
   my %p;
   my @path;
