@@ -39,47 +39,55 @@ sub chkdir {
   return $HH{$v} ne "$dx$dy";
 }
 
-sub md {
-  my $x = shift;
-  return -sum(split(',', $x));
+sub neigh1 {
+  my $coord=shift;
+  my @ret = map {
+    ($_->[1] ne '#' && chkdir($coord,@$_))?($_->[0]):()
+  } $grid->oneigh("$coord");
+  return @ret;
 }
 
-my %shortcut;
+sub neigh2 {
+  my $coord=shift;
+  return map {$_->[1] ne '#'?($_->[0]):()} $grid->oneigh("$coord");
+}
 
-my $END = "0,1";
-my $START = ($grid->rows()-1).",".($grid->cols()-2);
+my $START = "0,1";
+my $END = ($grid->rows()-1).",".($grid->cols()-2);
 
-$grid->iterate(sub {
-  my ($r,$c,$v) = @_;
-  return if ($v eq '#');
-  my $rc = "$r,$c";
-  my @y = grep {$_->[1] ne '#'} $grid->oneigh($rc);
-  return if (@y == 2);
+sub shortcut {
+  my $neigh = shift;
+  my $end = shift;
+  my $rc = shift;
+  my @y = $neigh->($rc);
+  my @shortcut;
   YYLOOP: for my $yy (@y) {
-    my ($prev,$coord)=($rc,$yy->[0]);
+    my ($prev,$coord)=($rc,$yy);
     my @n;
     my @path;
     do {
       push @path,$coord;
-      @n = grep {$_->[1] ne '#' && $_->[0] ne $prev} $grid->oneigh("$coord");
+      @n = grep {$_ ne $prev} $neigh->($coord);
       $prev = $coord;
       unless (@n) {
-        if ($prev ne $END) {
+        if ($prev ne $end) {
           next YYLOOP;
         }
       } else {
-        $coord = $n[0][0];
+        $coord = $n[0];
       }
     } while (@n == 1);
-    $shortcut{$rc}{$yy->[0]} = \@path;
+    push @shortcut, \@path;
   }
-});
+  return @shortcut;
+}
 
 sub expand {
+  my $shortcut = shift;
   my @path = shift;
   EX: while (@_) {
     my $next = shift;
-    for my $n (values(%{$shortcut{$path[-1]}})) {
+    for my $n ($shortcut->($path[-1])) {
       if ($n->[-1] eq $next) {
         push @path,@$n;
         next EX;
@@ -90,31 +98,42 @@ sub expand {
   return @path;
 }
 
-my %best;
-my %p;
-my @path;
-sub scan {
-  my ($o,$d) = @_;
-  #say "$o,$d";
-  $p{$o}++;
-  push @path, $o;
-  if (!$best{$o} || $best{$o} < $d) {
-    $best{$o}=$d;
-    if ($o eq $END) {
-      locate();
-      say $d;
-      $grid->print(expand(@path));
+sub find_path {
+  my ($neigh,$start,$end) = @_;
+  my $shortcut = memoize(sub {
+    return shortcut($neigh,$end,@_);
+  });
+  my %best;
+  my %p;
+  my @path;
+  my @bestpath;
+  my $scan;
+  $scan = sub {
+    my ($o,$d) = @_;
+    $p{$o}++;
+    push @path, $o;
+    if (!$best{$o} || $best{$o} < $d) {
+      $best{$o}=$d;
+      if ($o eq $end) {
+        @bestpath=@path;
+      }
     }
-  }
-  for my $n (values(%{$shortcut{$o}})) {
-    my $rc = $n->[-1];
-    next if ($p{$rc});
-    scan($rc,$d+@$n);
-  }
-  delete $p{$o};
-  pop @path;
+    for my $n ($shortcut->($o)) {
+      my $rc = $n->[-1];
+      next if ($p{$rc});
+      $scan->($rc,$d+@$n);
+    }
+    delete $p{$o};
+    pop @path;
+  };
+  $scan->($start,0);
+  return ($best{$end},expand($shortcut,@bestpath));
 }
 
-scan($START,0);
+my @p1 = find_path(\&neigh1, $START, $END);
+out(shift(@p1));
+$grid->print(@p1);
+my @p2 = find_path(\&neigh2, $END, $START);
+out(shift(@p2));
+$grid->print(@p2);
 
-out ($best{$END});
