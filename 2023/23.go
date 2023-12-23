@@ -144,6 +144,10 @@ func mkcoord(row int, col int) coord {
 }
 
 func main() {
-	grid := readGrid("23.in")
+	fileName := "/dev/stdin"
+	if len(os.Args) > 1 {
+		fileName = os.Args[1]
+	}
+	grid := readGrid(fileName)
 	fmt.Println(longestPath(mkgraph(grid, 1), mkcoord(0, 1), mkcoord(len(grid)-1, len(grid[0])-2)))
 }
