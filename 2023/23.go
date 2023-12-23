@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"log"
+	"math"
 	"os"
 	"strings"
 )
@@ -101,32 +102,31 @@ func simplify(graph map[coord][]neighbor, start coord, end coord) [][]simpleNeig
 	return outGraph
 }
 
-func longestPath(graph [][]simpleNeighbor, start int, end int) int {
-	pathMap := map[int]bool{}
-	best := 0
-	var dfs func(c int, cost int)
-	dfs = func(c int, cost int) {
-		if c == end {
-			if best < cost {
+func dfs(graph [][]simpleNeighbor, c int, end int, pathMap map[int]bool) int {
+	if c == end {
+		return 0
+	}
+	best := math.MinInt
+	pathMap[c] = true
+	for _, n := range graph[c] {
+		if !pathMap[n.Id] {
+			cost := dfs(graph, n.Id, end, pathMap) + n.Weight
+			if cost > best {
 				best = cost
 			}
-			return
 		}
-		if pathMap[c] {
-			return
-		}
-		pathMap[c] = true
-		for _, n := range graph[c] {
-			dfs(n.Id, cost+n.Weight)
-		}
-		pathMap[c] = false
 	}
-	dfs(start, 0)
+	delete(pathMap, c)
 	return best
 }
 
-func main() {
-	file, err := os.Open("23.in")
+func longestPath(graph map[coord][]neighbor, start coord, end coord) int {
+	simpleGraph := simplify(graph, 1, end)
+	return dfs(simpleGraph, 0, 1, map[int]bool{})
+}
+
+func readGrid(fileName string) [][]string {
+	file, err := os.Open(fileName)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -136,8 +136,14 @@ func main() {
 	for scanner.Scan() {
 		grid = append(grid, strings.Split(scanner.Text(), ""))
 	}
-	graph := mkgraph(grid, 1)
-	end := coord(complex(float32(len(grid[0])-2), float32(len(grid)-1)))
-	simpleGraph := simplify(graph, 1, end)
-	fmt.Println(longestPath(simpleGraph, 0, 1))
+	return grid
+}
+
+func mkcoord(row int, col int) coord {
+	return coord(complex(float32(col), float32(row)))
+}
+
+func main() {
+	grid := readGrid("23.in")
+	fmt.Println(longestPath(mkgraph(grid, 1), mkcoord(0, 1), mkcoord(len(grid)-1, len(grid[0])-2)))
 }
