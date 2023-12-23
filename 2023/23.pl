@@ -131,6 +131,21 @@ sub find_path {
     pop @path;
   };
   $scan->($start,0);
+  open(OUT, ">23.dot");
+  say OUT "graph AOC {";
+  while (my ($kk,$v) = each %shortcut) {
+    my $k=$kk;
+    $k =~ s/,/_/;
+    say OUT "  n$k [label = \"$kk\"]";
+    for my $x (@$v) {
+      my $n = $x->[-1];
+      next if ($kk lt $n);
+      $n =~ s/,/_/;
+      say OUT "  n$k -- n$n [label=\"".scalar(@$x)."\"]";
+    }
+  }
+  say OUT "}";
+  close(OUT);
   return ($best{$end},expand($shortcut,@bestpath));
 }
 
