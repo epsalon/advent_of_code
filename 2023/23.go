@@ -122,6 +122,9 @@ func dfs(graph [][]simpleNeighbor, c int, end int, pathMap uint64) int {
 }
 
 func longestPath(graph map[coord][]neighbor, start coord, end coord) int {
+	if len(graph) > 64 {
+		log.Fatalf("Graph size %d too large (max is 64)", len(graph))
+	}
 	simpleGraph := simplify(graph, 1, end)
 	return dfs(simpleGraph, 0, 1, 0)
 }
