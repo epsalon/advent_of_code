@@ -2,10 +2,12 @@ package main
 
 import (
 	"bufio"
+	"flag"
 	"fmt"
 	"log"
 	"math"
 	"os"
+	"runtime/pprof"
 	"strings"
 )
 
@@ -102,7 +104,7 @@ func simplify(graph map[coord][]neighbor, start coord, end coord) [][]simpleNeig
 	return outGraph
 }
 
-func dfs(graph [][]simpleNeighbor, c int, end int, pathMap map[int]bool) int {
+func dfs(graph [][]simpleNeighbor, c int, end int, pathMap []bool) int {
 	if c == end {
 		return 0
 	}
@@ -116,13 +118,13 @@ func dfs(graph [][]simpleNeighbor, c int, end int, pathMap map[int]bool) int {
 			}
 		}
 	}
-	delete(pathMap, c)
+	pathMap[c] = false
 	return best
 }
 
 func longestPath(graph map[coord][]neighbor, start coord, end coord) int {
 	simpleGraph := simplify(graph, 1, end)
-	return dfs(simpleGraph, 0, 1, map[int]bool{})
+	return dfs(simpleGraph, 0, 1, make([]bool, len(graph)))
 }
 
 func readGrid(fileName string) [][]string {
@@ -143,11 +145,22 @@ func mkcoord(row int, col int) coord {
 	return coord(complex(float32(col), float32(row)))
 }
 
+var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
+
 func main() {
+	flag.Parse()
 	fileName := "/dev/stdin"
-	if len(os.Args) > 1 {
-		fileName = os.Args[1]
+	if flag.NArg() > 0 {
+		fileName = flag.Arg(0)
 	}
 	grid := readGrid(fileName)
+	if *cpuprofile != "" {
+		f, err := os.Create(*cpuprofile)
+		if err != nil {
+			log.Fatal(err)
+		}
+		pprof.StartCPUProfile(f)
+		defer pprof.StopCPUProfile()
+	}
 	fmt.Println(longestPath(mkgraph(grid, 1), mkcoord(0, 1), mkcoord(len(grid)-1, len(grid[0])-2)))
 }

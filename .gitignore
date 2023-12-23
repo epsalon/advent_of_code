@@ -45,6 +45,7 @@ inc/
 # Profiler
 nytprof.out
 **/nytprof/**
+**/*.prof
 
 # Binaries
 bin/**
