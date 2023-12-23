@@ -48,37 +48,37 @@ my %shortcut;
 my $END = "0,1";
 my $START = ($grid->rows()-1).",".($grid->cols()-2);
 
+sub follow {
+  my ($rc, $y) = @_;
+  my ($prev,$coord)=($rc,$y);
+  my @n;
+  my @path;
+  do {
+    push @path,$coord;
+    @n = grep {$_->[1] ne '#' && $_->[0] ne $prev} $grid->oneigh("$coord");
+    $prev = $coord;
+    unless (@n) {
+      if ($prev ne $END) {
+        next YYLOOP;
+      }
+    } else {
+      $coord = $n[0][0];
+    }
+  } while (@n == 1);
+  say "$rc,$y => $prev";
+  $shortcut{$rc}{$y} = [$prev,scalar(@path)] unless ($prev eq $y);
+}
+
 $grid->iterate(sub {
   my ($r,$c,$v) = @_;
   return if ($v eq '#');
   my $coord = "$r,$c";
   my @y = grep {$_->[1] ne '#'} $grid->oneigh($coord);
-  return if (@y < 3);
+  return if (@y == 2);
   YYLOOP: for my $yy (@y) {
-    my $y=$yy->[0];
-    my ($prev,$coord)=($coord,$y);
-    my @n;
-    my @path;
-    do {
-      push @path,$coord;
-      @n = grep {$_->[1] ne '#' && $_->[0] ne $prev} $grid->oneigh("$coord");
-      $prev = $coord;
-      unless (@n) {
-        if ($prev ne $END) {
-          $shortcut{"$r,$c,$y"}=[0,0];
-          next YYLOOP;
-        }
-      } else {
-        $coord = $n[0][0];
-      }
-    } while (@n == 1);
-    say "$r,$c,$y => $prev";
-    $shortcut{"$r,$c,$y"} = [$prev,scalar(@path)] unless ($prev eq $y);
+    follow($coord,$yy->[0]);
   }
 });
-
-out(\%shortcut);
-say $END;
 
 my %best;
 my %bestp;
@@ -89,24 +89,12 @@ sub scan {
   $p{$o}++;
   if (!$best{$o} || $best{$o} < $d) {
     $best{$o}=$d;
-    if ($o eq $END) {
-      say "dist = ".($d-1);
-      $grid->print(keys %p);
-    }
   } else {
     #return;
   }
-  my @nn=$grid->oneigh($o);
-  for my $n (sort {md($a->[0]) <=> md($b->[0])} @nn) {
-    my ($rc,$v) = @$n;
-    next if ($v eq '#');
-    my $extra = 1;
-    if ($shortcut{"$o,$rc"}) {
-      ($rc,$extra)=@{$shortcut{"$o,$rc"}};
-      next unless $rc;
-    }
+  for my $n (values(%{$shortcut{$o}})) {
+    my ($rc,$extra) = @$n;
     next if ($p{$rc});
-    #next unless chkdir($o,$rc,$v);
     scan($rc,$d+$extra);
   }
   delete $p{$o};
