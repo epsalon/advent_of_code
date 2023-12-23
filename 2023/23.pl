@@ -131,28 +131,47 @@ sub find_path {
     pop @path;
   };
   $scan->($start,0);
-  open(OUT, ">23.dot");
-  say OUT "graph AOC {";
-  while (my ($kk,$v) = each %shortcut) {
-    my $k=$kk;
-    $k =~ s/,/_/;
-    say OUT "  n$k [label = \"$kk\"]";
-    for my $x (@$v) {
-      my $n = $x->[-1];
-      next if ($kk lt $n);
-      $n =~ s/,/_/;
-      say OUT "  n$k -- n$n [label=\"".scalar(@$x)."\"]";
-    }
-  }
-  say OUT "}";
-  close(OUT);
-  return ($best{$end},expand($shortcut,@bestpath));
+  return ($best{$end},\%shortcut,expand($shortcut,@bestpath));
 }
 
 my @p1 = find_path(\&neigh1, $START, $END);
 out(shift(@p1));
+my $sc1 = shift @p1;
 $grid->print(@p1);
+
+open(OUT, ">23a.dot");
+say OUT "digraph AOC {";
+while (my ($kk,$v) = each %$sc1) {
+  my $k=$kk;
+  $k =~ s/,/_/;
+  say OUT "  n$k [label = \"$kk\"]";
+  for my $x (@$v) {
+    my $n = $x->[-1];
+    $n =~ s/,/_/;
+    say OUT "  n$k -> n$n [label=\"".scalar(@$x)."\"]";
+  }
+}
+say OUT "}";
+close(OUT);
+
 my @p2 = find_path(\&neigh2, $END, $START);
 out(shift(@p2));
+my $sc2 = shift @p2;
+open(OUT, ">23.dot");
+say OUT "graph AOC {";
+while (my ($kk,$v) = each %$sc2) {
+  my $k=$kk;
+  $k =~ s/,/_/;
+  say OUT "  n$k [label = \"$kk\"]";
+  for my $x (@$v) {
+    my $n = $x->[-1];
+    next if ($kk lt $n);
+    $n =~ s/,/_/;
+    say OUT "  n$k -- n$n [label=\"".scalar(@$x)."\"]";
+  }
+}
+say OUT "}";
+close(OUT);
+
 $grid->print(@p2);
 
