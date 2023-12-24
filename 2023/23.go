@@ -14,6 +14,7 @@ import (
 type coord complex64
 
 var Neighbors = []coord{1, -1, 1i, -1i}
+var exclusionChars = []string{"<", ">", "^", "v"}
 
 type neighbor struct {
 	Coord  coord
@@ -25,30 +26,34 @@ type simpleNeighbor struct {
 	Weight int
 }
 
-func passable(grid [][]string, rc coord) bool {
+type neighborFun func(coord) []coord
+
+func passable(grid [][]string, rc coord) (bool, string) {
 	r, c := int(imag(rc)), int(real(rc))
 	if r < 0 || c < 0 || r >= len(grid) || c >= len(grid[0]) {
-		return false
+		return false, ""
 	}
-	return grid[r][c] != "#"
+	return grid[r][c] != "#", grid[r][c]
 }
 
-func passableNeighbors(grid [][]string, start coord) []coord {
-	ret := make([]coord, 0, 4)
-	for _, n := range Neighbors {
-		if passable(grid, start+n) {
-			ret = append(ret, start+n)
+func passableNeighbors(grid [][]string, enforceDirection bool) neighborFun {
+	return func(start coord) []coord {
+		ret := make([]coord, 0, 4)
+		for i, n := range Neighbors {
+			if ok, v := passable(grid, start+n); ok && (!enforceDirection || v != exclusionChars[i]) {
+				ret = append(ret, start+n)
+			}
 		}
+		return ret
 	}
-	return ret
 }
 
-func shortcut(grid [][]string, start coord) []neighbor {
+func shortcut(neighFn neighborFun, start coord) []neighbor {
 	ret := make([]neighbor, 0, 4)
-	for _, n := range passableNeighbors(grid, start) {
+	for _, n := range neighFn(start) {
 		prev, curr := start, n
 		w := 1
-		for neigh := passableNeighbors(grid, curr); len(neigh) == 2; neigh = passableNeighbors(grid, curr) {
+		for neigh := neighFn(curr); len(neigh) == 2; neigh = neighFn(curr) {
 			w = w + 1
 			if neigh[0] == prev {
 				prev, curr = curr, neigh[1]
@@ -61,7 +66,7 @@ func shortcut(grid [][]string, start coord) []neighbor {
 	return ret
 }
 
-func mkgraph(grid [][]string, start coord) map[coord][]neighbor {
+func mkgraph(grid neighborFun, start coord) map[coord][]neighbor {
 	graph := map[coord][]neighbor{}
 	closed := map[coord]bool{}
 	open := []coord{start}
@@ -164,5 +169,7 @@ func main() {
 		pprof.StartCPUProfile(f)
 		defer pprof.StopCPUProfile()
 	}
-	fmt.Println(longestPath(mkgraph(grid, 1), mkcoord(0, 1), mkcoord(len(grid)-1, len(grid[0])-2)))
+	start, end := mkcoord(0, 1), mkcoord(len(grid)-1, len(grid[0])-2)
+	fmt.Println(longestPath(mkgraph(passableNeighbors(grid, true), 1), start, end))
+	fmt.Println(longestPath(mkgraph(passableNeighbors(grid, false), 1), start, end))
 }
