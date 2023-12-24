@@ -60,14 +60,14 @@ for my $a (@A) {
 say $zout "(declare-const answer Real)";
 say $zout "(assert (= answer (+ x y z)))";
 say $zout "(check-sat)";
-say $zout "(get-model)";
+say $zout "(get-value (answer))";
 close($zout);
 
 waitpid($pid, 0);
 
 while (<$zin>) {
+  print;
   next unless /answer/;
-  $_=<$zin>; chomp;
   my ($ans) = m{\s+(\d+)\.}o or die;
   out($ans);
   last;
