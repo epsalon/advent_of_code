@@ -355,7 +355,7 @@ sub astar {
 
 sub smart_split {
   my $str = shift || $_;
-  return ($str =~ m{[a-zA-Z]+|\d+}go);
+  return ($str =~ m{[a-zA-Z]+|[-\d]+}go);
 }
 
 sub hashify {
