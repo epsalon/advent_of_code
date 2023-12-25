@@ -71,7 +71,7 @@
 <a href="2023/22.pl">
   <img src=".aoc_tiles/tiles/2023/22.png" width="161px">
 </a>
-<a href="2023/23.go">
+<a href="2023/23.pl">
   <img src=".aoc_tiles/tiles/2023/23.png" width="161px">
 </a>
 <a href="2023/24.pl">
