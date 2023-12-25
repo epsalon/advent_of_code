@@ -7,7 +7,7 @@ repos:
                 - --auto-add-tiles-to-git=amend
                 - --language-sorting=pl,py,go,c,c++
                 - --exclude-patterns="*/*.sh"
-                - --count-as-solved-when=on_leaderboard
+                - --count-as-solved-when=either
 
     -   repo: https://github.com/pre-commit/pre-commit-hooks
         rev: v4.5.0  # Use the ref you want to point at

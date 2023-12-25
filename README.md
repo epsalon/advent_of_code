@@ -78,7 +78,7 @@
   <img src=".aoc_tiles/tiles/2023/24.png" width="161px">
 </a>
 <h1 align="center">
-  2022 - 48 ⭐
+  2022 - 50 ⭐
 </h1>
 <a href="None">
   <img src=".aoc_tiles/tiles/2022/01.png" width="161px">
@@ -234,7 +234,7 @@
   <img src=".aoc_tiles/tiles/2021/25.png" width="161px">
 </a>
 <h1 align="center">
-  2020 - 48 ⭐
+  2020 - 50 ⭐
 </h1>
 <a href="2020/01.pl">
   <img src=".aoc_tiles/tiles/2020/01.png" width="161px">
@@ -308,8 +308,11 @@
 <a href="2020/24.pl">
   <img src=".aoc_tiles/tiles/2020/24.png" width="161px">
 </a>
+<a href="None">
+  <img src=".aoc_tiles/tiles/2020/25.png" width="161px">
+</a>
 <h1 align="center">
-  2019 - 20 ⭐
+  2019 - 22 ⭐
 </h1>
 <a href="2019/1.pl">
   <img src=".aoc_tiles/tiles/2019/01.png" width="161px">
