@@ -4,7 +4,7 @@ no warnings 'portable';
 use Data::Dumper;
 use feature 'say';
 use Clipboard;
-use List::Util qw/sum min max reduce any all none notall first product uniq pairs mesh zip/;
+use List::Util qw/sum min max reduce any all none notall first product uniq pairs mesh zip shuffle/;
 use Math::Cartesian::Product;
 use Math::Complex;
 use List::PriorityQueue;
@@ -17,60 +17,88 @@ BEGIN {push @INC, "../lib";}
 use AOC ':all';
 use Grid::Dense;
 
-$AOC::DEBUG_ENABLED=1;
+$AOC::DEBUG_ENABLED=0;
 $|=1;
 
 my @A;
 my %H;
+my %E0;
 my $sum=0;
 
 #my $grid = Grid::Dense->read();
 
-my $i=1;
-sub id {
-  if (!$H{$_[0]}) {
-    $H{$_[0]} = $i++;
-  }
-  return $H{$_[0]};
-}
 while (<>) {
   chomp;
-  my ($a,$b) = split(': ');
-  for my $x (split(' ',$b)) {
-    my ($x1,$x2) = ($a lt $x ? ($a,$x) : ($x,$a));
-    #say "$x1 -- $x2";
-    #say "graph.edge.append(Edge(".id($x1).",".id($x2)."))";
-    $H{$x1}{$x2}++;
-    $H{$x2}{$x1}++;
+  my ($a,$x) = split(': ');
+  for my $b (split(' ',$x)) {
+    my ($a1,$b1) = sort($a,$b);
+    push @{$H{$a1}},$b1;
+    push @{$H{$b1}},$a1;
+    $E0{"$a1,$b1"}++;
   }
-  $b =~ s/ /","/go;
-  #print "[\"$a\",\"$b\"],";
 }
 
-delete $H{lxb}{vcq};
-delete $H{rnx}{ddj};
-delete $H{mmr}{znk};
-delete $H{vcq}{lxb};
-delete $H{ddj}{rnx};
-delete $H{znk}{mmr};
+sub rep {
+  my $uf = shift;
+  my $key = shift;
+  my @found;
+  while (my $next = $uf->{$key}) {
+    push @found, $key;
+    $key=$next;
+  }
+  for my $f (@found) {
+    $uf->{$f} = $key;
+  }
+  return $key;
+}
 
-my @open = 'mmr';
+my $i=0;
+my @cut;
+while (@cut != 3) {
+  my %UF;
+  my @E = keys(%E0);
+  my %G = map {$_=>1} keys(%H);
+  my $vcount = scalar(%G);
+  while (%G > 2) {
+    my ($v1,$v2) = ('','');
+    my ($ov1,$ov2);
+    while ($v1 eq $v2) {
+      my $r = int(rand(@E));
+      my $e = $E[$r];
+      ($ov1,$ov2) = split(',', $e);
+      $v1=rep(\%UF,$ov1);
+      $v2=rep(\%UF,$ov2);
+      if ($v1 eq $v2) {
+        #say "delete $ov1 & $ov2 [map to $v1 = $v2]";
+        $E[$r]=$E[-1];
+        pop @E;
+      }
+    }
+    #say scalar(%E)." $v1 & $v2 ($ov1 & $ov2)";
+    $UF{$v2}=$v1;
+    delete $G{$v2};
+    $vcount--;
+  }
+  @cut = grep {my ($v1,$v2) = split(','); rep(\%UF,$v1) ne rep(\%UF,$v2)} @E;
+  dbg(scalar(@cut));
+}
+
+my @open=(split(',',$cut[0]))[0];
+
+for my $e (@cut) {
+  my ($a,$b) = split(',', $e);
+  $H{$a} = [grep {$_ ne $b} @{$H{$a}}];
+  $H{$b} = [grep {$_ ne $a} @{$H{$b}}];
+}
+
 my %closed;
 while (@open) {
   my $x = shift @open;
-  say "$x";
   $closed{$x}++;
-  for my $y (keys %{$H{$x}}) {
+  for my $y (@{$H{$x}}) {
     next if $closed{$y};
     push @open,$y;
   }
 }
 
-out(scalar(%closed));
-
 out(scalar(%closed)* (%H - %closed));
-
-#say $i;
-#out(\%H);
-
-#out ($sum);
