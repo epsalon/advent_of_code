@@ -51,5 +51,6 @@ nytprof.out
 bin/**
 
 # AOC tiles
-/.aoc_tiles/**/*
-!/.aoc_tiles/tiles/
+/.aoc_tiles/**
+!/.aoc_tiles/tiles
+!/.aoc_tiles/tiles/**
