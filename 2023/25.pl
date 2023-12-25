@@ -52,14 +52,11 @@ sub rep {
   return $key;
 }
 
-my $i=0;
-my @cut;
-while (@cut != 3) {
+sub fastmincut {
+  my $vcount = shift;
+  my @E = @_;
   my %UF;
-  my @E = keys(%E0);
-  my %G = map {$_=>1} keys(%H);
-  my $vcount = scalar(%G);
-  while (%G > 2) {
+  while ($vcount > 2) {
     my ($v1,$v2) = ('','');
     my ($ov1,$ov2);
     while ($v1 eq $v2) {
@@ -76,11 +73,15 @@ while (@cut != 3) {
     }
     #say scalar(%E)." $v1 & $v2 ($ov1 & $ov2)";
     $UF{$v2}=$v1;
-    delete $G{$v2};
     $vcount--;
   }
-  @cut = grep {my ($v1,$v2) = split(','); rep(\%UF,$v1) ne rep(\%UF,$v2)} @E;
-  dbg(scalar(@cut));
+  return grep {my ($v1,$v2) = split(','); rep(\%UF,$v1) ne rep(\%UF,$v2)} @E;
+}
+
+my $i=0;
+my @cut;
+while (@cut != 3) {
+  @cut = fastmincut(scalar(%H),keys(%E0));
 }
 
 my @open=(split(',',$cut[0]))[0];
