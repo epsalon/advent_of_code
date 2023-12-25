@@ -49,3 +49,7 @@ nytprof.out
 
 # Binaries
 bin/**
+
+# AOC tiles
+/.aoc_tiles/**/*
+!/.aoc_tiles/tiles/
