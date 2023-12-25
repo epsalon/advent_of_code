@@ -70,4 +70,3 @@ BIGLOOP: for (my $i=1; ; $i++) {
     out(product(@counts));
   }
 }
-

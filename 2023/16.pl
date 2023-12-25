@@ -62,4 +62,3 @@ for my $c (0..$cols-1) {
 }
 
 say($sum);
-

@@ -174,4 +174,3 @@ say OUT "}";
 close(OUT);
 
 $grid->print(@p2);
-
