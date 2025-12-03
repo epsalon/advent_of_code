@@ -62,8 +62,10 @@ for my $reps (2..$maxlen) {
       }
       $sum+=$vv if $flag && !$seen{$vv};
       $seen{$vv}++;
-      print "reps=$reps vv=$vv flag=$flag nv=$nv sum=$sum\n";
     }
+  }
+  if ($reps == 2) {
+    out ($sum);
   }
 }
 
