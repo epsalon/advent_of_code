@@ -40,12 +40,14 @@ do {
     }
     if ($t < 4) {
       $sum++;
-      $grid->set($r,$c,'x');
       push @A,[$r,$c];
     }
   });
   print "psum=$psum sum=$sum\n";
-  #print $grid->to_str(@A);
+  for my $x (@A) {
+    $grid->set(@$x, 'x');
+  }
+  $grid->print(@A) if ($psum!=$sum);
 } until ($psum==$sum);
 
 out ($sum);
