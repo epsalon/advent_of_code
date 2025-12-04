@@ -25,10 +25,9 @@ my $sum=0;
 
 my $grid = Grid::Dense->read();
 
-my $psum;
+my @A;
 do {
-  my @A;
-  $psum = $sum;
+  @A=();
   $grid->iterate(sub {
     my $r=shift; my $c=shift; my $v=shift;
     my $t=0;
@@ -43,11 +42,11 @@ do {
       push @A,[$r,$c];
     }
   });
-  print "psum=$psum sum=$sum\n";
+  print "sum=$sum\n";
   for my $x (@A) {
     $grid->set(@$x, 'x');
   }
-  $grid->print(@A) if ($psum!=$sum);
-} until ($psum==$sum);
+  $grid->print(@A) if (@A);
+} while (@A);
 
 out ($sum);
