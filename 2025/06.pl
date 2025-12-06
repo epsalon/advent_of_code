@@ -43,7 +43,6 @@ LOOP: while ($grid->bounds($mr,$c)) {
     }
     $nc++;
   } while ($grid->bounds($mr,$nc) && $grid->at($mr,$nc) eq ' ');
-  say "op = $op, vals=".join(',', @vals);
   if ($op eq '*') {
     $sum += product(@vals);
   } else {
