@@ -15,12 +15,14 @@ use Math::Utils qw(:utility !log10);    # Useful functions
 
 BEGIN {push @INC, "../lib";}
 use AOC ':all';
+use UF;
 use Grid::Dense;
 
 $AOC::DEBUG_ENABLED=1;
 $|=1;
 
 my @A;
+my @B;
 my %H;
 my $sum=0;
 
@@ -30,8 +32,9 @@ while (<>) {
   chomp;
   last unless $_;
   push @A, [split(',')];
-  $H{$#A}=$#A;
 }
+
+my $uf = UF->new([0..$#A]);
 
 my @d;
 
@@ -46,35 +49,13 @@ for my $i (0..$#A-1) {
 
 @d=sort {$a->[0] <=> $b->[0]} @d;
 
-sub find {
-  my $x = shift;
-  while ($x != $H{$x}) {
-    $x = $H{$x};
-  }
-  return $x;
-}
-
 my $i=1;
 while ($i < @A) {
-  my $x = shift @d;
-  my ($d,$a,$b) = @$x;
-  my $va = find($a);
-  my $vb = find($b);
-  say "a=$a b=$b d=$d va=$va vb=$vb";
-  say "A=",join(',', @{$A[$a]}), " B=",join(',', @{$A[$b]});
-  if ($va != $vb) {
-    $i++;
-    if ($i == @A) {
+  my $x=shift @d;
+  shift(@$x);
+  my ($a,$b) = @$x;
+  $i++ if ($uf->union($a,$b));
+  if ($i == @A) {
       out($A[$a]->[0] * $A[$b]->[0]);
-    }
-    $H{$vb}=$va;
   }
 }
-
-my %cnt;
-
-for my $j (0..$#A) {
-  $cnt{find($j)}++;
-}
-say "i=$i", " ccnt=",scalar(%cnt);
-dbg(\%cnt);
