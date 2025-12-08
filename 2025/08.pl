@@ -34,7 +34,7 @@ while (<>) {
   push @A, [split(',')];
 }
 
-my $uf = UF->new([0..$#A]);
+my $uf = new UF([0..$#A]);
 
 my @d;
 

@@ -3,16 +3,34 @@
 
 <!-- AOC TILES BEGIN -->
 <h1 align="center">
-  Advent of Code - 226/506 ⭐
+  Advent of Code - 238/516 ⭐
 </h1>
 <h1 align="center">
-  2025 - 4 ⭐ - Raku
+  2025 - 16 ⭐ - Raku
 </h1>
 <a href="2025/01.pl">
   <img src=".aoc_tiles/tiles/2025/01.png" width="161px">
 </a>
 <a href="2025/02.pl">
   <img src=".aoc_tiles/tiles/2025/02.png" width="161px">
+</a>
+<a href="2025/03.pl">
+  <img src=".aoc_tiles/tiles/2025/03.png" width="161px">
+</a>
+<a href="2025/04.pl">
+  <img src=".aoc_tiles/tiles/2025/04.png" width="161px">
+</a>
+<a href="2025/05.pl">
+  <img src=".aoc_tiles/tiles/2025/05.png" width="161px">
+</a>
+<a href="2025/06.pl">
+  <img src=".aoc_tiles/tiles/2025/06.png" width="161px">
+</a>
+<a href="2025/07.pl">
+  <img src=".aoc_tiles/tiles/2025/07.png" width="161px">
+</a>
+<a href="2025/08.pl">
+  <img src=".aoc_tiles/tiles/2025/08.png" width="161px">
 </a>
 <h1 align="center">
   2023 - 50 ⭐ - Raku
