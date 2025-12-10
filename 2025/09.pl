@@ -92,6 +92,8 @@ $grid->floodfill($f_x, $f_y,\%bhash, ' ');
 
 my ($b1,$b2);
 
+my $p1=0;
+
 for my $a (0..$#B-1) {
   RECT: for my $b ($a+1..$#B) {
     my ($x1,$y1) = @{$B[$a]};
@@ -102,6 +104,10 @@ for my $a (0..$#B-1) {
     if ($y1 > $y2) {
       ($y2,$y1) = ($y1,$y2);
     }
+    my $area=($xs[$x2]-$xs[$x1]+1) * ($ys[$y2]-$ys[$y1]+1);
+    if ($area > $p1) {
+      $p1 = $area;
+    }
     for my $x ($x1..$x2) {
       for my $y ($y1..$y2) {
         if ($grid->at($x,$y) eq '.') {
@@ -110,7 +116,6 @@ for my $a (0..$#B-1) {
         }
       }
     }
-    my $area=($xs[$x2]-$xs[$x1]+1) * ($ys[$y2]-$ys[$y1]+1);
     say "$x1 $y1 -- $x2 $y2 -- $area";
     if ($area > $sum) {
       $sum=$area;
@@ -121,4 +126,5 @@ for my $a (0..$#B-1) {
 
 $grid->print(@{$B[$b1]},@{$B[$b2]});
 
+out ($p1);
 out ($sum);
