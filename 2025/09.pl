@@ -50,10 +50,15 @@ my $grid = Grid::Dense->from_string(scalar((("." x @xs) . "\n") x @ys));
 
 my @B = map {[$xm{$_->[0]}, $ym{$_->[1]}]} @A;
 
+my $f_y;
+
 for my $i (0..$#B) {
   my $j = $i+1;
   $j = 0 if ($j == @B);
   my ($x1,$y1) = @{$B[$i]};
+  unless ($x1) {
+    $f_y=$y1;
+  }
   my ($x2,$y2) = @{$B[$j]};
   if ($x1 > $x2) {
     ($x2,$x1) = ($x1,$x2);
@@ -74,13 +79,16 @@ for my $b (@B) {
 }
 
 my %bhash = ('X', 1, '#', 1, ' ', 1);
+my $f_x;
 
-$grid->print();
+for my $x (0..$#xs) {
+  if ($grid->at($x, $f_y) eq '.') {
+    $f_x = $x;
+    last;
+  }
+}
 
-$grid->floodfill(110,110,\%bhash, ' ');
-
-$grid->print();
-
+$grid->floodfill($f_x, $f_y,\%bhash, ' ');
 
 for my $a (0..$#B-1) {
   RECT: for my $b ($a+1..$#B) {
