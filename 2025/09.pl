@@ -108,6 +108,9 @@ for my $a (0..$#B-1) {
     if ($area > $p1) {
       $p1 = $area;
     }
+    if ($area <= $sum) {
+      next;
+    }
     for my $x ($x1..$x2) {
       for my $y ($y1..$y2) {
         if ($grid->at($x,$y) eq '.') {
