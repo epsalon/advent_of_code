@@ -90,6 +90,8 @@ for my $x (0..$#xs) {
 
 $grid->floodfill($f_x, $f_y,\%bhash, ' ');
 
+my ($b1,$b2);
+
 for my $a (0..$#B-1) {
   RECT: for my $b ($a+1..$#B) {
     my ($x1,$y1) = @{$B[$a]};
@@ -112,10 +114,11 @@ for my $a (0..$#B-1) {
     say "$x1 $y1 -- $x2 $y2 -- $area";
     if ($area > $sum) {
       $sum=$area;
+      $b1=$a;$b2=$b;
     }
   }
 }
 
-dbg(\@A);
+$grid->print(@{$B[$b1]},@{$B[$b2]});
 
 out ($sum);
