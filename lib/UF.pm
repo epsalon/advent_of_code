@@ -17,7 +17,7 @@ sub new {
 sub find {
     my ($class, $e) = @_;
     my $H = $class->{rep};
-    my @es = ($e);
+    my @es;
     while ($e ne $H->{$e}) {
         push @es, $e;
         $e = $H->{$e};
