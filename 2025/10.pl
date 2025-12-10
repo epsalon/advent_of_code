@@ -45,7 +45,6 @@ while (<>) {
   my $j = $3;
   my @b = reverse(map {/\((.+)\)/;sum(map {1 << $_} split(',',$1))} split(' ',$2));
   my @j = split(',', $j);
-  my $pid = open2(my $chld_out, my $chld_in, 'lp_solve', '-S1');
   my $lp = 'Min: '.join('+',map {"x$_"} (0..$#b)).";\n";
   for my $i (0..$#j) {
     my @o;
@@ -57,7 +56,7 @@ while (<>) {
     $lp.=join('+', @o)." = $j[$i];\n"
   }
   $lp .= 'int '.join(',',map {"x$_"} (0..$#b)).";\n";
-  print "$lp";
+  my $pid = open2(my $chld_out, my $chld_in, 'lp_solve', '-S1');
   print $chld_in $lp;
   close($chld_in);
   <$chld_out>;
