@@ -19,11 +19,11 @@ use AOC ':all';
 use Grid::Dense;
 
 $AOC::DEBUG_ENABLED=1;
-my $ACTUALLY_SOLVE = 1;
 $|=1;
 
 my @A;
 my @SZ;
+my @MSZ;
 my %H;
 my $sum=0;
 
@@ -39,6 +39,7 @@ while (<>) {
     $size++ if $_[2] eq '#';
   });
   push @SZ,$size;
+  push @MSZ,$g->rows() * $g->cols();
   #my @S;
   #while (<>) {
   #  chomp;
@@ -119,54 +120,59 @@ sub dbgp {
   print "\n";
 }
 
-do {
+while (1) {
   chomp;
   print "$_\n";
   my ($sz,$ns) = split(': ');
   my ($cs,$rs) = split('x', $sz);
   my @ns = split(' ', $ns);
-  my $size=0;
+  my $minsize=0;
+  my $maxsize=0;
   for my $i (0..$#ns) {
-    $size += $ns[$i] * $SZ[$i];
+    $minsize += $ns[$i] * $SZ[$i];
+    $maxsize += $ns[$i] * $MSZ[$i];
   }
   my $gridsize = $rs*$cs;
-  say "size=$size gridsize=$gridsize sum=$sum";
-  if ($size > $gridsize) {
-    say "obviously impossible $size > $gridsize";
-  } elsif (!$ACTUALLY_SOLVE) {
-    say "possible?";
+  say "minsize=$minsize maxsize=$maxsize gridsize=$gridsize sum=$sum";
+  if ($minsize > $gridsize) {
+    say "obviously impossible $minsize > $gridsize";
+    next;
+  } 
+  if ($maxsize <= $gridsize) {
+    say "trivially possible $maxsize <= $gridsize";
     $sum++;
+    next;
   }
-  if ($ACTUALLY_SOLVE) {
-    my $nshapes = sum(@ns);
-    my $dlx = Algorithm::X::ExactCoverProblem->new($gridsize+$nshapes,undef,$gridsize);
-    my $rows=0;
-    my $sidx = 0;
-    for my $i (0..$#ns) {
-      say "i=$i";
-      my @pl = placeall($A[$i],$rs,$cs);
-      for my $j (0..$ns[$i]-1) {
-        for my $p (@pl) {
-          #dbgp($p,$rs,$cs);
-          my @row_to_add = (split(',',$p), $sidx+$gridsize);
-          #say "row $rows = ",join(',', @row_to_add);
-          $dlx->add_row(\@row_to_add); $rows++;
-        }
-        $sidx++;
+  my $nshapes = sum(@ns);
+  my $dlx = Algorithm::X::ExactCoverProblem->new($gridsize+$nshapes,undef,$gridsize);
+  my $rows=0;
+  my $sidx = 0;
+  for my $i (0..$#ns) {
+    say "i=$i";
+    my @pl = placeall($A[$i],$rs,$cs);
+    for my $j (0..$ns[$i]-1) {
+      for my $p (@pl) {
+        #dbgp($p,$rs,$cs);
+        my @row_to_add = (split(',',$p), $sidx+$gridsize);
+        #say "row $rows = ",join(',', @row_to_add);
+        $dlx->add_row(\@row_to_add); $rows++;
       }
-    }
-    say "rows = $rows, cols = ",($gridsize+$nshapes);
-    my $solver = Algorithm::X::DLX->new($dlx);
-    say "solving";
-    my $sols = $solver->get_solver();
-    if (my $sol = &$sols()) {
-      say "sol = ",join(',', @$sol);
-      $sum++;
-    } else {
-      say "no solutions";
+      $sidx++;
     }
   }
-} while (<>);
+  say "rows = $rows, cols = ",($gridsize+$nshapes);
+  my $solver = Algorithm::X::DLX->new($dlx);
+  say "solving";
+  my $sols = $solver->get_solver();
+  if (my $sol = &$sols()) {
+    say "sol = ",join(',', @$sol);
+    $sum++;
+  } else {
+    say "no solutions";
+  }
+} continue {
+  last unless defined($_=<>);
+}
 
 
 out ($sum);
